@@ -1,0 +1,77 @@
+/* Task Manager Styles */
+
+.task-manager {
+  padding: 20px;
+}
+
+.task-header h4 {
+  color: #333;
+  font-weight: 600;
+}
+
+/* Stats Cards */
+.stat-card {
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card h3 {
+  font-weight: 700;
+  margin: 0;
+}
+
+.stat-card.border-secondary {
+  border-color: #6c757d !important;
+}
+
+.stat-card.border-primary {
+  border-color: #0d6efd !important;
+}
+
+.stat-card.border-success {
+  border-color: #198754 !important;
+}
+
+.stat-card.border-danger {
+  border-color: #dc3545 !important;
+}
+
+/* Table */
+.table-danger {
+  background-color: #f8d7da !important;
+}
+
+.table th {
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .task-manager {
+    padding: 10px;
+  }
+
+  .stat-card h3 {
+    font-size: 1.5rem;
+  }
+
+  .btn-group {
+    flex-direction: column;
+  }
+
+  .btn-group .btn {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+}

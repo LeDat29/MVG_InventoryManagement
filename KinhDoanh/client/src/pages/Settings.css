@@ -1,0 +1,105 @@
+/* Settings Page Styles */
+
+.settings-page {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.settings-page h2 {
+  color: #333;
+  font-weight: 600;
+}
+
+/* Sidebar Navigation */
+.nav-pills .nav-link {
+  color: #495057;
+  border-radius: 8px;
+  margin-bottom: 5px;
+  transition: all 0.3s ease;
+}
+
+.nav-pills .nav-link:hover {
+  background-color: #f8f9fa;
+  color: #667eea;
+}
+
+.nav-pills .nav-link.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.nav-pills .nav-link i {
+  width: 20px;
+}
+
+/* Settings Content */
+.settings-content {
+  padding: 10px;
+}
+
+.settings-content h4 {
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.info-item label {
+  font-size: 0.85rem;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.info-item .fw-bold {
+  font-size: 1rem;
+  color: #333;
+}
+
+/* Provider Cards */
+.provider-card {
+  transition: all 0.3s ease;
+}
+
+.provider-card:hover {
+  background-color: #f8f9fa;
+  border-color: #667eea !important;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+/* Form Switches */
+.form-check-input:checked {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+.form-check-label strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* Cards */
+.settings-content .card {
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.settings-content .card:hover {
+  border-color: #dee2e6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .settings-page {
+    padding: 15px !important;
+  }
+
+  .nav-pills {
+    flex-direction: row;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .nav-pills .nav-link {
+    display: inline-block;
+  }
+}

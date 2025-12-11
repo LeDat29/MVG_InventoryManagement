@@ -1,0 +1,443 @@
+﻿/**
+ * Contract Management Routes - KHO MVG
+ * Hệ thống quản lý hợp đồng thuê kho xưởng chuyên nghiệp
+ */
+
+const express = require('express');
+const { body, param, query, validationResult } = require('express-validator');
+const { requireAuth, requirePermission } = require('../middleware/auth');
+const { mysqlPool } = require('../config/database');
+const { logUserActivity } = require('../utils/activityLogger');
+const { catchAsync } = require('../utils/errorHandler');
+
+const router = express.Router();
+
+// Apply authentication middleware
+router.use(requireAuth);
+
+/**
+ * @swagger
+ * /api/contracts:
+ *   get:
+ *     summary: Lấy danh sách hợp đồng với filter và pagination
+ *     tags: [Contracts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [draft, review, approved, signed, active, expired, terminated, cancelled]
+ *       - in: query
+ *         name: customer_id
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ */
+router.get('/', requirePermission('contract_read'), catchAsync(async (req, res) => {
+    const {
+        page = 1,
+        limit = 20,
+        status,
+        customer_id,
+        search,
+        workflow_stage,
+        start_date_from,
+        start_date_to
+    } = req.query;
+
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 20;
+    const offset = (pageNum - 1) * limitNum;
+    const pool = mysqlPool();
+
+    // Build WHERE clause
+    let whereConditions = ['c.id IS NOT NULL'];
+    const queryParams = [];
+
+    if (status) {
+        whereConditions.push('c.status = ?');
+        queryParams.push(status);
+    }
+
+    if (customer_id) {
+        whereConditions.push('c.customer_id = ?');
+        queryParams.push(customer_id);
+    }
+
+    if (workflow_stage) {
+        whereConditions.push('c.workflow_stage = ?');
+        queryParams.push(workflow_stage);
+    }
+
+    if (start_date_from) {
+        whereConditions.push('c.start_date >= ?');
+        queryParams.push(start_date_from);
+    }
+
+    if (start_date_to) {
+        whereConditions.push('c.start_date <= ?');
+        queryParams.push(start_date_to);
+    }
+
+    if (search) {
+        whereConditions.push(`(
+            c.contract_number LIKE ? OR 
+            c.contract_title LIKE ? OR 
+            c.party_b_name LIKE ? OR
+            cust.company_name LIKE ?
+        )`);
+        const searchTerm = `%${search}%`;
+        queryParams.push(searchTerm, searchTerm, searchTerm, searchTerm);
+    }
+
+    const whereClause = whereConditions.join(' AND ');
+
+    // Get contracts with customer info using whereClause and pagination
+    const [contracts] = await pool.execute(`
+        SELECT c.*, cust.company_name as company_name, cust.contact_person as customer_name,
+               p.name as project_name, wz.zone_name
+        FROM contracts c
+        LEFT JOIN customers cust ON c.customer_id = cust.id
+        LEFT JOIN projects p ON c.project_id = p.id
+        LEFT JOIN warehouse_zones wz ON c.zone_id = wz.id
+        WHERE ${whereClause}
+        ORDER BY c.id DESC
+        LIMIT ? OFFSET ?
+    `, [...queryParams, limitNum, offset]);
+
+    // Get total count
+    const [totalResult] = await pool.execute(`
+        SELECT COUNT(*) as total
+        FROM contracts c
+        LEFT JOIN customers cust ON c.customer_id = cust.id
+        LEFT JOIN projects p ON c.project_id = p.id
+        LEFT JOIN warehouse_zones wz ON c.zone_id = wz.id
+        WHERE ${whereClause}
+    `, queryParams);
+
+    const total = totalResult[0].total || 0;
+    const pages = Math.ceil(total / limitNum) || 1;
+
+    res.json({
+        success: true,
+        data: {
+            contracts,
+            pagination: {
+                page: parseInt(pageNum),
+                limit: parseInt(limitNum),
+                total,
+                pages,
+                hasNext: pageNum < pages,
+                hasPrev: pageNum > 1
+            }
+        }
+    });
+}));
+
+/**
+ * @swagger
+ * /api/contracts/{id}:
+ *   get:
+ *     summary: Lấy chi tiết hợp đồng
+ *     tags: [Contracts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ */
+router.get('/:id', requirePermission('contract_read'), [
+    param('id').isInt().withMessage('Contract ID phải là số nguyên')
+], catchAsync(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            success: false,
+            message: 'Dữ liệu không hợp lệ',
+            errors: errors.array()
+        });
+    }
+
+    const contractId = req.params.id;
+    const pool = mysqlPool();
+
+    // Get contract details with all related information
+    const [contracts] = await pool.execute(`
+        SELECT 
+            c.*,
+            cust.name as company_name,
+            cust.representative_name as customer_name,
+            cust.phone as customer_phone,
+            cust.email as customer_email,
+            cust.address as customer_address,
+            cust.tax_code,
+            p.name as project_name,
+            p.address as project_address,
+            wz.zone_code,
+            wz.zone_name,
+            wz.area as zone_area,
+            cr_by.username as created_by_name
+        FROM contracts c
+        LEFT JOIN customers cust ON c.customer_id = cust.id
+        LEFT JOIN customer_companies cc ON c.customer_company_id = cc.id
+        LEFT JOIN projects p ON c.project_id = p.id
+        LEFT JOIN warehouse_zones wz ON c.zone_id = wz.id
+        LEFT JOIN users cr_by ON c.created_by = cr_by.id
+        WHERE c.id = ?
+    `, [contractId]);
+
+    if (contracts.length === 0) {
+        return res.status(404).json({
+            success: false,
+            message: 'Hợp đồng không tìm thấy'
+        });
+    }
+
+    const contract = contracts[0];
+
+    // Get contract documents
+    const [documents] = await pool.execute(`
+        SELECT 
+            cd.*,
+            dc.category_name,
+            dc.description as category_description,
+            cr_by.username as created_by_name
+        FROM contract_documents cd
+        LEFT JOIN document_categories dc ON cd.category_id = dc.id
+        LEFT JOIN users cr_by ON cd.created_by = cr_by.id
+        WHERE cd.contract_id = ?
+        ORDER BY cd.category_id, cd.version DESC
+    `, [contractId]);
+
+    // Get contract variables
+    const [variables] = await pool.execute(`
+        SELECT variable_name, variable_value, variable_type
+        FROM contract_variables
+        WHERE contract_id = ?
+        ORDER BY variable_name
+    `, [contractId]);
+
+    // Get workflow history
+    const [workflowHistory] = await pool.execute(`
+        SELECT 
+            cwh.*,
+            u.username as performed_by_name
+        FROM contract_workflow_history cwh
+        LEFT JOIN users u ON cwh.performed_by = u.id
+        WHERE cwh.contract_id = ?
+        ORDER BY cwh.performed_at DESC
+    `, [contractId]);
+
+    // Get reviews
+    const [reviews] = await pool.execute(`
+        SELECT 
+            cr.*,
+            u.username as reviewer_name,
+            cd.document_name
+        FROM contract_reviews cr
+        LEFT JOIN users u ON cr.reviewer_id = u.id
+        LEFT JOIN contract_documents cd ON cr.document_id = cd.id
+        WHERE cr.contract_id = ?
+        ORDER BY cr.created_at DESC
+    `, [contractId]);
+
+    res.json({
+        success: true,
+        data: {
+            contract: {
+                ...contract,
+                variables: variables.reduce((acc, v) => {
+                    acc[v.variable_name] = v.variable_value;
+                    return acc;
+                }, {}),
+                template_variables: contract.template_variables ? JSON.parse(contract.template_variables) : []
+            },
+            documents,
+            workflow_history: workflowHistory,
+            reviews
+        }
+    });
+}));
+
+/**
+ * @swagger
+ * /api/contracts:
+ *   post:
+ *     summary: Tạo hợp đồng mới
+ *     tags: [Contracts]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post('/', requirePermission('contract_create'), [
+    body('contract_title').trim().notEmpty().withMessage('Tiêu đề hợp đồng là bắt buộc'),
+    body('customer_id').isInt().withMessage('Customer ID phải là số nguyên'),
+    body('template_id').isInt().withMessage('Template ID phải là số nguyên'),
+    body('warehouse_location').trim().notEmpty().withMessage('Vị trí kho là bắt buộc'),
+    body('warehouse_area').isFloat({ min: 0.1 }).withMessage('Diện tích kho phải lớn hơn 0'),
+    body('rental_price').isFloat({ min: 0 }).withMessage('Giá thuê phải >= 0'),
+    body('start_date').isDate().withMessage('Ngày bắt đầu không hợp lệ'),
+    body('end_date').isDate().withMessage('Ngày kết thúc không hợp lệ')
+], catchAsync(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            success: false,
+            message: 'Dữ liệu không hợp lệ',
+            errors: errors.array()
+        });
+    }
+
+    const {
+        contract_title,
+        customer_id,
+        customer_company_id,
+        template_id,
+        party_a_name,
+        party_a_address,
+        party_a_representative,
+        party_a_position,
+        party_a_id_number,
+        warehouse_location,
+        warehouse_area,
+        rental_price,
+        deposit_amount = 0,
+        service_fee = 0,
+        start_date,
+        end_date,
+        auto_renewal = false,
+        renewal_period = 12,
+        payment_cycle = 'monthly',
+        payment_due_date = 5,
+        payment_method,
+        late_fee_percentage = 2.0,
+        special_terms,
+        notes,
+        assigned_to,
+        variables = {}
+    } = req.body;
+
+    // Validate dates
+    if (new Date(start_date) >= new Date(end_date)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Ngày kết thúc phải sau ngày bắt đầu'
+        });
+    }
+
+    const pool = mysqlPool();
+
+    // Get customer and template info
+    const [customerInfo] = await pool.execute(`
+        SELECT 
+            cust.*,
+            cc.company_name as customer_company_name,
+            cc.tax_code,
+            cc.invoice_address
+        FROM customers cust
+        LEFT JOIN customer_companies cc ON cc.id = ?
+        WHERE cust.id = ?
+    `, [customer_company_id, customer_id]);
+
+    if (customerInfo.length === 0) {
+        return res.status(404).json({
+            success: false,
+            message: 'Khách hàng không tìm thấy'
+        });
+    }
+
+    const customer = customerInfo[0];
+
+    // Generate contract number
+    const year = new Date().getFullYear();
+    const month = (new Date().getMonth() + 1).toString().padStart(2, '0');
+    const [maxContract] = await pool.execute(`
+        SELECT contract_number 
+        FROM contracts 
+        WHERE contract_number LIKE 'HD${year}${month}%' 
+        ORDER BY contract_number DESC 
+        LIMIT 1
+    `);
+
+    let contractNumber;
+    if (maxContract.length > 0) {
+        const lastNumber = parseInt(maxContract[0].contract_number.slice(-4));
+        contractNumber = `HD${year}${month}${(lastNumber + 1).toString().padStart(4, '0')}`;
+    } else {
+        contractNumber = `HD${year}${month}0001`;
+    }
+
+    // Create contract
+    const [result] = await pool.execute(`
+        INSERT INTO contracts (
+            contract_number, contract_title, customer_id, customer_company_id, template_id,
+            party_a_name, party_a_address, party_a_representative, party_a_position, party_a_id_number,
+            party_b_name, party_b_address, party_b_representative, party_b_position, party_b_tax_code,
+            warehouse_location, warehouse_area, rental_price, deposit_amount, service_fee,
+            start_date, end_date, auto_renewal, renewal_period,
+            payment_cycle, payment_due_date, payment_method, late_fee_percentage,
+            special_terms, notes, created_by, assigned_to
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+        contractNumber, contract_title, customer_id, customer_company_id, template_id,
+        party_a_name, party_a_address, party_a_representative, party_a_position, party_a_id_number,
+        customer.customer_company_name || customer.full_name || customer.company_name,
+        customer.invoice_address || customer.address,
+        customer.full_name || customer.contact_person,
+        'Giám đốc',
+        customer.tax_code,
+        warehouse_location, warehouse_area, rental_price, deposit_amount, service_fee,
+        start_date, end_date, auto_renewal, renewal_period,
+        payment_cycle, payment_due_date, payment_method, late_fee_percentage,
+        special_terms, notes, req.user.id, assigned_to
+    ]);
+
+    const contractId = result.insertId;
+
+    // Insert variables
+    for (const [varName, varValue] of Object.entries(variables)) {
+        await pool.execute(`
+            INSERT INTO contract_variables (contract_id, variable_name, variable_value)
+            VALUES (?, ?, ?)
+        `, [contractId, varName, varValue]);
+    }
+
+    // Log activity
+    await logUserActivity(
+        req.user.id,
+        'CREATE_CONTRACT',
+        'contract',
+        contractId,
+        req.ip,
+        req.get('User-Agent'),
+        { contractNumber, contractTitle: contract_title }
+    );
+
+    res.status(201).json({
+        success: true,
+        message: 'Tạo hợp đồng thành công',
+        data: {
+            id: contractId,
+            contract_number: contractNumber
+        }
+    });
+}));
+
+module.exports = router;

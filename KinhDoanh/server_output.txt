@@ -1,0 +1,97 @@
+
+> kho-mvg-management@1.0.0 start
+> node server.js
+
+🔧 Đang khởi tạo database...
+
+================================================================================
+🚀 AUTO DATABASE INITIALIZATION - KHO MVG
+================================================================================
+
+(node:30476) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+✅ Kết nối MySQL thành công
+✅ Database 'kho_mvg' đã sẵn sàng
+
+🔄 Database đã tồn tại, kiểm tra cập nhật...
+
+🔧 Áp dụng indexes...
+⚠️  Warning executing statement: Table 'kho_mvg.documents' doesn't exist
+⚠️  Warning executing statement: Table 'kho_mvg.documents' doesn't exist
+⚠️  Warning executing statement: Table 'kho_mvg.documents' doesn't exist
+⚠️  Warning executing statement: Table 'kho_mvg.documents' doesn't exist
+⚠️  Warning executing statement: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'PRINT 'Database indexes created successfully!'' at line 1
+✅ Indexes đã được áp dụng
+
+📊 Tạo bảng client errors...
+✅ Client error tables đã được tạo
+
+👤 Kiểm tra admin user...
+✅ Admin user đã tồn tại
+
+================================================================================
+📊 DATABASE SUMMARY
+================================================================================
+
+📋 Tổng số tables: 13
+
+Top 10 tables:
+┌─────────────────────────────┬──────────┬────────────┐
+│ Table Name                  │ Rows     │ Size (MB)  │
+├─────────────────────────────┼──────────┼────────────┤
+│ ai_chat_messages            │        0 │       0.08 │
+│ ai_chat_sessions            │        1 │       0.08 │
+│ ai_function_definitions     │        0 │       0.03 │
+│ ai_query_cache              │        0 │       0.09 │
+│ contracts                   │        0 │       0.17 │
+│ customers                   │        0 │       0.11 │
+│ database_schema_docs        │        0 │       0.03 │
+│ projects                    │        0 │       0.17 │
+│ user_ai_configs             │        1 │       0.08 │
+│ user_logs                   │       15 │       0.16 │
+└─────────────────────────────┴──────────┴────────────┘
+
+✅ Database sẵn sàng sử dụng!
+================================================================================
+
+⚠️  MongoDB not configured or not available. Skipping MongoDB connection...
+✅ MySQL will be used for all data storage.
+✅ MongoDB connected successfully
+Ignoring invalid configuration option passed to Connection: acquireTimeout. This is currently a warning, but in future versions of MySQL2, an error will be thrown if you pass an invalid configuration option to a Connection
+Ignoring invalid configuration option passed to Connection: timeout. This is currently a warning, but in future versions of MySQL2, an error will be thrown if you pass an invalid configuration option to a Connection
+Ignoring invalid configuration option passed to Connection: reconnect. This is currently a warning, but in future versions of MySQL2, an error will be thrown if you pass an invalid configuration option to a Connection
+✅ MySQL connected successfully
+🚀 KHO MVG Server đang chạy tại port 5000
+📱 Environment: development
+📚 API Docs: http://localhost:5000/api/docs
+::1 - - [05/Dec/2025:08:34:06 +0000] "GET /health HTTP/1.1" 200 4583 "-" "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.19041.6456"
+Error Handler: {
+  message: 'Incorrect arguments to mysqld_stmt_execute',
+  stack: 'Error: Incorrect arguments to mysqld_stmt_execute\n' +
+    '    at PromisePool.execute (C:\\KinhDoanh\\node_modules\\mysql2\\lib\\promise\\pool.js:54:22)\n' +
+    '    at C:\\KinhDoanh\\routes\\users.js:156:32\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)',
+  url: '/api/users?page=1&limit=5',
+  method: 'GET',
+  ip: '::1',
+  userId: 1
+}
+Programming Error: {
+  message: 'Incorrect arguments to mysqld_stmt_execute',
+  code: 'ER_WRONG_ARGUMENTS',
+  errno: 1210,
+  sql: '\n' +
+    '                SELECT u.*, \n' +
+    '                       COUNT(DISTINCT up.project_id) as assigned_projects,\n' +
+    '                       COUNT(DISTINCT uai.id) as ai_configs_count,\n' +
+    '                       MAX(ul.created_at) as last_activity\n' +
+    '                FROM users u\n' +
+    '                LEFT JOIN user_project_permissions up ON u.id = up.user_id\n' +
+    '                LEFT JOIN user_ai_configs uai ON u.id = uai.user_id AND uai.is_active = TRUE\n' +
+    '                LEFT JOIN user_logs ul ON u.id = ul.user_id\n' +
+    '                WHERE u.is_active = TRUE\n' +
+    '             GROUP BY u.id ORDER BY u.created_at DESC LIMIT ? OFFSET ?',
+  sqlState: 'HY000',
+  sqlMessage: 'Incorrect arguments to mysqld_stmt_execute'
+}
+::1 - - [05/Dec/2025:08:34:36 +0000] "GET /api/users?page=1&limit=5 HTTP/1.1" 500 863 "-" "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.19041.6456"

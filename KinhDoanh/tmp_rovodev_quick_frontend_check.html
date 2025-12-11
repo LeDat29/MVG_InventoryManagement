@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KHO MVG - Quick Frontend Check</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .loading { background: #fff3cd; border-color: #ffeaa7; color: #856404; }
+        .data-display { background: #f8f9fa; padding: 10px; border-radius: 4px; margin: 10px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f2f2f2; }
+        button { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 KHO MVG - Frontend Functionality Check</h1>
+        
+        <div class="test-section loading" id="auth-section">
+            <h2>🔐 Authentication Test</h2>
+            <p id="auth-status">Testing authentication...</p>
+            <button onclick="testAuth()">Test Login</button>
+        </div>
+
+        <div class="test-section loading" id="customers-section">
+            <h2>👥 Customers Data Test</h2>
+            <p id="customers-status">Ready to test...</p>
+            <button onclick="testCustomers()">Load Customers</button>
+            <div id="customers-data" class="data-display" style="display:none;"></div>
+        </div>
+
+        <div class="test-section loading" id="contracts-section">
+            <h2>📋 Contracts Data Test</h2>
+            <p id="contracts-status">Ready to test...</p>
+            <button onclick="testContracts()">Load Contracts</button>
+            <div id="contracts-data" class="data-display" style="display:none;"></div>
+        </div>
+
+        <div class="test-section" id="summary-section">
+            <h2>📊 System Summary</h2>
+            <div id="summary-content">
+                <p>Run tests above to see system status...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = '';
+
+        async function testAuth() {
+            const authSection = document.getElementById('auth-section');
+            const authStatus = document.getElementById('auth-status');
+            
+            authStatus.textContent = 'Authenticating...';
+            authSection.className = 'test-section loading';
+
+            try {
+                const response = await fetch('http://localhost:5001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.data && data.data.token) {
+                    authToken = data.data.token;
+                    authStatus.innerHTML = `✅ Authentication successful!<br>User: ${data.data.user.username} (${data.data.user.role})`;
+                    authSection.className = 'test-section success';
+                } else {
+                    authStatus.textContent = '❌ Authentication failed: ' + (data.message || 'Unknown error');
+                    authSection.className = 'test-section error';
+                }
+            } catch (error) {
+                authStatus.textContent = '❌ Network error: ' + error.message;
+                authSection.className = 'test-section error';
+            }
+        }
+
+        async function testCustomers() {
+            const customersSection = document.getElementById('customers-section');
+            const customersStatus = document.getElementById('customers-status');
+            const customersData = document.getElementById('customers-data');
+            
+            if (!authToken) {
+                customersStatus.textContent = '⚠️ Please authenticate first';
+                return;
+            }
+
+            customersStatus.textContent = 'Loading customers...';
+            customersSection.className = 'test-section loading';
+
+            try {
+                const response = await fetch('http://localhost:5001/api/customers', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.data && data.data.customers) {
+                    const customers = data.data.customers;
+                    customersStatus.textContent = `✅ Found ${customers.length} customers`;
+                    customersSection.className = 'test-section success';
+                    
+                    // Display customers table
+                    let tableHtml = '<table><thead><tr><th>Code</th><th>Name</th><th>Type</th><th>Status</th></tr></thead><tbody>';
+                    customers.slice(0, 5).forEach(customer => {
+                        tableHtml += `<tr>
+                            <td>${customer.customer_code}</td>
+                            <td>${customer.name}</td>
+                            <td>${customer.customer_type}</td>
+                            <td>${customer.status}</td>
+                        </tr>`;
+                    });
+                    tableHtml += '</tbody></table>';
+                    
+                    if (customers.length > 5) {
+                        tableHtml += `<p>... and ${customers.length - 5} more customers</p>`;
+                    }
+                    
+                    customersData.innerHTML = tableHtml;
+                    customersData.style.display = 'block';
+                } else {
+                    customersStatus.textContent = '❌ Failed to load customers: ' + (data.message || 'No data');
+                    customersSection.className = 'test-section error';
+                }
+            } catch (error) {
+                customersStatus.textContent = '❌ Network error: ' + error.message;
+                customersSection.className = 'test-section error';
+            }
+        }
+
+        async function testContracts() {
+            const contractsSection = document.getElementById('contracts-section');
+            const contractsStatus = document.getElementById('contracts-status');
+            const contractsData = document.getElementById('contracts-data');
+            
+            if (!authToken) {
+                contractsStatus.textContent = '⚠️ Please authenticate first';
+                return;
+            }
+
+            contractsStatus.textContent = 'Loading contracts...';
+            contractsSection.className = 'test-section loading';
+
+            try {
+                const response = await fetch('http://localhost:5001/api/contracts', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.data && data.data.contracts) {
+                    const contracts = data.data.contracts;
+                    contractsStatus.textContent = `✅ Found ${contracts.length} contracts`;
+                    contractsSection.className = 'test-section success';
+                    
+                    // Display contracts table
+                    let tableHtml = '<table><thead><tr><th>Contract #</th><th>Customer</th><th>Status</th><th>Value</th></tr></thead><tbody>';
+                    contracts.forEach(contract => {
+                        tableHtml += `<tr>
+                            <td>${contract.contract_number}</td>
+                            <td>${contract.company_name || contract.customer_name}</td>
+                            <td>${contract.status}</td>
+                            <td>${new Intl.NumberFormat('vi-VN').format(contract.total_value)} VNĐ</td>
+                        </tr>`;
+                    });
+                    tableHtml += '</tbody></table>';
+                    
+                    contractsData.innerHTML = tableHtml;
+                    contractsData.style.display = 'block';
+                } else {
+                    contractsStatus.textContent = '❌ Failed to load contracts: ' + (data.message || 'No data');
+                    contractsSection.className = 'test-section error';
+                }
+            } catch (error) {
+                contractsStatus.textContent = '❌ Network error: ' + error.message;
+                contractsSection.className = 'test-section error';
+            }
+        }
+
+        // Auto-run authentication test
+        window.onload = function() {
+            testAuth();
+        };
+    </script>
+</body>
+</html>

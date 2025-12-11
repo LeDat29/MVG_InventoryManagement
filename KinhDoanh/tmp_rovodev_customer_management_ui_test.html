@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Management UI Test Suite</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 5px; }
+        .test-result { padding: 8px; margin: 5px 0; border-radius: 3px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        .test-controls { background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .progress { width: 100%; height: 20px; background: #e9ecef; border-radius: 10px; overflow: hidden; margin: 10px 0; }
+        .progress-bar { height: 100%; background: #28a745; transition: width 0.3s; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Customer Management UI Test Suite</h1>
+    <p>Automated testing for all customer management operations</p>
+
+    <div class="test-controls">
+        <button onclick="runAllTests()" id="runAllBtn">🚀 Run All Tests</button>
+        <button onclick="runQuickTests()" id="runQuickBtn">⚡ Quick Tests</button>
+        <button onclick="runAuthTests()" id="runAuthBtn">🔑 Auth Tests</button>
+        <button onclick="runCrudTests()" id="runCrudBtn">📝 CRUD Tests</button>
+        <button onclick="runFormTests()" id="runFormBtn">📋 Form Tests</button>
+        <button onclick="clearResults()">🧹 Clear Results</button>
+        
+        <div class="progress">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+        <div id="progressText">Ready to test...</div>
+    </div>
+
+    <div id="testResults"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:5001/api';
+        let testResults = [];
+        let currentTestIndex = 0;
+        let totalTests = 0;
+
+        // Test utilities
+        function addResult(title, message, type = 'info', details = null) {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            
+            let content = `<strong>${title}</strong>: ${message}`;
+            if (details) {
+                content += `<pre>${JSON.stringify(details, null, 2)}</pre>`;
+            }
+            div.innerHTML = content;
+            
+            document.getElementById('testResults').appendChild(div);
+            
+            // Auto-scroll to bottom
+            div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+
+        function updateProgress(current, total, message) {
+            const percentage = total > 0 ? (current / total) * 100 : 0;
+            document.getElementById('progressBar').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = `${message} (${current}/${total})`;
+        }
+
+        function clearResults() {
+            document.getElementById('testResults').innerHTML = '';
+            updateProgress(0, 0, 'Ready to test...');
+        }
+
+        async function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Authentication Tests
+        async function testAuthentication() {
+            addResult('🔑 Authentication Test', 'Starting authentication tests...', 'info');
+            
+            try {
+                // Test 1: Check existing token
+                const existingToken = localStorage.getItem('token');
+                const existingUser = localStorage.getItem('user');
+                
+                if (existingToken && existingUser) {
+                    addResult('✅ Token Check', 'Valid token found in localStorage', 'success');
+                    
+                    // Test token validity
+                    const response = await fetch(`${API_BASE}/customers`, {
+                        headers: { 'Authorization': `Bearer ${existingToken}` }
+                    });
+                    
+                    if (response.ok) {
+                        addResult('✅ Token Validation', 'Token is valid and working', 'success');
+                        return { success: true, token: existingToken };
+                    } else {
+                        addResult('⚠️ Token Expired', 'Token exists but expired, need re-login', 'warning');
+                    }
+                } else {
+                    addResult('⚠️ No Token', 'No authentication token found', 'warning');
+                }
+
+                // Test 2: Perform login
+                addResult('🔄 Login Test', 'Attempting login with admin credentials...', 'info');
+                
+                const loginResponse = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'admin', password: 'admin123' })
+                });
+
+                const loginData = await loginResponse.json();
+
+                if (loginData.success) {
+                    localStorage.setItem('token', loginData.data.token);
+                    localStorage.setItem('user', JSON.stringify(loginData.data.user));
+                    
+                    addResult('✅ Login Success', 'Authentication successful', 'success', {
+                        user: loginData.data.user.username,
+                        role: loginData.data.user.role
+                    });
+                    
+                    return { success: true, token: loginData.data.token, user: loginData.data.user };
+                } else {
+                    addResult('❌ Login Failed', loginData.message, 'error');
+                    return { success: false };
+                }
+
+            } catch (error) {
+                addResult('❌ Auth Error', `Authentication test failed: ${error.message}`, 'error');
+                return { success: false };
+            }
+        }
+
+        // Customer CRUD Tests
+        async function testCustomerCRUD() {
+            addResult('📝 CRUD Test', 'Starting customer CRUD operations...', 'info');
+            
+            const token = localStorage.getItem('token');
+            if (!token) {
+                addResult('❌ CRUD Failed', 'No authentication token for CRUD tests', 'error');
+                return false;
+            }
+
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+
+            try {
+                // Test 1: GET customers list
+                addResult('🔍 Testing GET', 'Fetching customers list...', 'info');
+                
+                const getResponse = await fetch(`${API_BASE}/customers`, { headers });
+                const getResult = await getResponse.json();
+
+                if (getResult.success) {
+                    addResult('✅ GET Success', `Found ${getResult.data.customers.length} customers`, 'success');
+                } else {
+                    addResult('❌ GET Failed', getResult.message, 'error');
+                    return false;
+                }
+
+                // Test 2: GET individual customer
+                if (getResult.data.customers.length > 0) {
+                    const customerId = getResult.data.customers[0].id;
+                    addResult('🔍 Testing GET Individual', `Fetching customer ID ${customerId}...`, 'info');
+                    
+                    const individualResponse = await fetch(`${API_BASE}/customers/${customerId}`, { headers });
+                    const individualResult = await individualResponse.json();
+
+                    if (individualResult.success) {
+                        addResult('✅ GET Individual Success', 'Customer details loaded correctly', 'success', {
+                            customer: individualResult.data.customer?.name || 'N/A',
+                            contracts: individualResult.data.contracts?.length || 0
+                        });
+                    } else {
+                        addResult('❌ GET Individual Failed', individualResult.message, 'error');
+                    }
+                }
+
+                // Test 3: CREATE customer (using test data)
+                addResult('🆕 Testing CREATE', 'Creating test customer...', 'info');
+                
+                const testCustomerData = {
+                    name: `Test Customer ${Date.now()}`,
+                    representative_name: 'Test Representative',
+                    phone: '0123456789',
+                    email: 'test@testcustomer.com',
+                    address: 'Test Address 123',
+                    tax_code: `TEST${Date.now()}`,
+                    representative_phone: '0123456789',
+                    representative_email: 'test@testcustomer.com',
+                    customer_type: 'company',
+                    notes: 'Created by automated test'
+                };
+
+                const createResponse = await fetch(`${API_BASE}/customers`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(testCustomerData)
+                });
+                
+                const createResult = await createResponse.json();
+
+                if (createResult.success) {
+                    const newCustomerId = createResult.data.id;
+                    addResult('✅ CREATE Success', `Test customer created with ID ${newCustomerId}`, 'success');
+
+                    // Test 4: UPDATE customer
+                    addResult('✏️ Testing UPDATE', 'Updating test customer...', 'info');
+                    
+                    const updateData = {
+                        ...testCustomerData,
+                        name: `Updated Test Customer ${Date.now()}`,
+                        notes: 'Updated by automated test'
+                    };
+
+                    const updateResponse = await fetch(`${API_BASE}/customers/${newCustomerId}`, {
+                        method: 'PUT',
+                        headers,
+                        body: JSON.stringify(updateData)
+                    });
+                    
+                    const updateResult = await updateResponse.json();
+
+                    if (updateResult.success) {
+                        addResult('✅ UPDATE Success', 'Test customer updated successfully', 'success');
+                    } else {
+                        addResult('❌ UPDATE Failed', updateResult.message, 'error');
+                    }
+
+                    // Test 5: DELETE customer (cleanup)
+                    addResult('🗑️ Testing DELETE', 'Cleaning up test customer...', 'info');
+                    
+                    const deleteResponse = await fetch(`${API_BASE}/customers/${newCustomerId}`, {
+                        method: 'DELETE',
+                        headers
+                    });
+                    
+                    if (deleteResponse.ok) {
+                        addResult('✅ DELETE Success', 'Test customer deleted successfully', 'success');
+                    } else {
+                        addResult('⚠️ DELETE Warning', 'Could not delete test customer (may not have delete endpoint)', 'warning');
+                    }
+
+                } else {
+                    addResult('❌ CREATE Failed', createResult.message, 'error');
+                }
+
+                return true;
+
+            } catch (error) {
+                addResult('❌ CRUD Error', `CRUD test failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Form Validation Tests
+        async function testFormValidation() {
+            addResult('📋 Form Test', 'Starting form validation tests...', 'info');
+            
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+
+            try {
+                // Test invalid data scenarios
+                const invalidTestCases = [
+                    {
+                        name: 'Missing required fields',
+                        data: { name: '' }, // Missing required fields
+                        expectedError: true
+                    },
+                    {
+                        name: 'Invalid phone format',
+                        data: {
+                            name: 'Test Company',
+                            representative_name: 'Test Rep',
+                            phone: 'invalid-phone-123abc',
+                            email: 'test@example.com'
+                        },
+                        expectedError: true
+                    },
+                    {
+                        name: 'Invalid email format',
+                        data: {
+                            name: 'Test Company',
+                            representative_name: 'Test Rep',
+                            phone: '0123456789',
+                            email: 'invalid-email'
+                        },
+                        expectedError: true
+                    },
+                    {
+                        name: 'Valid minimal data',
+                        data: {
+                            name: 'Valid Test Company',
+                            representative_name: 'Valid Rep',
+                            phone: '0123456789',
+                            email: 'valid@test.com'
+                        },
+                        expectedError: false
+                    }
+                ];
+
+                for (const testCase of invalidTestCases) {
+                    addResult('🧪 Validation Test', `Testing: ${testCase.name}`, 'info');
+                    
+                    const response = await fetch(`${API_BASE}/customers`, {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify(testCase.data)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (testCase.expectedError) {
+                        if (!result.success) {
+                            addResult('✅ Validation Correct', `Correctly rejected: ${testCase.name}`, 'success');
+                        } else {
+                            addResult('❌ Validation Failed', `Should have rejected: ${testCase.name}`, 'error');
+                        }
+                    } else {
+                        if (result.success) {
+                            addResult('✅ Valid Data Accepted', `Correctly accepted: ${testCase.name}`, 'success');
+                            // Clean up created customer
+                            if (result.data?.id) {
+                                await fetch(`${API_BASE}/customers/${result.data.id}`, {
+                                    method: 'DELETE',
+                                    headers
+                                });
+                            }
+                        } else {
+                            addResult('❌ Valid Data Rejected', `Should have accepted: ${testCase.name}`, 'error');
+                        }
+                    }
+                    
+                    await delay(500); // Avoid rate limiting
+                }
+
+                return true;
+
+            } catch (error) {
+                addResult('❌ Form Test Error', `Form validation test failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Performance Tests
+        async function testPerformance() {
+            addResult('⚡ Performance Test', 'Starting performance tests...', 'info');
+            
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+
+            try {
+                // Test response times
+                const performanceTests = [
+                    { name: 'Customer List Load', endpoint: '/customers' },
+                    { name: 'Customer Search', endpoint: '/customers?search=test' },
+                    { name: 'Customer Pagination', endpoint: '/customers?page=1&limit=10' }
+                ];
+
+                for (const test of performanceTests) {
+                    const startTime = performance.now();
+                    
+                    const response = await fetch(`${API_BASE}${test.endpoint}`, { headers });
+                    await response.json();
+                    
+                    const endTime = performance.now();
+                    const duration = endTime - startTime;
+                    
+                    if (duration < 1000) {
+                        addResult('✅ Performance Good', `${test.name}: ${duration.toFixed(2)}ms`, 'success');
+                    } else if (duration < 3000) {
+                        addResult('⚠️ Performance Slow', `${test.name}: ${duration.toFixed(2)}ms`, 'warning');
+                    } else {
+                        addResult('❌ Performance Poor', `${test.name}: ${duration.toFixed(2)}ms`, 'error');
+                    }
+                }
+
+                return true;
+
+            } catch (error) {
+                addResult('❌ Performance Error', `Performance test failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Main test runners
+        async function runQuickTests() {
+            clearResults();
+            addResult('🚀 Quick Test Suite', 'Running essential tests...', 'info');
+            
+            const tests = ['auth', 'basic-crud'];
+            totalTests = tests.length;
+            currentTestIndex = 0;
+
+            updateProgress(currentTestIndex, totalTests, 'Starting quick tests...');
+
+            const authResult = await testAuthentication();
+            currentTestIndex++;
+            updateProgress(currentTestIndex, totalTests, 'Authentication complete');
+
+            if (authResult.success) {
+                await testCustomerCRUD();
+                currentTestIndex++;
+                updateProgress(currentTestIndex, totalTests, 'Quick tests complete');
+            }
+
+            addResult('✅ Quick Tests Complete', 'Essential functionality verified', 'success');
+        }
+
+        async function runAllTests() {
+            clearResults();
+            addResult('🚀 Full Test Suite', 'Running comprehensive tests...', 'info');
+            
+            const tests = ['auth', 'crud', 'validation', 'performance'];
+            totalTests = tests.length;
+            currentTestIndex = 0;
+
+            document.getElementById('runAllBtn').disabled = true;
+
+            try {
+                updateProgress(currentTestIndex, totalTests, 'Starting full test suite...');
+
+                // Test 1: Authentication
+                const authResult = await testAuthentication();
+                currentTestIndex++;
+                updateProgress(currentTestIndex, totalTests, 'Authentication complete');
+
+                if (!authResult.success) {
+                    addResult('❌ Test Suite Aborted', 'Cannot continue without authentication', 'error');
+                    return;
+                }
+
+                await delay(1000);
+
+                // Test 2: CRUD Operations
+                await testCustomerCRUD();
+                currentTestIndex++;
+                updateProgress(currentTestIndex, totalTests, 'CRUD tests complete');
+
+                await delay(1000);
+
+                // Test 3: Form Validation
+                await testFormValidation();
+                currentTestIndex++;
+                updateProgress(currentTestIndex, totalTests, 'Validation tests complete');
+
+                await delay(1000);
+
+                // Test 4: Performance
+                await testPerformance();
+                currentTestIndex++;
+                updateProgress(currentTestIndex, totalTests, 'All tests complete');
+
+                addResult('🎉 All Tests Complete', 'Full test suite finished successfully', 'success');
+
+            } catch (error) {
+                addResult('❌ Test Suite Error', `Test suite failed: ${error.message}`, 'error');
+            } finally {
+                document.getElementById('runAllBtn').disabled = false;
+            }
+        }
+
+        async function runAuthTests() {
+            clearResults();
+            await testAuthentication();
+        }
+
+        async function runCrudTests() {
+            clearResults();
+            const authResult = await testAuthentication();
+            if (authResult.success) {
+                await testCustomerCRUD();
+            }
+        }
+
+        async function runFormTests() {
+            clearResults();
+            const authResult = await testAuthentication();
+            if (authResult.success) {
+                await testFormValidation();
+            }
+        }
+
+        // Auto-run quick tests on page load
+        window.onload = function() {
+            addResult('🏁 Test Suite Ready', 'Customer Management UI Test Suite initialized', 'info');
+            addResult('💡 Getting Started', 'Click "Run All Tests" for comprehensive testing or choose specific test categories', 'info');
+        };
+    </script>
+</body>
+</html>

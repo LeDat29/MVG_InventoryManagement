@@ -1,0 +1,692 @@
+﻿/**
+ * Contract Manager - Quản lý hợp đồng chính
+ */
+
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  Container, Row, Col, Card, Button, Table, Badge, Form, 
+  Modal, Tabs, Tab, Dropdown, OverlayTrigger, Tooltip 
+} from 'react-bootstrap';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNotification } from '../../contexts/NotificationContext';
+import LoadingSpinner from '../Common/LoadingSpinner';
+import ContractCreator from './ContractCreator';
+import contractService from '../../services/contractService';
+
+const ContractManager = () => {
+  const { hasPermission } = useAuth();
+  const { showSuccess, showError } = useNotification();
+  
+  const [loading, setLoading] = useState(true);
+  const [contracts, setContracts] = useState([]);
+  const [filteredContracts, setFilteredContracts] = useState([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedContract, setSelectedContract] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  
+  const [filters, setFilters] = useState({
+    search: '',
+    status: '',
+    workflow_stage: '',
+    start_date_from: '',
+    start_date_to: ''
+  });
+
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    pages: 0
+  });
+
+  // Contract statuses with colors
+  const contractStatuses = {
+    draft: { label: 'Bản nháp', variant: 'secondary' },
+    review: { label: 'Đang xem xét', variant: 'info' },
+    approved: { label: 'Đã duyệt', variant: 'success' },
+    signed: { label: 'Đã ký', variant: 'primary' },
+    active: { label: 'Đang hiệu lực', variant: 'success' },
+    expired: { label: 'Hết hạn', variant: 'warning' },
+    terminated: { label: 'Chấm dứt', variant: 'danger' },
+    cancelled: { label: 'Hủy bỏ', variant: 'dark' }
+  };
+
+  const workflowStages = {
+    preparation: { label: 'Chuẩn bị', icon: 'fas fa-edit' },
+    legal_review: { label: 'Xem xét pháp lý', icon: 'fas fa-balance-scale' },
+    approval: { label: 'Phê duyệt', icon: 'fas fa-check-circle' },
+    signing: { label: 'Ký kết', icon: 'fas fa-signature' },
+    execution: { label: 'Thực thi', icon: 'fas fa-play-circle' }
+  };
+
+  // Load contracts
+  const loadContracts = useCallback(async (page = 1) => {
+    try {
+      setLoading(true);
+      const params = {
+        page: page.toString(),
+        limit: pagination.limit.toString(),
+        ...filters
+      };
+
+      // Remove empty filters
+      Object.keys(params).forEach(key => {
+        if (!params[key]) delete params[key];
+      });
+
+      const response = await contractService.getContracts(params);
+      
+      if (response && response.success) {
+        const contractsData = Array.isArray(response.data.contracts) ? response.data.contracts : [];
+        const paginationData = response.data.pagination || { page: 1, limit: 20, total: contractsData.length, pages: 1 };
+
+        setContracts(contractsData);
+        setFilteredContracts(contractsData);
+        setPagination(paginationData);
+      } else {
+        showError(response.message || 'Không thể tải danh sách hợp đồng');
+      }
+    } catch (error) {
+      console.warn('Contract loading error:', error?.message || error);
+      // showError('Lỗi kết nối: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [filters, pagination.limit, showError]);
+
+  useEffect(() => {
+    if (hasPermission('contract_read')) {
+      loadContracts();
+    }
+  }, [hasPermission, loadContracts, pagination.page]);
+
+  // Handle filter changes
+  useEffect(() => {
+    // Debounce search to avoid too many API calls
+    const timeoutId = setTimeout(() => {
+      if (pagination.page === 1) {
+        loadContracts(1);
+      } else {
+        setPagination(prev => ({ ...prev, page: 1 }));
+        loadContracts(1);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [filters]);
+
+  // Format currency
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(amount);
+  };
+
+  // Calculate contract value
+  // const calculateContractValue = (contract) => {
+  //   const startDate = new Date(contract.start_date);
+  //   const endDate = new Date(contract.end_date);
+  //   const months = (endDate.getFullYear() - startDate.getFullYear()) * 12 + 
+  //                  (endDate.getMonth() - startDate.getMonth());
+  //   return contract.rental_price * months;
+  // };
+
+  // Handle contract status change
+  const handleStatusChange = async (contractId, newStatus, newStage) => {
+    try {
+      const statusData = { 
+        status: newStatus, 
+        workflow_stage: newStage,
+        comment: `Chuyển trạng thái sang ${contractStatuses[newStatus]?.label}` 
+      };
+
+      const response = await contractService.updateContractStatus(contractId, statusData);
+      
+      if (response.success) {
+        showSuccess('Cập nhật trạng thái thành công');
+        loadContracts(pagination.page);
+      } else {
+        showError(response.message || 'Không thể cập nhật trạng thái');
+      }
+    } catch (error) {
+      showError('Lỗi kết nối: ' + error.message);
+    }
+  };
+
+  // View contract details
+  const viewContractDetails = async (contractId) => {
+    try {
+      const response = await contractService.getContract(contractId);
+      
+      if (response.success) {
+        setSelectedContract(response.data);
+        setShowDetailModal(true);
+      } else {
+        showError(response.message || 'Không thể tải chi tiết hợp đồng');
+      }
+    } catch (error) {
+      showError('Lỗi kết nối: ' + error.message);
+    }
+  };
+
+  if (!hasPermission('contract_read')) {
+    return (
+      <Container className="mt-4">
+        <div className="alert alert-warning">
+          Bạn không có quyền truy cập quản lý hợp đồng.
+        </div>
+      </Container>
+    );
+  }
+
+  return (
+    <div className="mt-4">
+      <Row>
+        <Col>
+          {/* Header */}
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+              <i className="fas fa-file-contract me-2"></i>
+              Quản lý hợp đồng
+            </h2>
+            
+            {hasPermission('contract_create') && (
+              <Button 
+                variant="primary" 
+                onClick={() => setShowCreateModal(true)}
+              >
+                <i className="fas fa-plus me-2"></i>
+                Tạo hợp đồng mới
+              </Button>
+            )}
+          </div>
+
+          {/* Filters */}
+          <Card className="mb-4">
+            <Card.Header>
+              <h5 className="mb-0">
+                <i className="fas fa-filter me-2"></i>
+                Bộ lọc
+              </h5>
+            </Card.Header>
+            <Card.Body>
+              <Row>
+                <Col md={3}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Tìm kiếm</Form.Label>
+                    <Form.Control
+                      type="text"
+                      placeholder="Số HĐ, tên khách hàng..."
+                      value={filters.search}
+                      onChange={(e) => setFilters(prev => ({ 
+                        ...prev, 
+                        search: e.target.value 
+                      }))}
+                    />
+                  </Form.Group>
+                </Col>
+                
+                <Col md={2}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Trạng thái</Form.Label>
+                    <Form.Select
+                      value={filters.status}
+                      onChange={(e) => setFilters(prev => ({ 
+                        ...prev, 
+                        status: e.target.value 
+                      }))}
+                    >
+                      <option value="">Tất cả</option>
+                      {Object.entries(contractStatuses).map(([key, status]) => (
+                        <option key={key} value={key}>{status.label}</option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+                
+                <Col md={2}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Giai đoạn</Form.Label>
+                    <Form.Select
+                      value={filters.workflow_stage}
+                      onChange={(e) => setFilters(prev => ({ 
+                        ...prev, 
+                        workflow_stage: e.target.value 
+                      }))}
+                    >
+                      <option value="">Tất cả</option>
+                      {Object.entries(workflowStages).map(([key, stage]) => (
+                        <option key={key} value={key}>{stage.label}</option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+                
+                <Col md={2}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Từ ngày</Form.Label>
+                    <Form.Control
+                      type="date"
+                      value={filters.start_date_from}
+                      onChange={(e) => setFilters(prev => ({ 
+                        ...prev, 
+                        start_date_from: e.target.value 
+                      }))}
+                    />
+                  </Form.Group>
+                </Col>
+                
+                <Col md={2}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Đến ngày</Form.Label>
+                    <Form.Control
+                      type="date"
+                      value={filters.start_date_to}
+                      onChange={(e) => setFilters(prev => ({ 
+                        ...prev, 
+                        start_date_to: e.target.value 
+                      }))}
+                    />
+                  </Form.Group>
+                </Col>
+                
+                <Col md={1} className="d-flex align-items-end">
+                  <Button 
+                    variant="outline-secondary" 
+                    onClick={() => setFilters({
+                      search: '',
+                      status: '',
+                      workflow_stage: '',
+                      start_date_from: '',
+                      start_date_to: ''
+                    })}
+                  >
+                    <i className="fas fa-undo"></i>
+                  </Button>
+                </Col>
+              </Row>
+            </Card.Body>
+          </Card>
+
+          {/* Contracts Table */}
+          <Card>
+            <Card.Header className="d-flex justify-content-between align-items-center">
+              <h5 className="mb-0">
+                Danh sách hợp đồng ({pagination.total})
+              </h5>
+              
+              <div className="d-flex gap-2">
+                <Button variant="outline-primary" size="sm">
+                  <i className="fas fa-download me-2"></i>
+                  Xuất Excel
+                </Button>
+                <Button variant="outline-secondary" size="sm" onClick={() => loadContracts(pagination.page)}>
+                  <i className="fas fa-sync-alt"></i>
+                </Button>
+              </div>
+            </Card.Header>
+            
+            <Card.Body className="p-0">
+              {loading ? (
+                <div className="text-center p-4">
+                  <LoadingSpinner />
+                </div>
+              ) : (
+                <Table responsive hover className="mb-0">
+                  <thead className="table-light">
+                    <tr>
+                      <th>Số hợp đồng</th>
+                      <th>Khách hàng</th>
+                      <th>Dự án</th>
+                      <th>Diện tích</th>
+                      <th>Giá thuê/tháng</th>
+                      <th>Thời hạn</th>
+                      <th>Trạng thái</th>
+                      <th>Giai đoạn</th>
+                      <th>Người phụ trách</th>
+                      <th>Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(filteredContracts || []).map(contract => (
+                      <tr key={contract.id}>
+                        <td>
+                          <strong>{contract.contract_number}</strong>
+                          <br/>
+                          <small className="text-muted">
+                            {new Date(contract.created_at).toLocaleDateString('vi-VN')}
+                          </small>
+                        </td>
+                        <td>
+                          <div>
+                            <strong>{contract.customer_company_name || contract.company_name}</strong>
+                            <br/>
+                            <small className="text-muted">{contract.customer_name}</small>
+                          </div>
+                        </td>
+                        <td>
+                          <div>
+                            <strong>{contract.project_name || 'Chưa phân bổ'}</strong>
+                            <br/>
+                            <small className="text-muted">{contract.warehouse_location}</small>
+                          </div>
+                        </td>
+                        <td>
+                          {contract.warehouse_area ?? 'N/A'} m²
+                        </td>
+                        <td>
+                          {formatCurrency(contract.rental_price ?? 0)}
+                          <br/>
+                          <small className="text-muted">
+                            {contract.warehouse_area ? formatCurrency((contract.rental_price ?? 0) / contract.warehouse_area) + '/m²' : 'N/A'}
+                          </small>
+                        </td>
+                        <td>
+                          {new Date(contract.start_date).toLocaleDateString('vi-VN')}
+                          <br/>
+                          <small className="text-muted">
+                            → {new Date(contract.end_date).toLocaleDateString('vi-VN')}
+                          </small>
+                        </td>
+                        <td>
+                          <Badge bg={contractStatuses[contract.status]?.variant || 'secondary'}>
+                            {contractStatuses[contract.status]?.label || contract.status}
+                          </Badge>
+                        </td>
+                        <td>
+                          <div className="d-flex align-items-center">
+                            <i className={`${workflowStages[contract.workflow_stage]?.icon} me-2`}></i>
+                            <small>{workflowStages[contract.workflow_stage]?.label}</small>
+                          </div>
+                        </td>
+                        <td>
+                          {contract.assigned_to_name ? (
+                            <Badge bg="info">{contract.assigned_to_name}</Badge>
+                          ) : (
+                            <span className="text-muted">Chưa giao</span>
+                          )}
+                        </td>
+                        <td>
+                          <div className="d-flex gap-1">
+                            <OverlayTrigger 
+                              overlay={<Tooltip>Xem chi tiết</Tooltip>}
+                            >
+                              <Button 
+                                variant="outline-primary" 
+                                size="sm"
+                                onClick={() => viewContractDetails(contract.id)}
+                              >
+                                <i className="fas fa-eye"></i>
+                              </Button>
+                            </OverlayTrigger>
+                            
+                            {hasPermission('contract_update') && (
+                              <Dropdown>
+                                <Dropdown.Toggle 
+                                  variant="outline-secondary" 
+                                  size="sm"
+                                  id={`dropdown-${contract.id}`}
+                                >
+                                  <i className="fas fa-cog"></i>
+                                </Dropdown.Toggle>
+                                <Dropdown.Menu>
+                                  <Dropdown.Item 
+                                    onClick={() => handleStatusChange(contract.id, 'review', 'legal_review')}
+                                  >
+                                    <i className="fas fa-eye me-2"></i>
+                                    Gửi xem xét
+                                  </Dropdown.Item>
+                                  <Dropdown.Item 
+                                    onClick={() => handleStatusChange(contract.id, 'approved', 'signing')}
+                                  >
+                                    <i className="fas fa-check me-2"></i>
+                                    Phê duyệt
+                                  </Dropdown.Item>
+                                  <Dropdown.Item 
+                                    onClick={() => handleStatusChange(contract.id, 'signed', 'execution')}
+                                  >
+                                    <i className="fas fa-signature me-2"></i>
+                                    Đã ký
+                                  </Dropdown.Item>
+                                  <Dropdown.Divider />
+                                  <Dropdown.Item className="text-danger">
+                                    <i className="fas fa-trash me-2"></i>
+                                    Hủy bỏ
+                                  </Dropdown.Item>
+                                </Dropdown.Menu>
+                              </Dropdown>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              )}
+            </Card.Body>
+            
+            {/* Pagination */}
+            {pagination.pages > 1 && (
+              <Card.Footer>
+                <div className="d-flex justify-content-between align-items-center">
+                  <small className="text-muted">
+                    Hiển thị {((pagination.page - 1) * pagination.limit) + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)} 
+                    trong tổng số {pagination.total} hợp đồng
+                  </small>
+                  
+                  <div className="d-flex gap-2">
+                    <Button 
+                      variant="outline-secondary" 
+                      size="sm"
+                      disabled={pagination.page === 1}
+                      onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                    >
+                      <i className="fas fa-chevron-left"></i>
+                    </Button>
+                    
+                    <span className="d-flex align-items-center px-3">
+                      Trang {pagination.page} / {pagination.pages}
+                    </span>
+                    
+                    <Button 
+                      variant="outline-secondary" 
+                      size="sm"
+                      disabled={pagination.page === pagination.pages}
+                      onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                    >
+                      <i className="fas fa-chevron-right"></i>
+                    </Button>
+                  </div>
+                </div>
+              </Card.Footer>
+            )}
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Create Contract Modal */}
+      <ContractCreator
+        show={showCreateModal}
+        onHide={() => setShowCreateModal(false)}
+        onSuccess={() => {
+          setShowCreateModal(false);
+          loadContracts(pagination.page);
+        }}
+      />
+
+      {/* Contract Detail Modal */}
+      {selectedContract && (
+        <Modal 
+          show={showDetailModal} 
+          onHide={() => setShowDetailModal(false)} 
+          size="xl"
+          scrollable
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>
+              Chi tiết hợp đồng {selectedContract.contract.contract_number}
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <ContractDetailView contract={selectedContract} />
+          </Modal.Body>
+        </Modal>
+      )}
+    </div>
+  );
+};
+
+// Contract Detail Component  
+const ContractDetailView = ({ contract }) => {
+  return (
+    <Tabs defaultActiveKey="overview" id="contract-detail-tabs">
+      <Tab eventKey="overview" title="Tổng quan">
+        <div className="pt-3">
+          <Row>
+            <Col md={6}>
+              <h5>Thông tin hợp đồng</h5>
+              <Table size="sm">
+                <tbody>
+                  <tr>
+                    <td><strong>Số hợp đồng:</strong></td>
+                    <td>{contract.contract.contract_number}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Tiêu đề:</strong></td>
+                    <td>{contract.contract.contract_title}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Dự án:</strong></td>
+                    <td>{contract.contract.project_name || 'Chưa phân bổ'}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Kho:</strong></td>
+                    <td>{contract.contract.warehouse_location}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Diện tích:</strong></td>
+                    <td>{contract.contract.warehouse_area} m²</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Giá thuê:</strong></td>
+                    <td>{new Intl.NumberFormat('vi-VN').format(contract.contract.rental_price)} VNĐ/tháng</td>
+                  </tr>
+                </tbody>
+              </Table>
+            </Col>
+            <Col md={6}>
+              <h5>Thông tin khách hàng</h5>
+              <Table size="sm">
+                <tbody>
+                  <tr>
+                    <td><strong>Công ty:</strong></td>
+                    <td>{contract.contract.customer_company_name}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Người liên hệ:</strong></td>
+                    <td>{contract.contract.customer_name}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Điện thoại:</strong></td>
+                    <td>{contract.contract.customer_phone}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Email:</strong></td>
+                    <td>{contract.contract.customer_email}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Mã số thuế:</strong></td>
+                    <td>{contract.contract.tax_code}</td>
+                  </tr>
+                </tbody>
+              </Table>
+            </Col>
+          </Row>
+        </div>
+      </Tab>
+      
+      <Tab eventKey="documents" title={`Tài liệu (${contract.documents?.length || 0})`}>
+        <div className="pt-3">
+          {contract.documents?.length > 0 ? (
+            <Table>
+              <thead>
+                <tr>
+                  <th>Tên tài liệu</th>
+                  <th>Loại</th>
+                  <th>Phiên bản</th>
+                  <th>Trạng thái</th>
+                  <th>Ngày tạo</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {contract.documents.map(doc => (
+                  <tr key={doc.id}>
+                    <td>{doc.document_name}</td>
+                    <td>
+                      <Badge bg="info">{doc.category_name}</Badge>
+                    </td>
+                    <td>v{doc.version}</td>
+                    <td>
+                      <Badge 
+                        bg={doc.status === 'final' ? 'success' : 
+                            doc.status === 'draft' ? 'secondary' : 'warning'}
+                      >
+                        {doc.status}
+                      </Badge>
+                    </td>
+                    <td>{new Date(doc.created_at).toLocaleDateString('vi-VN')}</td>
+                    <td>
+                      <Button variant="outline-primary" size="sm">
+                        <i className="fas fa-eye"></i>
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          ) : (
+            <div className="text-center text-muted py-4">
+              Chưa có tài liệu nào
+            </div>
+          )}
+        </div>
+      </Tab>
+      
+      <Tab eventKey="history" title="Lịch sử">
+        <div className="pt-3">
+          {contract.workflow_history?.length > 0 ? (
+            <div className="timeline">
+              {contract.workflow_history.map(history => (
+                <div key={history.id} className="timeline-item mb-3">
+                  <div className="d-flex">
+                    <div className="flex-shrink-0">
+                      <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style={{width: '40px', height: '40px'}}>
+                        <i className="fas fa-user fa-sm"></i>
+                      </div>
+                    </div>
+                    <div className="flex-grow-1 ms-3">
+                      <div className="d-flex justify-content-between">
+                        <h6 className="mb-1">{history.action}</h6>
+                        <small className="text-muted">{new Date(history.performed_at).toLocaleString('vi-VN')}</small>
+                      </div>
+                      <p className="mb-1">{history.comment}</p>
+                      <small className="text-muted">Bởi: {history.performed_by_name}</small>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-muted py-4">
+              Chưa có lịch sử nào
+            </div>
+          )}
+        </div>
+      </Tab>
+    </Tabs>
+  );
+};
+
+export default ContractManager;

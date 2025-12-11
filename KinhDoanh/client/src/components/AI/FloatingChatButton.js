@@ -1,0 +1,111 @@
+/**
+ * Floating Chat Button - KHO MVG
+ * Nút chat AI nổi ở góc màn hình
+ */
+
+import React, { useState } from 'react';
+import { Badge } from 'react-bootstrap';
+import ChatBot from './ChatBot';
+
+function FloatingChatButton() {
+  const [showChat, setShowChat] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
+  const [isOnline] = useState(navigator.onLine);
+
+  const handleToggleChat = () => {
+    setShowChat(!showChat);
+    setHasUnread(false);
+  };
+
+  return (
+    <>
+      {/* Floating Button */}
+      <div 
+        className={`floating-chat-button ${showChat ? 'active' : ''}`}
+        onClick={handleToggleChat}
+      >
+        {showChat ? (
+          <i className="fas fa-times"></i>
+        ) : (
+          <>
+            <i className="fas fa-robot"></i>
+            {hasUnread && (
+              <Badge 
+                bg="danger" 
+                className="position-absolute top-0 start-100 translate-middle"
+                style={{ fontSize: '0.6rem' }}
+              >
+                1
+              </Badge>
+            )}
+          </>
+        )}
+        
+        {/* Tooltip */}
+        {!showChat && (
+          <div className="chat-tooltip">
+            Trợ lý AI KHO MVG
+            {!isOnline && (
+              <div><small>⚠️ Offline</small></div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ChatBot Modal */}
+      <ChatBot show={showChat} onHide={() => setShowChat(false)} />
+
+      <style>{`
+        .floating-chat-button {
+          position: fixed;
+          bottom: 30px;
+          right: 30px;
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          cursor: pointer;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          z-index: 1050;
+          transition: all 0.3s ease;
+          animation: pulse 2s infinite;
+        }
+
+        .floating-chat-button:hover {
+          transform: scale(1.1);
+          box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        .floating-chat-button.active {
+          transform: translateY(-6px) rotate(10deg);
+        }
+
+        .chat-tooltip {
+          position: absolute;
+          bottom: 70px;
+          right: 0;
+          background: rgba(0,0,0,0.85);
+          color: #fff;
+          padding: 8px 10px;
+          border-radius: 6px;
+          white-space: nowrap;
+          font-size: 0.85rem;
+          box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+        }
+
+        @keyframes pulse {
+          0% { box-shadow: 0 0 0 0 rgba(118,75,162, 0.4); }
+          70% { box-shadow: 0 0 0 10px rgba(118,75,162, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(118,75,162, 0); }
+        }
+      `}</style>
+    </>
+  );
+}
+
+export default FloatingChatButton;

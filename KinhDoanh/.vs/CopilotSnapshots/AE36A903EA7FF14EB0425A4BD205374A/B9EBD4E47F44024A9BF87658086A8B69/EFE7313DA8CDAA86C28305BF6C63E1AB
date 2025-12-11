@@ -1,0 +1,199 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>KHO MVG - Test Dữ Liệu</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn { background: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; margin: 10px 5px; font-size: 16px; }
+        .btn:hover { background: #0056b3; }
+        .result { margin: 15px 0; padding: 15px; border-radius: 5px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .loading { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        h1 { text-align: center; color: #333; margin-bottom: 30px; }
+        h2 { color: #444; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .data-box { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 KHO MVG - Test Hệ Thống</h1>
+        
+        <h2>🔐 Bước 1: Đăng nhập</h2>
+        <button class="btn" onclick="login()">Đăng nhập (admin/admin123)</button>
+        <div id="loginResult"></div>
+
+        <h2>👥 Bước 2: Test Khách hàng</h2>
+        <button class="btn" onclick="testCustomers()">Tải danh sách khách hàng</button>
+        <div id="customersResult"></div>
+        <div id="customersData" class="data-box" style="display:none;"></div>
+
+        <h2>📋 Bước 3: Test Hợp đồng</h2>
+        <button class="btn" onclick="testContracts()">Tải danh sách hợp đồng</button>
+        <div id="contractsResult"></div>
+        <div id="contractsData" class="data-box" style="display:none;"></div>
+
+        <h2>📊 Kết quả tổng</h2>
+        <div id="summary" class="result">
+            <strong>Hướng dẫn:</strong><br>
+            1. Click "Đăng nhập" trước<br>
+            2. Sau đó test khách hàng và hợp đồng<br>
+            3. Nếu thành công → Website hoạt động tốt!
+        </div>
+    </div>
+
+    <script>
+        let token = '';
+        // Try these ports in order. Server defaults to 5001 in this repo; keep 5000 as fallback.
+        const API_PORTS = [5001, 5000];
+        const HOST = 'http://localhost';
+
+        async function apiFetch(path, options = {}) {
+            // Try each candidate base URL until one succeeds
+            let lastError = null;
+            for (const port of API_PORTS) {
+                const url = `${HOST}:${port}${path}`;
+                try {
+                    const resp = await fetch(url, options);
+                    // If response is received (even 4xx/5xx), return it for the caller to handle
+                    return { response: resp, url };
+                } catch (err) {
+                    lastError = err;
+                    // continue to next port
+                }
+            }
+            // If none succeeded, throw last error
+            throw lastError || new Error('No API ports available');
+        }
+
+        async function login() {
+            const resultDiv = document.getElementById('loginResult');
+            resultDiv.innerHTML = '<div class="result loading">Đang đăng nhập...</div>';
+
+            try {
+                const { response, url } = await apiFetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'admin', password: 'admin123' })
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.data && data.data.token) {
+                    token = data.data.token;
+                    resultDiv.innerHTML = `<div class="result success">✅ Đăng nhập thành công!<br>User: ${data.data.user.full_name || data.data.user.username}<br>API: ${url}</div>`;
+                    updateSummary();
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">❌ Lỗi: ${data.message || 'Unknown error'}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Không kết nối được: ${error.message}</div>`;
+            }
+        }
+
+        async function testCustomers() {
+            if (!token) {
+                alert('Vui lòng đăng nhập trước!');
+                return;
+            }
+
+            const resultDiv = document.getElementById('customersResult');
+            const dataDiv = document.getElementById('customersData');
+            
+            resultDiv.innerHTML = '<div class="result loading">Đang tải khách hàng...</div>';
+
+            try {
+                const { response } = await apiFetch('/api/customers', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.data && data.data.customers) {
+                    const customers = data.data.customers;
+                    resultDiv.innerHTML = `<div class="result success">✅ Tìm thấy ${customers.length} khách hàng!</div>`;
+                    
+                    let html = '<h3>Top 5 khách hàng:</h3>';
+                    customers.slice(0, 5).forEach((customer, index) => {
+                        html += `<p><strong>${index + 1}. ${customer.name}</strong><br>
+                                Mã: ${customer.customer_code} | Loại: ${customer.customer_type}<br>
+                                Liên hệ: ${customer.phone || 'N/A'}</p>`;
+                    });
+                    
+                    dataDiv.innerHTML = html;
+                    dataDiv.style.display = 'block';
+                    updateSummary();
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">❌ Lỗi: ${data.message || 'Unknown error'}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Lỗi kết nối: ${error.message}</div>`;
+            }
+        }
+
+        async function testContracts() {
+            if (!token) {
+                alert('Vui lòng đăng nhập trước!');
+                return;
+            }
+
+            const resultDiv = document.getElementById('contractsResult');
+            const dataDiv = document.getElementById('contractsData');
+            
+            resultDiv.innerHTML = '<div class="result loading">Đang tải hợp đồng...</div>';
+
+            try {
+                const { response } = await apiFetch('/api/contracts', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.data && data.data.contracts) {
+                    const contracts = data.data.contracts;
+                    resultDiv.innerHTML = `<div class="result success">✅ Tìm thấy ${contracts.length} hợp đồng!</div>`;
+                    
+                    let html = '<h3>Danh sách hợp đồng:</h3>';
+                    contracts.forEach((contract, index) => {
+                        const value = parseInt(contract.total_value).toLocaleString('vi-VN');
+                        html += `<p><strong>${index + 1}. ${contract.contract_number}</strong><br>
+                                Khách hàng: ${contract.company_name}<br>
+                                Giá trị: ${value} VNĐ | Trạng thái: ${contract.status}</p>`;
+                    });
+                    
+                    dataDiv.innerHTML = html;
+                    dataDiv.style.display = 'block';
+                    updateSummary();
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">❌ Lỗi: ${data.message || 'Unknown error'}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Lỗi kết nối: ${error.message}</div>`;
+            }
+        }
+
+        function updateSummary() {
+            const loginSuccess = token !== '';
+            const customersSuccess = document.getElementById('customersData').style.display !== 'none';
+            const contractsSuccess = document.getElementById('contractsData').style.display !== 'none';
+            
+            let summaryHtml = '<strong>Trạng thái hệ thống:</strong><br>';
+            summaryHtml += `🔐 Đăng nhập: ${loginSuccess ? '✅ OK' : '❌ Chưa'}<br>`;
+            summaryHtml += `👥 Khách hàng: ${customersSuccess ? '✅ OK' : '❌ Chưa'}<br>`;
+            summaryHtml += `📋 Hợp đồng: ${contractsSuccess ? '✅ OK' : '❌ Chưa'}<br>`;
+            
+            if (loginSuccess && customersSuccess && contractsSuccess) {
+                summaryHtml += '<br><div class="result success"><strong>🎉 THÀNH CÔNG! Website hoạt động hoàn hảo!</strong></div>';
+            }
+            
+            document.getElementById('summary').innerHTML = summaryHtml;
+        }
+
+        // Auto login when page loads
+        window.onload = function() {
+            setTimeout(login, 1000);
+        };
+    </script>
+</body>
+</html>

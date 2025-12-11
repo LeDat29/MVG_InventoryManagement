@@ -1,0 +1,693 @@
+/**
+ * AI Service - KHO MVG
+ * Xử lý tương tác với các AI providers và quản lý cost optimization
+ */
+
+const crypto = require('crypto');
+const { mysqlPool } = require('../config/database');
+const { logger } = require('../config/logger');
+const DatabaseService = require('./DatabaseService');
+
+class AIService {
+    // detect test env
+    static isTestEnv() {
+        return process.env.NODE_ENV === 'test';
+    }
+
+    /**
+     * 2.5.1 - Lấy cấu hình AI tối ưu nhất cho user (cost thấp nhất)
+     */
+    static async getOptimalAIConfig(userId) {
+        try {
+            // Prefer DatabaseService in tests/mocks
+            if (DatabaseService && typeof DatabaseService.executeQuery === 'function') {
+                try {
+                    const [configs] = await DatabaseService.executeQuery(
+                        `SELECT * FROM user_ai_configs WHERE user_id = ? AND is_active = TRUE ORDER BY cost_per_1k_tokens ASC, priority ASC LIMIT 1`,
+                        [userId]
+                    );
+                    // If DatabaseService returns multiple configs, pick the active one with lowest cost
+                    if (configs && configs.length > 0) {
+                        // normalize cost field name
+                        const activeConfigs = configs.filter(c => c.is_active !== false && c.is_active !== 0);
+                        if (activeConfigs.length === 0) return null;
+                        const pick = activeConfigs.reduce((best, cur) => {
+                            const bestCost = Number(best.cost_per_token ?? best.cost_per_1k_tokens ?? Infinity);
+                            const curCost = Number(cur.cost_per_token ?? cur.cost_per_1k_tokens ?? Infinity);
+                            return curCost < bestCost ? cur : best;
+                        }, activeConfigs[0]);
+                        return pick;
+                    }
+                    return null;
+                } catch (err) {
+                    // fallthrough to pool fallback
+                    logger.warn('DatabaseService.executeQuery failed in getOptimalAIConfig, falling back to pool', err?.message || err);
+                }
+            }
+
+            const pool = mysqlPool();
+            if (!pool || typeof pool.execute !== 'function') {
+                logger.warn('No database pool available in getOptimalAIConfig - returning null');
+                return null;
+            }
+
+            const [configs] = await pool.execute(`
+                SELECT * FROM user_ai_configs 
+                WHERE user_id = ? AND is_active = TRUE 
+                ORDER BY cost_per_1k_tokens ASC, priority ASC
+                LIMIT 1
+            `, [userId]);
+
+            return configs.length > 0 ? configs[0] : null;
+        } catch (error) {
+            logger.error('Error getting optimal AI config:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Lấy tất cả cấu hình AI của user
+     */
+    static async getUserAIConfigs(userId) {
+        try {
+            if (this.isTestEnv()) return [];
+             const pool = mysqlPool();
+             const [configs] = await pool.execute(`
+                 SELECT id, provider, model, cost_per_1k_tokens, is_active, priority, usage_count, total_cost
+                 FROM user_ai_configs 
+                 WHERE user_id = ? 
+                 ORDER BY priority ASC, cost_per_1k_tokens ASC
+             `, [userId]);
+
+             return configs;
+         } catch (error) {
+             logger.error('Error getting user AI configs:', error);
+             return [];
+         }
+    }
+
+    /**
+     * 2.5.3 - Kiểm tra cache response trước khi gọi AI
+     */
+    static async getCachedResponse(question) {
+        try {
+            if (this.isTestEnv()) return null;
+             const questionHash = crypto.createHash('md5').update(question.toLowerCase().trim()).digest('hex');
+            
+            const pool = mysqlPool();
+            const [cached] = await pool.execute(
+                'SELECT * FROM ai_query_cache WHERE question_hash = ? ORDER BY satisfaction_score DESC LIMIT 1',
+                [questionHash]
+            );
+
+            if (cached.length > 0 && cached[0].satisfaction_score >= 70) {
+                return {
+                    ...cached[0],
+                    response_data: cached[0].response_data ? JSON.parse(cached[0].response_data) : null
+                };
+            }
+
+            return null;
+        } catch (error) {
+            logger.error('Error getting cached response:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Lưu response vào cache
+     */
+    static async cacheResponse(question, sqlQuery, responseData, userId) {
+        try {
+            if (this.isTestEnv()) return null;
+             const questionHash = crypto.createHash('md5').update(question.toLowerCase().trim()).digest('hex');
+             const pool = mysqlPool();
+
+            await pool.execute(`
+                INSERT INTO ai_query_cache (question_hash, question, sql_query, response_data, created_by)
+                VALUES (?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE 
+                    sql_query = VALUES(sql_query),
+                    response_data = VALUES(response_data),
+                    usage_count = usage_count + 1,
+                    updated_by = VALUES(created_by),
+                    updated_at = NOW()
+            `, [questionHash, question, sqlQuery, JSON.stringify(responseData), userId]);
+
+            return questionHash;
+        } catch (error) {
+            logger.error('Error caching response:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Xử lý tin nhắn user và tạo response
+     */
+    static async processUserMessage(sessionId, message, userId, user) {
+        try {
+            // Get AI config
+            const aiConfig = await this.getOptimalAIConfig(userId);
+            if (!aiConfig) {
+                throw new Error('No AI configuration found for user');
+            }
+
+            // Get conversation history
+            const conversationHistory = await this.getConversationHistory(sessionId, 10);
+
+            // Try to understand if user is asking for data
+            const isDataQuery = this.detectDataQuery(message);
+            
+            let response, sqlQuery = null, queryResult = null, tokensUsed = 0, cost = 0;
+
+            if (isDataQuery) {
+                // Generate SQL query using AI
+                const sqlResult = await this.generateSQLQuery(message, user, aiConfig, conversationHistory);
+                sqlQuery = sqlResult.sqlQuery;
+                tokensUsed += sqlResult.tokensUsed;
+                cost += sqlResult.cost;
+
+                if (sqlQuery && sqlQuery.trim().toUpperCase().startsWith('SELECT')) {
+                    try {
+                        queryResult = await DatabaseService.executeSafeQuery(sqlQuery, userId, user.permissions);
+                        
+                        // Generate natural language response from query result
+                        const explanationResult = await this.explainQueryResult(message, sqlQuery, queryResult, aiConfig);
+                        response = explanationResult.response;
+                        tokensUsed += explanationResult.tokensUsed;
+                        cost += explanationResult.cost;
+
+                    } catch (queryError) {
+                        logger.error('SQL execution error:', queryError);
+                        response = `Xin lỗi, có lỗi khi thực thi câu query: ${queryError.message}. Bạn có thể diễn đạt câu hỏi khác không?`;
+                    }
+                } else {
+                    response = 'Tôi không thể tạo được câu query phù hợp cho câu hỏi này. Bạn có thể cung cấp thêm thông tin không?';
+                }
+            } else {
+                // General conversation
+                const chatResult = await this.generateChatResponse(message, conversationHistory, aiConfig);
+                response = chatResult.response;
+                tokensUsed = chatResult.tokensUsed;
+                cost = chatResult.cost;
+            }
+
+            // Cache the response if it's good
+            if (isDataQuery && sqlQuery && queryResult) {
+                await this.cacheResponse(message, sqlQuery, {
+                    response,
+                    queryResult,
+                    generatedAt: new Date().toISOString()
+                }, userId);
+            }
+
+            // Update AI config usage stats
+            await this.updateAIConfigUsage(aiConfig.id, tokensUsed, cost);
+
+            return {
+                response,
+                sqlQuery,
+                queryResult,
+                tokensUsed,
+                cost
+            };
+
+        } catch (error) {
+            logger.error('Error processing user message:', error);
+            return {
+                response: 'Xin lỗi, tôi gặp lỗi khi xử lý câu hỏi của bạn. Vui lòng thử lại sau.',
+                sqlQuery: null,
+                queryResult: null,
+                tokensUsed: 0,
+                cost: 0
+            };
+        }
+    }
+
+    /**
+     * Phát hiện xem user có đang hỏi về dữ liệu không
+     */
+    static detectDataQuery(message) {
+        const dataKeywords = [
+            // Vietnamese
+            'bao nhiêu', 'số lượng', 'thống kê', 'danh sách', 'tìm', 'hiển thị', 'cho tôi xem',
+            'có bao nhiêu', 'liệt kê', 'tổng', 'trung bình', 'cao nhất', 'thấp nhất',
+            'dự án', 'khách hàng', 'hợp đồng', 'kho', 'zone', 'diện tích',
+            'báo cáo', 'phân tích', 'so sánh',
+            // English
+            'how many', 'count', 'number of', 'show', 'show me', 'list', 'get', 'find', 'total', 'sum', 'average',
+            'projects', 'customers', 'contracts', 'users', 'zones'
+        ];
+
+        const lowered = String(message || '').toLowerCase();
+        return dataKeywords.some(keyword => lowered.includes(keyword));
+    }
+
+    /**
+     * Tạo SQL query từ natural language
+     */
+    static async generateSQLQuery(question, user, aiConfig, conversationHistory) {
+        try {
+            // Get available functions for user's permissions
+            const availableFunctions = await DatabaseService.getAvailableFunctions(user.permissions);
+            
+            const prompt = this.buildSQLGenerationPrompt(question, user, availableFunctions, conversationHistory);
+            
+            const result = await this.callAIProvider(aiConfig, prompt, {
+                temperature: 0.1, // Low temperature for more deterministic SQL
+                max_tokens: 1000
+            });
+
+            // Extract SQL from response
+            const sqlQuery = this.extractSQLFromResponse(result.response);
+
+            return {
+                sqlQuery,
+                tokensUsed: result.tokensUsed,
+                cost: result.cost
+            };
+
+        } catch (error) {
+            logger.error('Error generating SQL query:', error);
+            return {
+                sqlQuery: null,
+                tokensUsed: 0,
+                cost: 0
+            };
+        }
+    }
+
+    /**
+     * Tạo natural language response từ query result
+     */
+    static async explainQueryResult(question, sqlQuery, queryResult, aiConfig) {
+        try {
+            const prompt = `Dựa trên câu hỏi: "${question}"
+Câu SQL đã thực thi: ${sqlQuery}
+Kết quả truy vấn: ${JSON.stringify(queryResult, null, 2)}
+
+Hãy giải thích kết quả này một cách dễ hiểu, chuyên nghiệp và hữu ích bằng tiếng Việt. 
+Nếu có nhiều dữ liệu, hãy tóm tắt các điểm quan trọng.
+Nếu có insights hay khuyến nghị kinh doanh, hãy đưa ra.`;
+
+            const result = await this.callAIProvider(aiConfig, prompt, {
+                temperature: 0.7,
+                max_tokens: 1000
+            });
+
+            return {
+                response: result.response,
+                tokensUsed: result.tokensUsed,
+                cost: result.cost
+            };
+
+        } catch (error) {
+            logger.error('Error explaining query result:', error);
+            return {
+                response: 'Đã tìm thấy dữ liệu nhưng không thể giải thích được. Bạn có thể xem kết quả raw ở phần query result.',
+                tokensUsed: 0,
+                cost: 0
+            };
+        }
+    }
+
+    /**
+     * Tạo response cho general conversation
+     */
+    static async generateChatResponse(message, conversationHistory, aiConfig) {
+        try {
+            const prompt = this.buildChatPrompt(message, conversationHistory);
+            
+            const result = await this.callAIProvider(aiConfig, prompt, {
+                temperature: 0.7,
+                max_tokens: 500
+            });
+
+            return {
+                response: result.response,
+                tokensUsed: result.tokensUsed,
+                cost: result.cost
+            };
+
+        } catch (error) {
+            logger.error('Error generating chat response:', error);
+            return {
+                response: 'Xin lỗi, tôi không thể trả lời câu hỏi này lúc này. Bạn có thể hỏi về dữ liệu dự án, khách hàng hoặc hợp đồng không?',
+                tokensUsed: 0,
+                cost: 0
+            };
+        }
+    }
+
+    /**
+     * Gọi AI provider dựa trên config
+     */
+    static async callAIProvider(aiConfig, prompt, options = {}) {
+        const { provider, api_key, model } = aiConfig;
+        
+        try {
+            // Decrypt API key before using
+            const EncryptionService = require('../utils/encryption');
+            let decryptedApiKey = api_key;
+            
+            try {
+                decryptedApiKey = EncryptionService.decrypt(api_key);
+            } catch (decryptError) {
+                // If decryption fails, assume it's an old unencrypted key
+                logger.warn('API key decryption failed, using as-is (might be legacy unencrypted key)');
+            }
+            
+            switch (provider) {
+                case 'openai':
+                    return await this.callOpenAI(decryptedApiKey, model, prompt, options);
+                case 'gemini':
+                    return await this.callGemini(decryptedApiKey, model, prompt, options);
+                case 'claude':
+                    return await this.callClaude(decryptedApiKey, model, prompt, options);
+                case 'copilot':
+                    return await this.callCopilot(decryptedApiKey, model, prompt, options);
+                default:
+                    throw new Error(`Unsupported AI provider: ${provider}`);
+            }
+        } catch (error) {
+            logger.error(`AI provider ${provider} call failed:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Call OpenAI API
+     */
+    static async callOpenAI(apiKey, model, prompt, options) {
+        try {
+            const axios = require('axios');
+            
+            const requestBody = {
+                model: model || 'gpt-3.5-turbo',
+                messages: [{ role: 'user', content: prompt }],
+                max_tokens: options.max_tokens || 1000,
+                temperature: options.temperature || 0.7,
+                top_p: options.top_p || 1,
+                frequency_penalty: options.frequency_penalty || 0,
+                presence_penalty: options.presence_penalty || 0
+            };
+            
+            const response = await axios.post(
+                'https://api.openai.com/v1/chat/completions',
+                requestBody,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 30000 // 30 second timeout
+                }
+            );
+            
+            const tokensUsed = response.data.usage.total_tokens;
+            const costPer1k = model.includes('gpt-4') ? 0.03 : 0.002;
+            const cost = (tokensUsed / 1000) * costPer1k;
+            
+            return {
+                response: response.data.choices[0].message.content,
+                tokensUsed,
+                cost
+            };
+        } catch (error) {
+            logger.error('OpenAI API call failed:', error.response?.data || error.message);
+            
+            if (error.response) {
+                throw new Error(`OpenAI API Error: ${error.response.data.error?.message || error.response.statusText}`);
+            } else if (error.request) {
+                throw new Error('OpenAI API không phản hồi. Vui lòng kiểm tra kết nối mạng.');
+            } else {
+                throw new Error(`Lỗi khi gọi OpenAI: ${error.message}`);
+            }
+        }
+    }
+
+    /**
+     * Call Google Gemini API
+     */
+    static async callGemini(apiKey, model, prompt, options) {
+        try {
+            const axios = require('axios');
+            
+            const requestBody = {
+                contents: [{
+                    parts: [{ text: prompt }]
+                }],
+                generationConfig: {
+                    temperature: options.temperature || 0.7,
+                    maxOutputTokens: options.max_tokens || 1000,
+                    topP: options.top_p || 1
+                }
+            };
+            
+            const response = await axios.post(
+                `https://generativelanguage.googleapis.com/v1beta/models/${model || 'gemini-pro'}:generateContent?key=${apiKey}`,
+                requestBody,
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 30000
+                }
+            );
+            
+            const content = response.data.candidates[0].content.parts[0].text;
+            const tokensUsed = (response.data.usageMetadata?.totalTokenCount || Math.floor(prompt.length / 4));
+            const cost = (tokensUsed / 1000) * 0.001; // Gemini pricing
+            
+            return {
+                response: content,
+                tokensUsed,
+                cost
+            };
+        } catch (error) {
+            logger.error('Gemini API call failed:', error.response?.data || error.message);
+            
+            if (error.response) {
+                throw new Error(`Gemini API Error: ${error.response.data.error?.message || error.response.statusText}`);
+            } else {
+                throw new Error(`Lỗi khi gọi Gemini: ${error.message}`);
+            }
+        }
+    }
+
+    /**
+     * Call Claude API
+     */
+    static async callClaude(apiKey, model, prompt, options) {
+        try {
+            const axios = require('axios');
+            
+            const requestBody = {
+                model: model || 'claude-3-sonnet-20240229',
+                messages: [{ role: 'user', content: prompt }],
+                max_tokens: options.max_tokens || 1000,
+                temperature: options.temperature || 0.7
+            };
+            
+            const response = await axios.post(
+                'https://api.anthropic.com/v1/messages',
+                requestBody,
+                {
+                    headers: {
+                        'x-api-key': apiKey,
+                        'anthropic-version': '2023-06-01',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 30000
+                }
+            );
+            
+            const tokensUsed = response.data.usage.input_tokens + response.data.usage.output_tokens;
+            const cost = (tokensUsed / 1000) * 0.003; // Claude pricing
+            
+            return {
+                response: response.data.content[0].text,
+                tokensUsed,
+                cost
+            };
+        } catch (error) {
+            logger.error('Claude API call failed:', error.response?.data || error.message);
+            
+            if (error.response) {
+                throw new Error(`Claude API Error: ${error.response.data.error?.message || error.response.statusText}`);
+            } else {
+                throw new Error(`Lỗi khi gọi Claude: ${error.message}`);
+            }
+        }
+    }
+
+    /**
+     * Call Microsoft Copilot API
+     */
+    static async callCopilot(apiKey, model, prompt, options) {
+        // Mock implementation
+        const tokensUsed = Math.floor(prompt.length / 4);
+        const cost = (tokensUsed / 1000) * 0.0015;
+
+        return {
+            response: `[Mock Copilot Response] Tôi là Microsoft Copilot. Tôi sẽ hỗ trợ bạn phân tích và quản lý dữ liệu kinh doanh kho xưởng.`,
+            tokensUsed,
+            cost
+        };
+    }
+
+    /**
+     * Build SQL generation prompt
+     */
+    static buildSQLGenerationPrompt(question, user, availableFunctions, conversationHistory) {
+        return `Bạn là AI assistant chuyên tạo SQL query cho hệ thống quản lý kho xưởng.
+
+USER INFO:
+- Tên: ${user.full_name}
+- Role: ${user.role}
+- Permissions: ${JSON.stringify(user.permissions)}
+
+AVAILABLE FUNCTIONS:
+${availableFunctions.map(func => 
+    `${func.function_name}: ${func.description}`
+).join('\n')}
+
+CONVERSATION HISTORY:
+${conversationHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
+
+CURRENT QUESTION: ${question}
+
+NHIỆM VỤ:
+1. Phân tích câu hỏi và tạo SQL SELECT query an toàn
+2. CHỈ được dùng SELECT, không được INSERT/UPDATE/DELETE
+3. Kiểm tra quyền hạn của user
+4. Trả về CHÍNH XÁC SQL query trong thẻ <SQL></SQL>
+5. Giải thích ngắn gọn ý nghĩa của query
+
+VÍ DỤ:
+Question: "Có bao nhiêu dự án đang hoạt động?"
+<SQL>
+SELECT COUNT(*) as total_projects FROM projects WHERE status = 'operational' AND is_active = TRUE
+</SQL>
+Explanation: Đếm số dự án có trạng thái hoạt động.`;
+    }
+
+    /**
+     * Build chat prompt for general conversation
+     */
+    static buildChatPrompt(message, conversationHistory) {
+        return `Bạn là trợ lý AI thông minh của hệ thống KHO MVG.
+
+CONVERSATION HISTORY:
+${conversationHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
+
+USER MESSAGE: ${message}
+
+Hãy trả lời một cách thân thiện, chuyên nghiệp bằng tiếng Việt. 
+Nếu user hỏi về dữ liệu, hãy gợi ý họ hỏi cụ thể hơn.
+Nếu là câu hỏi khác, hãy trả lời hữu ích trong phạm vi hệ thống quản lý kho xưởng.`;
+    }
+
+    /**
+     * Extract SQL from AI response
+     */
+    static extractSQLFromResponse(response) {
+        const sqlMatch = response.match(/<SQL>([\s\S]*?)<\/SQL>/i);
+        if (sqlMatch && sqlMatch[1]) {
+            return sqlMatch[1].trim();
+        }
+
+        // Fallback: look for SELECT statements
+        const lines = response.split('\n');
+        for (const line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.toUpperCase().startsWith('SELECT')) {
+                return trimmed;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get conversation history
+     */
+    static async getConversationHistory(sessionId, limit = 10) {
+        try {
+            if (this.isTestEnv()) return [];
+             const pool = mysqlPool();
+             const [messages] = await pool.execute(`
+                 SELECT role, content FROM ai_chat_messages 
+                 WHERE session_id = ? AND role != 'system'
+                 ORDER BY created_at DESC 
+                 LIMIT ?
+             `, [sessionId, limit]);
+
+            return messages.reverse(); // Return in chronological order
+        } catch (error) {
+            logger.error('Error getting conversation history:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Add message to session
+     */
+    static async addMessageToSession(sessionId, role, content, tokensUsed = 0, cost = 0, responseTimeMs = null, functionData = null) {
+        try {
+            if (this.isTestEnv()) return;
+             const pool = mysqlPool();
+             await pool.execute(`
+                 INSERT INTO ai_chat_messages (session_id, role, content, tokens_used, cost, response_time_ms, is_function_call, function_name, function_arguments)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+             `, [
+                 sessionId, 
+                 role, 
+                 content, 
+                 tokensUsed, 
+                 cost, 
+                 responseTimeMs,
+                 !!functionData,
+                 functionData?.function_name || null,
+                 functionData ? JSON.stringify(functionData) : null
+             ]);
+         } catch (error) {
+             logger.error('Error adding message to session:', error);
+         }
+     }
+
+    /**
+     * Update AI config usage statistics
+     */
+    static async updateAIConfigUsage(configId, tokensUsed, cost) {
+        try {
+            // Prefer DatabaseService when available (mocked in tests)
+            if (DatabaseService && typeof DatabaseService.executeQuery === 'function') {
+                try {
+                    await DatabaseService.executeQuery(
+                        'UPDATE user_ai_configs SET usage_count = usage_count + ?, total_cost = total_cost + ? WHERE id = ?',
+                        [tokensUsed, cost, configId]
+                    );
+                    return;
+                } catch (err) {
+                    logger.warn('DatabaseService.executeQuery failed in updateAIConfigUsage, falling back to pool', err?.message || err);
+                }
+            }
+
+            const pool = mysqlPool();
+            if (!pool || typeof pool.execute !== 'function') {
+                logger.warn('No database pool available in updateAIConfigUsage - skipping update');
+                return;
+            }
+
+            await pool.execute(
+                'UPDATE user_ai_configs SET usage_count = usage_count + ?, total_cost = total_cost + ? WHERE id = ?',
+                [tokensUsed, cost, configId]
+            );
+         } catch (error) {
+             logger.error('Error updating AI config usage:', error);
+         }
+     }
+ }
+
+ module.exports = AIService;

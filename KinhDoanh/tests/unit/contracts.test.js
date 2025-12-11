@@ -1,0 +1,80 @@
+const request = require('supertest');
+const express = require('express');
+
+// Mock middleware/auth before loading any modules that import it
+jest.mock('../../middleware/auth', () => ({
+  requireAuth: (req, res, next) => { req.user = { id: 1, role: 'admin', permissions: ['contract_read'] }; next(); },
+  requirePermission: (perm) => (req, res, next) => { next(); }
+}));
+
+// Mock logger to avoid side effects
+jest.mock('../../config/logger', () => ({ logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() } }));
+
+// We'll mock database pool; tests will set execute behavior on the pool instance
+const mockExecute = jest.fn();
+jest.mock('../../config/database', () => ({
+  mysqlPool: () => ({ execute: mockExecute })
+}));
+
+let app;
+
+beforeEach(() => {
+  jest.resetModules();
+  mockExecute.mockReset();
+
+  app = express();
+  // body parser for debug route
+  app.use(express.json());
+  const contractsRouter = require('../../routes/contracts');
+  // mount under /api/contracts
+  app.use('/api/contracts', contractsRouter);
+});
+
+test('GET /api/contracts/debug returns normalized data and anomalies', async () => {
+  // Prepare fake DB rows: one valid, one missing contract_number
+  const now = new Date();
+  const rows = [
+    {
+      id: 10,
+      contract_number: 'HD20240001',
+      rental_price: '1000000',
+      zone_area: 100,
+      start_date: now.toISOString().slice(0,19).replace('T',' '),
+      end_date: new Date(now.getTime() + 30*24*3600*1000).toISOString().slice(0,19).replace('T',' '),
+      created_at: now.toISOString().slice(0,19).replace('T',' ')
+    },
+    {
+      id: null,
+      contract_number: null,
+      rental_price: null,
+      zone_area: null,
+      start_date: null,
+      end_date: null,
+      created_at: null
+    }
+  ];
+
+  // mockExecute should return rows for LIMIT query
+  mockExecute.mockImplementation((sql, params) => {
+    if (sql && sql.toString().includes('LIMIT ?')) {
+      return Promise.resolve([rows, []]);
+    }
+    return Promise.resolve([[{ total: 2 }], []]);
+  });
+
+  const res = await request(app).get('/api/contracts/debug?limit=2');
+
+  expect(res.status).toBe(200);
+  expect(res.body.success).toBe(true);
+  expect(res.body.data.sample_count).toBe(2);
+  expect(Array.isArray(res.body.data.raw)).toBe(true);
+  expect(Array.isArray(res.body.data.normalized)).toBe(true);
+  expect(res.body.data.anomalies_count).toBeGreaterThanOrEqual(1);
+
+  // Check normalized fields exist for first row
+  const first = res.body.data.normalized[0];
+  expect(first).toHaveProperty('id', 10);
+  expect(first).toHaveProperty('contract_number', 'HD20240001');
+  expect(typeof first.rental_price).toBe('number');
+  expect(first.start_date).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+});

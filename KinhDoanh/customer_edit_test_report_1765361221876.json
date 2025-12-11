@@ -1,0 +1,272 @@
+{
+  "testRun": {
+    "timestamp": "2025-12-10T10:07:01.876Z",
+    "duration": 189
+  },
+  "summary": {
+    "totalTests": 18,
+    "passedTests": 21,
+    "failedTests": 1,
+    "warnings": 1,
+    "fixesApplied": 0
+  },
+  "fixes": [],
+  "errors": [],
+  "fullLog": [
+    {
+      "timestamp": "2025-12-10T10:07:01.687Z",
+      "type": "info",
+      "message": "🚀 Starting Customer Edit Auto Test Suite"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.687Z",
+      "type": "test",
+      "message": "Authenticating with admin credentials..."
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.796Z",
+      "type": "success",
+      "message": "Authentication successful"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.796Z",
+      "type": "test",
+      "message": "Creating test customer for edit testing..."
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.808Z",
+      "type": "success",
+      "message": "Test customer created with ID: 19"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.808Z",
+      "type": "test",
+      "message": "Testing customer details loading..."
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.814Z",
+      "type": "success",
+      "message": "Customer details loaded successfully"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.814Z",
+      "type": "info",
+      "message": "Customer has 0 contracts"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.815Z",
+      "type": "test",
+      "message": "Testing customer update functionality..."
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.826Z",
+      "type": "success",
+      "message": "Customer update successful"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.826Z",
+      "type": "test",
+      "message": "Verifying update was applied correctly..."
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.826Z",
+      "type": "test",
+      "message": "Testing customer details loading..."
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.833Z",
+      "type": "success",
+      "message": "Customer details loaded successfully"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.833Z",
+      "type": "info",
+      "message": "Customer has 0 contracts"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.833Z",
+      "type": "success",
+      "message": "Update verification successful - all changes applied correctly"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.833Z",
+      "type": "test",
+      "message": "Testing form data transformation (nested → flat)..."
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.833Z",
+      "type": "test",
+      "message": "Testing update with transformed form data..."
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.834Z",
+      "type": "test",
+      "message": "Testing customer update functionality..."
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.843Z",
+      "type": "success",
+      "message": "Customer update successful"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.843Z",
+      "type": "test",
+      "message": "Verifying update was applied correctly..."
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.843Z",
+      "type": "test",
+      "message": "Testing customer details loading..."
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.849Z",
+      "type": "success",
+      "message": "Customer details loaded successfully"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.849Z",
+      "type": "info",
+      "message": "Customer has 0 contracts"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.849Z",
+      "type": "success",
+      "message": "Update verification successful - all changes applied correctly"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.849Z",
+      "type": "success",
+      "message": "Form data transformation test successful"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.849Z",
+      "type": "test",
+      "message": "Testing date format handling..."
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.849Z",
+      "type": "success",
+      "message": "Date 1: \"2025-12-31T23:59:59.000Z\" → \"2025-12-31\" (Valid)"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.849Z",
+      "type": "success",
+      "message": "Date 2: \"2025-01-01\" → \"2025-01-01\" (Valid)"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.849Z",
+      "type": "success",
+      "message": "Date 3: \"2025-12-10T10:07:01.849Z\" → \"2025-12-10\" (Valid)"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.849Z",
+      "type": "success",
+      "message": "Date 4: \"null\" → \"\" (Valid)"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.849Z",
+      "type": "success",
+      "message": "Date 5: \"\" → \"\" (Valid)"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.849Z",
+      "type": "success",
+      "message": "Date format handling test passed"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.849Z",
+      "type": "test",
+      "message": "Testing edge cases and error scenarios..."
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.849Z",
+      "type": "test",
+      "message": "Testing edge case: Empty required fields"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.852Z",
+      "type": "success",
+      "message": "Edge case \"Empty required fields\": Correctly rejected"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.852Z",
+      "type": "test",
+      "message": "Testing edge case: Invalid email format"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.854Z",
+      "type": "success",
+      "message": "Edge case \"Invalid email format\": Correctly rejected"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.854Z",
+      "type": "test",
+      "message": "Testing edge case: Invalid phone format"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.856Z",
+      "type": "success",
+      "message": "Edge case \"Invalid phone format\": Correctly rejected"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.856Z",
+      "type": "test",
+      "message": "Testing edge case: Very long strings"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.858Z",
+      "type": "error",
+      "message": "Edge case \"Very long strings\": Error - Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.858Z",
+      "type": "warning",
+      "message": "Edge cases test: 3/4 passed"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.859Z",
+      "type": "test",
+      "message": "Testing update performance..."
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.861Z",
+      "type": "info",
+      "message": "Performance test 1: 2.02ms"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.862Z",
+      "type": "info",
+      "message": "Performance test 2: 1.71ms"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.865Z",
+      "type": "info",
+      "message": "Performance test 3: 2.21ms"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.866Z",
+      "type": "info",
+      "message": "Performance test 4: 1.72ms"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.868Z",
+      "type": "info",
+      "message": "Performance test 5: 1.65ms"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.868Z",
+      "type": "success",
+      "message": "Performance test passed - Avg: 1.86ms, Max: 2.21ms"
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.868Z",
+      "type": "info",
+      "message": "Cleaning up test data..."
+    },
+    {
+      "timestamp": "2025-12-10T10:07:01.876Z",
+      "type": "success",
+      "message": "Test customer cleaned up successfully"
+    }
+  ]
+}

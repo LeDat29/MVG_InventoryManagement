@@ -1,0 +1,60 @@
+﻿# Server Configuration
+PORT=5000
+NODE_ENV=development
+
+# MongoDB Configuration (Optional - not required for basic functionality)
+# MONGODB_URI=mongodb://localhost:27017/kho_mvg
+# MONGODB_TEST_URI=mongodb://localhost:27017/kho_mvg_test
+# Leave commented out if MongoDB is not installed
+
+# MySQL Configuration (Auto-init on server start)
+# Server MySQL is running on localhost:3306
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD=
+MYSQL_DATABASE=kho_mvg
+MYSQL_TEST_DATABASE=kho_mvg_test
+
+# Database Auto-Init (used by scripts/auto-init-db.js)
+# Server MySQL is running on localhost:3306
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=kho_mvg
+
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key-here
+JWT_EXPIRES_IN=7d
+JWT_REFRESH_SECRET=your-refresh-token-secret
+JWT_REFRESH_EXPIRES_IN=30d
+
+# Google Maps API
+GOOGLE_MAPS_API_KEY=AIzaSyCyoFgxYpYDlP-rRapfN5tfcKxOTz8fgU8
+
+# File Upload
+MAX_FILE_SIZE=10485760
+UPLOAD_PATH=./uploads
+ALLOWED_FILE_TYPES=pdf,jpg,jpeg,png,dwg,dxf
+
+# Email Configuration
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+
+# Security
+BCRYPT_ROUNDS=12
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+DEFAULT_ADMIN_PASSWORD=
+ENCRYPTION_KEY=your-encryption-key-for-api-keys-32-chars
+
+# Logging
+LOG_LEVEL=info
+LOG_FILE_PATH=./logs
+
+# PWA Configuration
+APP_NAME=KHO MVG
+APP_SHORT_NAME=KhoMVG
+APP_DESCRIPTION=Hệ thống quản lý hỗ trợ kinh doanh các dự án kho xưởng
