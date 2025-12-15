@@ -20,16 +20,9 @@ let mongoConnection = null;
  */
 async function connectMongoDB() {
     try {
-        const mongoUri = process.env.NODE_ENV === 'test' 
-            ? process.env.MONGODB_TEST_URI 
-            : process.env.MONGODB_URI;
-
-        // If no MongoDB URI, skip MongoDB connection
-        if (!mongoUri || mongoUri === 'mongodb://localhost:27017/kho_mvg') {
-            logger.warn('⚠️  MongoDB not configured or not available. Skipping MongoDB connection...');
-            logger.info('✅ MySQL will be used for all data storage.');
-            return null;
-        }
+        // MongoDB is disabled. Using MySQL only.
+        logger.warn('⚠️  MongoDB is DISABLED. Using MySQL only for all data storage.');
+        return null;
 
         const options = {
             useNewUrlParser: true,
@@ -45,8 +38,8 @@ async function connectMongoDB() {
             logger.error('MongoDB connection error:', error);
         });
 
-        mongoose.connection.on('disconnected', () => {
-            logger.warn('MongoDB disconnected');
+        mongoose.connection.on('disrupted', () => {
+            logger.warn('MongoDB connection disrupted');
         });
 
         mongoose.connection.on('reconnected', () => {
@@ -78,7 +71,7 @@ async function connectMySQL() {
             user: process.env.MYSQL_USER || 'root',
             password: process.env.MYSQL_PASSWORD || '',
             database: process.env.NODE_ENV === 'test' 
-                ? process.env.MYSQL_TEST_DATABASE || 'kho_mvg_test'
+                ? process.env.MYSQL_DATABASE || process.env.MYSQL_TEST_DATABASE || 'kho_mvg'
                 : process.env.MYSQL_DATABASE || 'kho_mvg',
             waitForConnections: true,
             connectionLimit: 10,
@@ -90,7 +83,24 @@ async function connectMySQL() {
 
         // Test connection
         const connection = await mysqlPool.getConnection();
-        await connection.ping();
+        try {
+            await connection.ping();
+        } catch (pingErr) {
+            // If the database does not exist (common in test env), try fallback to default database
+            if (pingErr && (pingErr.code === 'ER_BAD_DB_ERROR' || /Unknown database/.test(pingErr.message))) {
+                const fallbackDb = process.env.MYSQL_DATABASE || 'kho_mvg';
+                logger.warn(`Database ${config.database} not found, falling back to ${fallbackDb}`);
+                // recreate pool with fallback
+                await connection.release();
+                mysqlPool = mysql.createPool({ ...config, database: fallbackDb });
+                const conn2 = await mysqlPool.getConnection();
+                await conn2.ping();
+                conn2.release();
+            } else {
+                connection.release();
+                throw pingErr;
+            }
+        }
         connection.release();
 
         logger.info('✅ MySQL connection pool created successfully');
@@ -198,14 +208,20 @@ async function initializeMySQLTables() {
         `CREATE TABLE IF NOT EXISTS customers (
             id INT PRIMARY KEY AUTO_INCREMENT,
             customer_code VARCHAR(50) UNIQUE NOT NULL,
+            name VARCHAR(200),
+            full_name VARCHAR(200),
             company_name VARCHAR(200),
-            contact_person VARCHAR(100) NOT NULL,
+            representative_name VARCHAR(100),
+            representative_phone VARCHAR(20),
+            representative_email VARCHAR(100),
             email VARCHAR(100),
             phone VARCHAR(20) NOT NULL,
             address TEXT,
             tax_code VARCHAR(50),
             business_license VARCHAR(100),
             bank_info JSON,
+            id_number VARCHAR(100),
+            warehouse_purpose TEXT,
             customer_type ENUM('individual', 'company') DEFAULT 'company',
             credit_rating ENUM('A', 'B', 'C', 'D') DEFAULT 'B',
             notes TEXT,
@@ -334,34 +350,35 @@ async function createDefaultAdmin() {
             const crypto = require('crypto');
             
             // Generate secure random password or use env variable
-            const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || crypto.randomBytes(16).toString('hex');
-            const hashedPassword = await bcrypt.hash(defaultPassword, 12);
+            // Use environment variable if provided, otherwise fixed default for initial admin
+            const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'admin123!';
+             const hashedPassword = await bcrypt.hash(defaultPassword, 12);
+             
+             logger.warn('='.repeat(80));
+             logger.warn('ADMIN MẶC ĐỊNH ĐÃ ĐƯỢC TẠO');
+             logger.warn(`Username: admin`);
+             logger.warn(`Password: ${defaultPassword}`);
+             logger.warn('QUAN TRỌNG: Đổi mật khẩu này NGAY sau lần đăng nhập đầu tiên!');
+             logger.warn('='.repeat(80));
+             
+             await mysqlPool.execute(
+                 `INSERT INTO users (username, email, password_hash, full_name, role, permissions) 
+                  VALUES (?, ?, ?, ?, ?, ?)`,
+                 [
+                     'admin',
+                     'admin@kho-mvg.com',
+                     hashedPassword,
+                     'Administrator',
+                     'admin',
+                     JSON.stringify(['all'])
+                 ]
+             );
             
-            logger.warn('='.repeat(80));
-            logger.warn('ADMIN MẶC ĐỊNH ĐÃ ĐƯỢC TẠO');
-            logger.warn(`Username: admin`);
-            logger.warn(`Password: ${defaultPassword}`);
-            logger.warn('QUAN TRỌNG: Đổi mật khẩu này NGAY sau lần đăng nhập đầu tiên!');
-            logger.warn('='.repeat(80));
-            
-            await mysqlPool.execute(
-                `INSERT INTO users (username, email, password_hash, full_name, role, permissions) 
-                 VALUES (?, ?, ?, ?, ?, ?)`,
-                [
-                    'admin',
-                    'admin@kho-mvg.com',
-                    hashedPassword,
-                    'Administrator',
-                    'admin',
-                    JSON.stringify(['all'])
-                ]
-            );
-            
-            logger.info('Default admin user created: admin/admin123');
-        }
-    } catch (error) {
-        logger.error('Error creating default admin:', error);
-    }
+             logger.info('Default admin user created: admin/admin123!');
+         }
+     } catch (error) {
+         logger.error('Error creating default admin:', error);
+     }
 }
 
 /**
@@ -381,23 +398,52 @@ async function closeDatabases() {
     }
 }
 
-// Export with test-safe mysqlPool wrapper to avoid opening real DB connections during tests
+// Export with mysqlPool wrapper
 module.exports = {
     connectMongoDB,
     connectMySQL,
     initializeDatabase,
+    // Return the actual pool; create lazily if not initialized so tests can use it
     mysqlPool: () => {
-        if (process.env.NODE_ENV === 'test') {
-            // Return a lightweight mock-like pool to prevent real TCP connections when tests forget to mock
-            return {
-                execute: async () => [[], []],
-                getConnection: async () => ({ ping: async () => {}, release: () => {} }),
-                end: async () => {}
-            };
-        }
         if (!mysqlPool) {
-            logger.error('❌ MySQL pool is null - connection not established');
-            throw new Error('MySQL connection not established. Please restart the server.');
+            // Lazily create pool with same config as connectMySQL
+            const config = {
+                host: process.env.MYSQL_HOST || 'localhost',
+                port: process.env.MYSQL_PORT || 3306,
+                user: process.env.MYSQL_USER || 'root',
+                password: process.env.MYSQL_PASSWORD || '',
+                database: process.env.NODE_ENV === 'test'
+                    ? process.env.MYSQL_DATABASE || process.env.MYSQL_TEST_DATABASE || 'kho_mvg'
+                    : process.env.MYSQL_DATABASE || 'kho_mvg',
+                waitForConnections: true,
+                connectionLimit: 10,
+                queueLimit: 0,
+                charset: 'utf8mb4'
+            };
+
+            mysqlPool = mysql.createPool(config);
+            logger.info('✅ MySQL pool lazily created by mysqlPool()');
+
+            // Try pinging and fallback if DB missing
+            (async () => {
+                try {
+                    const conn = await mysqlPool.getConnection();
+                    await conn.ping();
+                    conn.release();
+                } catch (err) {
+                    if (err && (err.code === 'ER_BAD_DB_ERROR' || /Unknown database/.test(err.message))) {
+                        const fallbackDb = process.env.MYSQL_DATABASE || 'kho_mvg';
+                        logger.warn(`Lazy pool DB ${config.database} not found, falling back to ${fallbackDb}`);
+                        try {
+                            await mysqlPool.end();
+                        } catch (e) {}
+                        mysqlPool = mysql.createPool({ ...config, database: fallbackDb });
+                        logger.info('✅ MySQL pool lazily recreated with fallback DB');
+                    } else {
+                        logger.error('Error pinging lazy mysql pool:', err);
+                    }
+                }
+            })();
         }
         return mysqlPool;
     },

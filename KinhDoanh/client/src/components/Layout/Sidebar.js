@@ -119,7 +119,7 @@ function Sidebar() {
   return (
     <>
       {/* Mobile overlay */}
-      {showMobile && (
+      {showMobile && window.innerWidth <= 768 && (
         <div 
           className="mobile-overlay"
           onClick={toggleMobile}
@@ -130,8 +130,7 @@ function Sidebar() {
             right: 0,
             bottom: 0,
             backgroundColor: 'rgba(0,0,0,0.5)',
-            zIndex: 999,
-            display: window.innerWidth <= 768 ? 'block' : 'none'
+            zIndex: 999
           }}
         />
       )}

@@ -85,5 +85,8 @@ module.exports = {
     forceExit: true,
     
     // Detect open handles
-    detectOpenHandles: true
+    detectOpenHandles: true,
+
+    // Run tests sequentially
+    maxWorkers: 1
 };

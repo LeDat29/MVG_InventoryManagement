@@ -9,7 +9,15 @@ import { useAuth } from '../contexts/AuthContext';
 import ContractManager from '../components/Contracts/ContractManager';
 import ContractTemplateManager from '../components/Contracts/ContractTemplateManager';
 
+import { useLocation } from 'react-router-dom';
+
 function Contracts() {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const pathname = location.pathname || '';
+  const initialOpenCreate = pathname.endsWith('/contracts/create') || searchParams.get('create') === '1' || searchParams.get('open') === 'create';
+  const initialCustomerId = searchParams.get('customer') || '';
+
   const { hasPermission } = useAuth();
   const [activeTab, setActiveTab] = useState('contracts');
 
@@ -51,7 +59,7 @@ function Contracts() {
         {/* Tab Content */}
         <Tab.Content>
           <Tab.Pane eventKey="contracts">
-            <ContractManager />
+            <ContractManager initialOpenCreate={initialOpenCreate} initialCustomerId={initialCustomerId} />
           </Tab.Pane>
           
           <Tab.Pane eventKey="templates">

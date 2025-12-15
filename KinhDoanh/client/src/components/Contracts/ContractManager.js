@@ -13,15 +13,16 @@ import LoadingSpinner from '../Common/LoadingSpinner';
 import ContractCreator from './ContractCreator';
 import contractService from '../../services/contractService';
 
-const ContractManager = () => {
+const ContractManager = ({ initialOpenCreate = false, initialCustomerId = '' }) => {
   const { hasPermission } = useAuth();
   const { showSuccess, showError } = useNotification();
   
   const [loading, setLoading] = useState(true);
   const [contracts, setContracts] = useState([]);
   const [filteredContracts, setFilteredContracts] = useState([]);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(!!initialOpenCreate);
   const [selectedContract, setSelectedContract] = useState(null);
+  const [selectedRowCustomerId, setSelectedRowCustomerId] = useState('');
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [renderError, setRenderError] = useState(null);
 
@@ -195,7 +196,16 @@ const ContractManager = () => {
             {hasPermission('contract_create') && (
               <Button 
                 variant="primary" 
-                onClick={() => setShowCreateModal(true)}
+                onClick={() => {
+                  try {
+                    const params = new URLSearchParams(window.location.search);
+                    params.set('open', 'create');
+                    if (selectedRowCustomerId) params.set('customer', selectedRowCustomerId);
+                    const newUrl = `${window.location.pathname}?${params.toString()}`;
+                    window.history.replaceState({}, '', newUrl);
+                  } catch (e) {}
+                  setShowCreateModal(true);
+                }}
               >
                 <i className="fas fa-plus me-2"></i>
                 Tạo hợp đồng mới
@@ -362,7 +372,10 @@ const ContractManager = () => {
                     {(() => {
                       try {
                         return (filteredContracts || []).map(contract => (
-                          <tr key={contract.id}>
+                          <tr key={contract.id}
+                              className={String(selectedRowCustomerId) === String(contract.customer_id) ? 'table-active' : ''}
+                              onClick={() => setSelectedRowCustomerId(contract.customer_id)}
+                          >
                             <td>
                               <strong>{contract.contract_number}</strong>
                               <br/>
@@ -527,6 +540,7 @@ const ContractManager = () => {
       {/* Create Contract Modal */}
       <ContractCreator
         show={showCreateModal}
+        initialCustomerId={selectedRowCustomerId || initialCustomerId}
         onHide={() => setShowCreateModal(false)}
         onSuccess={() => {
           setShowCreateModal(false);

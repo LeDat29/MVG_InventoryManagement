@@ -1,0 +1,92 @@
+﻿/**
+ * Jest Configuration for KHO MVG Tests (Fixed)
+ */
+
+module.exports = {
+    // Test environment
+    testEnvironment: 'node',
+
+    // Setup files
+    setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
+
+    // Test match patterns
+    testMatch: [
+        '**/tests/**/*.test.js'
+    ],
+
+    // Coverage configuration
+    collectCoverageFrom: [
+        'services/**/*.js',
+        'middleware/**/*.js',
+        'routes/**/*.js',
+        'utils/**/*.js',
+        'config/**/*.js',
+        '!**/node_modules/**',
+        '!**/tests/**',
+        '!**/coverage/**'
+    ],
+
+    // Coverage thresholds
+    coverageThreshold: {
+        global: {
+            branches: 60,
+            functions: 60,
+            lines: 60,
+            statements: 60
+        }
+    },
+
+    // Coverage directory
+    coverageDirectory: 'coverage',
+
+    // Coverage reporters
+    coverageReporters: ['text', 'lcov', 'html'],
+
+    // Verbose output
+    verbose: true,
+
+    // Timeout
+    testTimeout: 10000,
+
+    // Clear mocks between tests
+    clearMocks: true,
+
+    // Restore mocks between tests
+    restoreMocks: true,
+
+    // Module paths
+    moduleDirectories: ['node_modules', '<rootDir>'],
+
+    // Transform files
+    transform: {
+        '^.+\\.js$': 'babel-jest'
+    },
+
+    // Ignore patterns
+    testPathIgnorePatterns: [
+        '/node_modules/',
+        '/coverage/',
+        '/dist/'
+    ],
+
+    // Module name mapper for aliases
+    moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1'
+    },
+
+    // Prevent server startup during tests
+    globalSetup: undefined,
+    globalTeardown: undefined,
+    
+    // Silent console logs during tests (except errors)
+    silent: false,
+    
+    // Force exit after tests
+    forceExit: true,
+    
+    // Detect open handles
+    detectOpenHandles: true,
+
+    // Run tests sequentially
+    maxWorkers: 1
+};

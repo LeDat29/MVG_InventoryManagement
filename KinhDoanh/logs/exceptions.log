@@ -1604,3 +1604,627 @@ Error: EPIPE: broken pipe, write
     at Array.logRequest (C:\KinhDoanh\node_modules\morgan\index.js:130:14)
     at listener (C:\KinhDoanh\node_modules\morgan\node_modules\on-finished\index.js:169:15)
     at onFinish (C:\KinhDoanh\node_modules\morgan\node_modules\on-finished\index.js:100:5)
+2025-12-11 12:35:06 [ERROR]: uncaughtException: listen EADDRINUSE: address already in use :::5001
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:211:28)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::","port":5001},"exception":true,"date":"Thu Dec 11 2025 12:35:06 GMT+0700 (Indochina Time)","process":{"pid":18092,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":131375104,"heapTotal":81997824,"heapUsed":54680576,"external":21967149,"arrayBuffers":18273868}},"os":{"loadavg":[0,0,0],"uptime":16431.421},"trace":[{"column":16,"file":"node:net","function":"Server.setupListenHandle [as _listen2]","line":1940,"method":"setupListenHandle [as _listen2]","native":false},{"column":12,"file":"node:net","function":"listenInCluster","line":1997,"method":null,"native":false},{"column":7,"file":"node:net","function":"Server.listen","line":2102,"method":"listen","native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\node_modules\\express\\lib\\application.js","function":"app.listen","line":635,"method":"listen","native":false},{"column":28,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"startServer","line":211,"method":null,"native":false},{"column":5,"file":"node:internal/process/task_queues","function":"process.processTicksAndRejections","line":103,"method":"processTicksAndRejections","native":false}],"service":"kho-mvg","version":"1.0.0"}
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:211:28)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+2025-12-11 17:55:32 [ERROR]: uncaughtException: Unexpected token '/'
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\auth.js:119
+     */
+      ^
+
+SyntaxError: Unexpected token '/'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:301:24) {"error":{},"exception":true,"date":"Thu Dec 11 2025 17:55:32 GMT+0700 (Indochina Time)","process":{"pid":18380,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":82411520,"heapTotal":39469056,"heapUsed":29473800,"external":20777674,"arrayBuffers":18264739}},"os":{"loadavg":[0,0,0],"uptime":35657.078},"trace":[{"column":18,"file":"node:internal/modules/cjs/loader","function":"wrapSafe","line":1691,"method":null,"native":false},{"column":20,"file":"node:internal/modules/cjs/loader","function":"Module._compile","line":1734,"method":"_compile","native":false},{"column":10,"file":"node:internal/modules/cjs/loader","function":"Object..js","line":1892,"method":".js","native":false},{"column":32,"file":"node:internal/modules/cjs/loader","function":"Module.load","line":1480,"method":"load","native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module._load","line":1299,"method":"_load","native":false},{"column":14,"file":"node:diagnostics_channel","function":"TracingChannel.traceSync","line":328,"method":"traceSync","native":false},{"column":24,"file":"node:internal/modules/cjs/loader","function":"wrapModuleLoad","line":245,"method":null,"native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module.require","line":1503,"method":"require","native":false},{"column":16,"file":"node:internal/modules/helpers","function":"require","line":152,"method":null,"native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"registerRoutes","line":301,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\auth.js:119
+     */
+      ^
+
+SyntaxError: Unexpected token '/'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:301:24)
+2025-12-11 17:56:44 [ERROR]: uncaughtException: Unexpected token '/'
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\auth.js:119
+     */
+      ^
+
+SyntaxError: Unexpected token '/'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:301:24) {"error":{},"exception":true,"date":"Thu Dec 11 2025 17:56:44 GMT+0700 (Indochina Time)","process":{"pid":5972,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":88076288,"heapTotal":39206912,"heapUsed":29475008,"external":20777674,"arrayBuffers":18264739}},"os":{"loadavg":[0,0,0],"uptime":35729.468},"trace":[{"column":18,"file":"node:internal/modules/cjs/loader","function":"wrapSafe","line":1691,"method":null,"native":false},{"column":20,"file":"node:internal/modules/cjs/loader","function":"Module._compile","line":1734,"method":"_compile","native":false},{"column":10,"file":"node:internal/modules/cjs/loader","function":"Object..js","line":1892,"method":".js","native":false},{"column":32,"file":"node:internal/modules/cjs/loader","function":"Module.load","line":1480,"method":"load","native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module._load","line":1299,"method":"_load","native":false},{"column":14,"file":"node:diagnostics_channel","function":"TracingChannel.traceSync","line":328,"method":"traceSync","native":false},{"column":24,"file":"node:internal/modules/cjs/loader","function":"wrapModuleLoad","line":245,"method":null,"native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module.require","line":1503,"method":"require","native":false},{"column":16,"file":"node:internal/modules/helpers","function":"require","line":152,"method":null,"native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"registerRoutes","line":301,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\auth.js:119
+     */
+      ^
+
+SyntaxError: Unexpected token '/'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:301:24)
+2025-12-11 17:57:00 [ERROR]: uncaughtException: Unexpected token '/'
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\auth.js:119
+     */
+      ^
+
+SyntaxError: Unexpected token '/'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:301:24) {"error":{},"exception":true,"date":"Thu Dec 11 2025 17:57:00 GMT+0700 (Indochina Time)","process":{"pid":20152,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":87764992,"heapTotal":39206912,"heapUsed":29192128,"external":20655462,"arrayBuffers":18264563}},"os":{"loadavg":[0,0,0],"uptime":35745.25},"trace":[{"column":18,"file":"node:internal/modules/cjs/loader","function":"wrapSafe","line":1691,"method":null,"native":false},{"column":20,"file":"node:internal/modules/cjs/loader","function":"Module._compile","line":1734,"method":"_compile","native":false},{"column":10,"file":"node:internal/modules/cjs/loader","function":"Object..js","line":1892,"method":".js","native":false},{"column":32,"file":"node:internal/modules/cjs/loader","function":"Module.load","line":1480,"method":"load","native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module._load","line":1299,"method":"_load","native":false},{"column":14,"file":"node:diagnostics_channel","function":"TracingChannel.traceSync","line":328,"method":"traceSync","native":false},{"column":24,"file":"node:internal/modules/cjs/loader","function":"wrapModuleLoad","line":245,"method":null,"native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module.require","line":1503,"method":"require","native":false},{"column":16,"file":"node:internal/modules/helpers","function":"require","line":152,"method":null,"native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"registerRoutes","line":301,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\auth.js:119
+     */
+      ^
+
+SyntaxError: Unexpected token '/'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:301:24)
+2025-12-11 18:06:01 [ERROR]: uncaughtException: listen EADDRINUSE: address already in use :::5001
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:256:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::","port":5001},"exception":true,"date":"Thu Dec 11 2025 18:06:01 GMT+0700 (Indochina Time)","process":{"pid":19916,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\start-clean.js"],"memoryUsage":{"rss":131067904,"heapTotal":82259968,"heapUsed":49022728,"external":21967245,"arrayBuffers":18300746}},"os":{"loadavg":[0,0,0],"uptime":36286.468},"trace":[{"column":16,"file":"node:net","function":"Server.setupListenHandle [as _listen2]","line":1940,"method":"setupListenHandle [as _listen2]","native":false},{"column":12,"file":"node:net","function":"listenInCluster","line":1997,"method":null,"native":false},{"column":7,"file":"node:net","function":"Server.listen","line":2102,"method":"listen","native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\node_modules\\express\\lib\\application.js","function":"app.listen","line":635,"method":"listen","native":false},{"column":32,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"startServer","line":256,"method":null,"native":false},{"column":5,"file":"node:internal/process/task_queues","function":"process.processTicksAndRejections","line":103,"method":"processTicksAndRejections","native":false}],"service":"kho-mvg","version":"1.0.0"}
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:256:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+2025-12-11 18:09:25 [ERROR]: uncaughtException: listen EADDRINUSE: address already in use :::5001
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:256:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::","port":5001},"exception":true,"date":"Thu Dec 11 2025 18:09:25 GMT+0700 (Indochina Time)","process":{"pid":17752,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\start-clean.js"],"memoryUsage":{"rss":131944448,"heapTotal":80687104,"heapUsed":54746904,"external":21967245,"arrayBuffers":18300746}},"os":{"loadavg":[0,0,0],"uptime":36490.109},"trace":[{"column":16,"file":"node:net","function":"Server.setupListenHandle [as _listen2]","line":1940,"method":"setupListenHandle [as _listen2]","native":false},{"column":12,"file":"node:net","function":"listenInCluster","line":1997,"method":null,"native":false},{"column":7,"file":"node:net","function":"Server.listen","line":2102,"method":"listen","native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\node_modules\\express\\lib\\application.js","function":"app.listen","line":635,"method":"listen","native":false},{"column":32,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"startServer","line":256,"method":null,"native":false},{"column":5,"file":"node:internal/process/task_queues","function":"process.processTicksAndRejections","line":103,"method":"processTicksAndRejections","native":false}],"service":"kho-mvg","version":"1.0.0"}
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:256:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+2025-12-11 18:11:29 [ERROR]: uncaughtException: listen EADDRINUSE: address already in use :::5001
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:256:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::","port":5001},"exception":true,"date":"Thu Dec 11 2025 18:11:29 GMT+0700 (Indochina Time)","process":{"pid":6208,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\start-clean.js"],"memoryUsage":{"rss":135385088,"heapTotal":82259968,"heapUsed":64398432,"external":21959053,"arrayBuffers":18292554}},"os":{"loadavg":[0,0,0],"uptime":36613.89},"trace":[{"column":16,"file":"node:net","function":"Server.setupListenHandle [as _listen2]","line":1940,"method":"setupListenHandle [as _listen2]","native":false},{"column":12,"file":"node:net","function":"listenInCluster","line":1997,"method":null,"native":false},{"column":7,"file":"node:net","function":"Server.listen","line":2102,"method":"listen","native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\node_modules\\express\\lib\\application.js","function":"app.listen","line":635,"method":"listen","native":false},{"column":32,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"startServer","line":256,"method":null,"native":false},{"column":5,"file":"node:internal/process/task_queues","function":"process.processTicksAndRejections","line":103,"method":"processTicksAndRejections","native":false}],"service":"kho-mvg","version":"1.0.0"}
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:256:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+2025-12-11 18:27:55 [ERROR]: uncaughtException: listen EADDRINUSE: address already in use :::5001
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:256:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::","port":5001},"exception":true,"date":"Thu Dec 11 2025 18:27:55 GMT+0700 (Indochina Time)","process":{"pid":19504,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\start-clean.js"],"memoryUsage":{"rss":135442432,"heapTotal":82259968,"heapUsed":48937392,"external":21959053,"arrayBuffers":18292554}},"os":{"loadavg":[0,0,0],"uptime":37600.593},"trace":[{"column":16,"file":"node:net","function":"Server.setupListenHandle [as _listen2]","line":1940,"method":"setupListenHandle [as _listen2]","native":false},{"column":12,"file":"node:net","function":"listenInCluster","line":1997,"method":null,"native":false},{"column":7,"file":"node:net","function":"Server.listen","line":2102,"method":"listen","native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\node_modules\\express\\lib\\application.js","function":"app.listen","line":635,"method":"listen","native":false},{"column":32,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"startServer","line":256,"method":null,"native":false},{"column":5,"file":"node:internal/process/task_queues","function":"process.processTicksAndRejections","line":103,"method":"processTicksAndRejections","native":false}],"service":"kho-mvg","version":"1.0.0"}
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:256:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+2025-12-12 10:00:54 [ERROR]: uncaughtException: listen EADDRINUSE: address already in use :::5001
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:256:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::","port":5001},"exception":true,"date":"Fri Dec 12 2025 10:00:54 GMT+0700 (Indochina Time)","process":{"pid":20212,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\start-clean.js"],"memoryUsage":{"rss":130170880,"heapTotal":78589952,"heapUsed":58151544,"external":21959055,"arrayBuffers":18292556}},"os":{"loadavg":[0,0,0],"uptime":6833.75},"trace":[{"column":16,"file":"node:net","function":"Server.setupListenHandle [as _listen2]","line":1940,"method":"setupListenHandle [as _listen2]","native":false},{"column":12,"file":"node:net","function":"listenInCluster","line":1997,"method":null,"native":false},{"column":7,"file":"node:net","function":"Server.listen","line":2102,"method":"listen","native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\node_modules\\express\\lib\\application.js","function":"app.listen","line":635,"method":"listen","native":false},{"column":32,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"startServer","line":256,"method":null,"native":false},{"column":5,"file":"node:internal/process/task_queues","function":"process.processTicksAndRejections","line":103,"method":"processTicksAndRejections","native":false}],"service":"kho-mvg","version":"1.0.0"}
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:256:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+2025-12-12 10:01:05 [ERROR]: uncaughtException: listen EADDRINUSE: address already in use :::5001
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:256:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::","port":5001},"exception":true,"date":"Fri Dec 12 2025 10:01:05 GMT+0700 (Indochina Time)","process":{"pid":6292,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\start-clean.js"],"memoryUsage":{"rss":132485120,"heapTotal":80162816,"heapUsed":54924224,"external":21959055,"arrayBuffers":18292556}},"os":{"loadavg":[0,0,0],"uptime":6845.437},"trace":[{"column":16,"file":"node:net","function":"Server.setupListenHandle [as _listen2]","line":1940,"method":"setupListenHandle [as _listen2]","native":false},{"column":12,"file":"node:net","function":"listenInCluster","line":1997,"method":null,"native":false},{"column":7,"file":"node:net","function":"Server.listen","line":2102,"method":"listen","native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\node_modules\\express\\lib\\application.js","function":"app.listen","line":635,"method":"listen","native":false},{"column":32,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"startServer","line":256,"method":null,"native":false},{"column":5,"file":"node:internal/process/task_queues","function":"process.processTicksAndRejections","line":103,"method":"processTicksAndRejections","native":false}],"service":"kho-mvg","version":"1.0.0"}
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:256:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+2025-12-12 10:01:20 [ERROR]: uncaughtException: listen EADDRINUSE: address already in use :::5001
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:256:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::","port":5001},"exception":true,"date":"Fri Dec 12 2025 10:01:20 GMT+0700 (Indochina Time)","process":{"pid":3028,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\start-clean.js"],"memoryUsage":{"rss":133173248,"heapTotal":82259968,"heapUsed":48965360,"external":21967247,"arrayBuffers":18300748}},"os":{"loadavg":[0,0,0],"uptime":6860.046},"trace":[{"column":16,"file":"node:net","function":"Server.setupListenHandle [as _listen2]","line":1940,"method":"setupListenHandle [as _listen2]","native":false},{"column":12,"file":"node:net","function":"listenInCluster","line":1997,"method":null,"native":false},{"column":7,"file":"node:net","function":"Server.listen","line":2102,"method":"listen","native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\node_modules\\express\\lib\\application.js","function":"app.listen","line":635,"method":"listen","native":false},{"column":32,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"startServer","line":256,"method":null,"native":false},{"column":5,"file":"node:internal/process/task_queues","function":"process.processTicksAndRejections","line":103,"method":"processTicksAndRejections","native":false}],"service":"kho-mvg","version":"1.0.0"}
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:256:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+2025-12-12 15:49:18 [ERROR]: uncaughtException: listen EADDRINUSE: address already in use :::5001
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:241:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::","port":5001},"exception":true,"date":"Fri Dec 12 2025 15:49:18 GMT+0700 (Indochina Time)","process":{"pid":1456,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":127561728,"heapTotal":78065664,"heapUsed":60977616,"external":21983971,"arrayBuffers":18317472}},"os":{"loadavg":[0,0,0],"uptime":27739.265},"trace":[{"column":16,"file":"node:net","function":"Server.setupListenHandle [as _listen2]","line":1940,"method":"setupListenHandle [as _listen2]","native":false},{"column":12,"file":"node:net","function":"listenInCluster","line":1997,"method":null,"native":false},{"column":7,"file":"node:net","function":"Server.listen","line":2102,"method":"listen","native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\node_modules\\express\\lib\\application.js","function":"app.listen","line":635,"method":"listen","native":false},{"column":32,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"startServer","line":241,"method":null,"native":false},{"column":5,"file":"node:internal/process/task_queues","function":"process.processTicksAndRejections","line":103,"method":"processTicksAndRejections","native":false}],"service":"kho-mvg","version":"1.0.0"}
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:241:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+2025-12-12 16:51:48 [ERROR]: uncaughtException: listen EADDRINUSE: address already in use :::5001
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:241:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::","port":5001},"exception":true,"date":"Fri Dec 12 2025 16:51:48 GMT+0700 (Indochina Time)","process":{"pid":19736,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":130379776,"heapTotal":80687104,"heapUsed":53762904,"external":21959055,"arrayBuffers":18292556}},"os":{"loadavg":[0,0,0],"uptime":31489.468},"trace":[{"column":16,"file":"node:net","function":"Server.setupListenHandle [as _listen2]","line":1940,"method":"setupListenHandle [as _listen2]","native":false},{"column":12,"file":"node:net","function":"listenInCluster","line":1997,"method":null,"native":false},{"column":7,"file":"node:net","function":"Server.listen","line":2102,"method":"listen","native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\node_modules\\express\\lib\\application.js","function":"app.listen","line":635,"method":"listen","native":false},{"column":32,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"startServer","line":241,"method":null,"native":false},{"column":5,"file":"node:internal/process/task_queues","function":"process.processTicksAndRejections","line":103,"method":"processTicksAndRejections","native":false}],"service":"kho-mvg","version":"1.0.0"}
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:241:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+2025-12-12 17:19:28 [ERROR]: uncaughtException: Unexpected identifier 'router'
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\documents.js:149
+router.get('/', catchAsync(async (req, res) => {
+^^^^^^
+
+SyntaxError: Unexpected identifier 'router'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:289:28) {"error":{},"exception":true,"date":"Fri Dec 12 2025 17:19:28 GMT+0700 (Indochina Time)","process":{"pid":22620,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":97533952,"heapTotal":51548160,"heapUsed":31816080,"external":20655178,"arrayBuffers":18264563}},"os":{"loadavg":[0,0,0],"uptime":33149.203},"trace":[{"column":18,"file":"node:internal/modules/cjs/loader","function":"wrapSafe","line":1691,"method":null,"native":false},{"column":20,"file":"node:internal/modules/cjs/loader","function":"Module._compile","line":1734,"method":"_compile","native":false},{"column":10,"file":"node:internal/modules/cjs/loader","function":"Object..js","line":1892,"method":".js","native":false},{"column":32,"file":"node:internal/modules/cjs/loader","function":"Module.load","line":1480,"method":"load","native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module._load","line":1299,"method":"_load","native":false},{"column":14,"file":"node:diagnostics_channel","function":"TracingChannel.traceSync","line":328,"method":"traceSync","native":false},{"column":24,"file":"node:internal/modules/cjs/loader","function":"wrapModuleLoad","line":245,"method":null,"native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module.require","line":1503,"method":"require","native":false},{"column":16,"file":"node:internal/modules/helpers","function":"require","line":152,"method":null,"native":false},{"column":28,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"registerRoutes","line":289,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\documents.js:149
+router.get('/', catchAsync(async (req, res) => {
+^^^^^^
+
+SyntaxError: Unexpected identifier 'router'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:289:28)
+2025-12-12 17:20:47 [ERROR]: uncaughtException: Unexpected identifier 'router'
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\documents.js:149
+router.get('/', catchAsync(async (req, res) => {
+^^^^^^
+
+SyntaxError: Unexpected identifier 'router'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:289:28) {"error":{},"exception":true,"date":"Fri Dec 12 2025 17:20:47 GMT+0700 (Indochina Time)","process":{"pid":13236,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":100642816,"heapTotal":51810304,"heapUsed":31757320,"external":20655178,"arrayBuffers":18264563}},"os":{"loadavg":[0,0,0],"uptime":33229},"trace":[{"column":18,"file":"node:internal/modules/cjs/loader","function":"wrapSafe","line":1691,"method":null,"native":false},{"column":20,"file":"node:internal/modules/cjs/loader","function":"Module._compile","line":1734,"method":"_compile","native":false},{"column":10,"file":"node:internal/modules/cjs/loader","function":"Object..js","line":1892,"method":".js","native":false},{"column":32,"file":"node:internal/modules/cjs/loader","function":"Module.load","line":1480,"method":"load","native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module._load","line":1299,"method":"_load","native":false},{"column":14,"file":"node:diagnostics_channel","function":"TracingChannel.traceSync","line":328,"method":"traceSync","native":false},{"column":24,"file":"node:internal/modules/cjs/loader","function":"wrapModuleLoad","line":245,"method":null,"native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module.require","line":1503,"method":"require","native":false},{"column":16,"file":"node:internal/modules/helpers","function":"require","line":152,"method":null,"native":false},{"column":28,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"registerRoutes","line":289,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\documents.js:149
+router.get('/', catchAsync(async (req, res) => {
+^^^^^^
+
+SyntaxError: Unexpected identifier 'router'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:289:28)
+2025-12-12 17:21:14 [ERROR]: uncaughtException: Unexpected identifier 'router'
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\documents.js:149
+router.get('/', catchAsync(async (req, res) => {
+^^^^^^
+
+SyntaxError: Unexpected identifier 'router'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:289:28) {"error":{},"exception":true,"date":"Fri Dec 12 2025 17:21:14 GMT+0700 (Indochina Time)","process":{"pid":20672,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":97595392,"heapTotal":51548160,"heapUsed":31812712,"external":20655178,"arrayBuffers":18264563}},"os":{"loadavg":[0,0,0],"uptime":33255.156},"trace":[{"column":18,"file":"node:internal/modules/cjs/loader","function":"wrapSafe","line":1691,"method":null,"native":false},{"column":20,"file":"node:internal/modules/cjs/loader","function":"Module._compile","line":1734,"method":"_compile","native":false},{"column":10,"file":"node:internal/modules/cjs/loader","function":"Object..js","line":1892,"method":".js","native":false},{"column":32,"file":"node:internal/modules/cjs/loader","function":"Module.load","line":1480,"method":"load","native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module._load","line":1299,"method":"_load","native":false},{"column":14,"file":"node:diagnostics_channel","function":"TracingChannel.traceSync","line":328,"method":"traceSync","native":false},{"column":24,"file":"node:internal/modules/cjs/loader","function":"wrapModuleLoad","line":245,"method":null,"native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module.require","line":1503,"method":"require","native":false},{"column":16,"file":"node:internal/modules/helpers","function":"require","line":152,"method":null,"native":false},{"column":28,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"registerRoutes","line":289,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\documents.js:149
+router.get('/', catchAsync(async (req, res) => {
+^^^^^^
+
+SyntaxError: Unexpected identifier 'router'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:289:28)
+2025-12-12 17:22:35 [ERROR]: uncaughtException: Unexpected identifier 'router'
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\documents.js:149
+router.get('/', catchAsync(async (req, res) => {
+^^^^^^
+
+SyntaxError: Unexpected identifier 'router'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:295:28) {"error":{},"exception":true,"date":"Fri Dec 12 2025 17:22:35 GMT+0700 (Indochina Time)","process":{"pid":20740,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":94691328,"heapTotal":52072448,"heapUsed":31655768,"external":20655178,"arrayBuffers":18264563}},"os":{"loadavg":[0,0,0],"uptime":33336.359},"trace":[{"column":18,"file":"node:internal/modules/cjs/loader","function":"wrapSafe","line":1691,"method":null,"native":false},{"column":20,"file":"node:internal/modules/cjs/loader","function":"Module._compile","line":1734,"method":"_compile","native":false},{"column":10,"file":"node:internal/modules/cjs/loader","function":"Object..js","line":1892,"method":".js","native":false},{"column":32,"file":"node:internal/modules/cjs/loader","function":"Module.load","line":1480,"method":"load","native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module._load","line":1299,"method":"_load","native":false},{"column":14,"file":"node:diagnostics_channel","function":"TracingChannel.traceSync","line":328,"method":"traceSync","native":false},{"column":24,"file":"node:internal/modules/cjs/loader","function":"wrapModuleLoad","line":245,"method":null,"native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module.require","line":1503,"method":"require","native":false},{"column":16,"file":"node:internal/modules/helpers","function":"require","line":152,"method":null,"native":false},{"column":28,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"registerRoutes","line":295,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\documents.js:149
+router.get('/', catchAsync(async (req, res) => {
+^^^^^^
+
+SyntaxError: Unexpected identifier 'router'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:295:28)
+2025-12-12 17:22:55 [ERROR]: uncaughtException: Unexpected identifier 'router'
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\documents.js:149
+router.get('/', catchAsync(async (req, res) => {
+^^^^^^
+
+SyntaxError: Unexpected identifier 'router'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:295:28) {"error":{},"exception":true,"date":"Fri Dec 12 2025 17:22:55 GMT+0700 (Indochina Time)","process":{"pid":19268,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":94806016,"heapTotal":51810304,"heapUsed":31915136,"external":20655178,"arrayBuffers":18264563}},"os":{"loadavg":[0,0,0],"uptime":33356.906},"trace":[{"column":18,"file":"node:internal/modules/cjs/loader","function":"wrapSafe","line":1691,"method":null,"native":false},{"column":20,"file":"node:internal/modules/cjs/loader","function":"Module._compile","line":1734,"method":"_compile","native":false},{"column":10,"file":"node:internal/modules/cjs/loader","function":"Object..js","line":1892,"method":".js","native":false},{"column":32,"file":"node:internal/modules/cjs/loader","function":"Module.load","line":1480,"method":"load","native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module._load","line":1299,"method":"_load","native":false},{"column":14,"file":"node:diagnostics_channel","function":"TracingChannel.traceSync","line":328,"method":"traceSync","native":false},{"column":24,"file":"node:internal/modules/cjs/loader","function":"wrapModuleLoad","line":245,"method":null,"native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module.require","line":1503,"method":"require","native":false},{"column":16,"file":"node:internal/modules/helpers","function":"require","line":152,"method":null,"native":false},{"column":28,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"registerRoutes","line":295,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\documents.js:149
+router.get('/', catchAsync(async (req, res) => {
+^^^^^^
+
+SyntaxError: Unexpected identifier 'router'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:295:28)
+2025-12-12 17:23:09 [ERROR]: uncaughtException: Unexpected identifier 'router'
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\documents.js:149
+router.get('/', catchAsync(async (req, res) => {
+^^^^^^
+
+SyntaxError: Unexpected identifier 'router'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:295:28) {"error":{},"exception":true,"date":"Fri Dec 12 2025 17:23:09 GMT+0700 (Indochina Time)","process":{"pid":2912,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":94765056,"heapTotal":51810304,"heapUsed":31870904,"external":20655178,"arrayBuffers":18264563}},"os":{"loadavg":[0,0,0],"uptime":33370.968},"trace":[{"column":18,"file":"node:internal/modules/cjs/loader","function":"wrapSafe","line":1691,"method":null,"native":false},{"column":20,"file":"node:internal/modules/cjs/loader","function":"Module._compile","line":1734,"method":"_compile","native":false},{"column":10,"file":"node:internal/modules/cjs/loader","function":"Object..js","line":1892,"method":".js","native":false},{"column":32,"file":"node:internal/modules/cjs/loader","function":"Module.load","line":1480,"method":"load","native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module._load","line":1299,"method":"_load","native":false},{"column":14,"file":"node:diagnostics_channel","function":"TracingChannel.traceSync","line":328,"method":"traceSync","native":false},{"column":24,"file":"node:internal/modules/cjs/loader","function":"wrapModuleLoad","line":245,"method":null,"native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module.require","line":1503,"method":"require","native":false},{"column":16,"file":"node:internal/modules/helpers","function":"require","line":152,"method":null,"native":false},{"column":28,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"registerRoutes","line":295,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\documents.js:149
+router.get('/', catchAsync(async (req, res) => {
+^^^^^^
+
+SyntaxError: Unexpected identifier 'router'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:295:28)
+2025-12-12 17:23:41 [ERROR]: uncaughtException: Unexpected identifier 'router'
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\documents.js:149
+router.get('/', catchAsync(async (req, res) => {
+^^^^^^
+
+SyntaxError: Unexpected identifier 'router'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:300:28) {"error":{},"exception":true,"date":"Fri Dec 12 2025 17:23:41 GMT+0700 (Indochina Time)","process":{"pid":24904,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":94593024,"heapTotal":51286016,"heapUsed":31722568,"external":20655178,"arrayBuffers":18264563}},"os":{"loadavg":[0,0,0],"uptime":33403.046},"trace":[{"column":18,"file":"node:internal/modules/cjs/loader","function":"wrapSafe","line":1691,"method":null,"native":false},{"column":20,"file":"node:internal/modules/cjs/loader","function":"Module._compile","line":1734,"method":"_compile","native":false},{"column":10,"file":"node:internal/modules/cjs/loader","function":"Object..js","line":1892,"method":".js","native":false},{"column":32,"file":"node:internal/modules/cjs/loader","function":"Module.load","line":1480,"method":"load","native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module._load","line":1299,"method":"_load","native":false},{"column":14,"file":"node:diagnostics_channel","function":"TracingChannel.traceSync","line":328,"method":"traceSync","native":false},{"column":24,"file":"node:internal/modules/cjs/loader","function":"wrapModuleLoad","line":245,"method":null,"native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module.require","line":1503,"method":"require","native":false},{"column":16,"file":"node:internal/modules/helpers","function":"require","line":152,"method":null,"native":false},{"column":28,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"registerRoutes","line":300,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\documents.js:149
+router.get('/', catchAsync(async (req, res) => {
+^^^^^^
+
+SyntaxError: Unexpected identifier 'router'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:300:28)
+2025-12-12 17:23:47 [ERROR]: uncaughtException: Unexpected identifier 'router'
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\documents.js:149
+router.get('/', catchAsync(async (req, res) => {
+^^^^^^
+
+SyntaxError: Unexpected identifier 'router'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:300:28) {"error":{},"exception":true,"date":"Fri Dec 12 2025 17:23:47 GMT+0700 (Indochina Time)","process":{"pid":8208,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":93073408,"heapTotal":51548160,"heapUsed":31558640,"external":20655178,"arrayBuffers":18264563}},"os":{"loadavg":[0,0,0],"uptime":33408.125},"trace":[{"column":18,"file":"node:internal/modules/cjs/loader","function":"wrapSafe","line":1691,"method":null,"native":false},{"column":20,"file":"node:internal/modules/cjs/loader","function":"Module._compile","line":1734,"method":"_compile","native":false},{"column":10,"file":"node:internal/modules/cjs/loader","function":"Object..js","line":1892,"method":".js","native":false},{"column":32,"file":"node:internal/modules/cjs/loader","function":"Module.load","line":1480,"method":"load","native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module._load","line":1299,"method":"_load","native":false},{"column":14,"file":"node:diagnostics_channel","function":"TracingChannel.traceSync","line":328,"method":"traceSync","native":false},{"column":24,"file":"node:internal/modules/cjs/loader","function":"wrapModuleLoad","line":245,"method":null,"native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module.require","line":1503,"method":"require","native":false},{"column":16,"file":"node:internal/modules/helpers","function":"require","line":152,"method":null,"native":false},{"column":28,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"registerRoutes","line":300,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\documents.js:149
+router.get('/', catchAsync(async (req, res) => {
+^^^^^^
+
+SyntaxError: Unexpected identifier 'router'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:300:28)
+2025-12-12 17:24:12 [ERROR]: uncaughtException: Unexpected identifier 'router'
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\documents.js:149
+router.get('/', catchAsync(async (req, res) => {
+^^^^^^
+
+SyntaxError: Unexpected identifier 'router'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:299:28) {"error":{},"exception":true,"date":"Fri Dec 12 2025 17:24:12 GMT+0700 (Indochina Time)","process":{"pid":12916,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":86769664,"heapTotal":45256704,"heapUsed":36612536,"external":20655178,"arrayBuffers":18264565}},"os":{"loadavg":[0,0,0],"uptime":33433.375},"trace":[{"column":18,"file":"node:internal/modules/cjs/loader","function":"wrapSafe","line":1691,"method":null,"native":false},{"column":20,"file":"node:internal/modules/cjs/loader","function":"Module._compile","line":1734,"method":"_compile","native":false},{"column":10,"file":"node:internal/modules/cjs/loader","function":"Object..js","line":1892,"method":".js","native":false},{"column":32,"file":"node:internal/modules/cjs/loader","function":"Module.load","line":1480,"method":"load","native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module._load","line":1299,"method":"_load","native":false},{"column":14,"file":"node:diagnostics_channel","function":"TracingChannel.traceSync","line":328,"method":"traceSync","native":false},{"column":24,"file":"node:internal/modules/cjs/loader","function":"wrapModuleLoad","line":245,"method":null,"native":false},{"column":12,"file":"node:internal/modules/cjs/loader","function":"Module.require","line":1503,"method":"require","native":false},{"column":16,"file":"node:internal/modules/helpers","function":"require","line":152,"method":null,"native":false},{"column":28,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"registerRoutes","line":299,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\routes\documents.js:149
+router.get('/', catchAsync(async (req, res) => {
+^^^^^^
+
+SyntaxError: Unexpected identifier 'router'
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at registerRoutes (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:299:28)
+2025-12-12 17:44:43 [ERROR]: uncaughtException: listen EADDRINUSE: address already in use :::5001
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:247:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:356:24 {"error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::","port":5001},"exception":true,"date":"Fri Dec 12 2025 17:44:43 GMT+0700 (Indochina Time)","process":{"pid":20808,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":132640768,"heapTotal":83832832,"heapUsed":65730704,"external":21940305,"arrayBuffers":18273806}},"os":{"loadavg":[0,0,0],"uptime":34664.75},"trace":[{"column":16,"file":"node:net","function":"Server.setupListenHandle [as _listen2]","line":1940,"method":"setupListenHandle [as _listen2]","native":false},{"column":12,"file":"node:net","function":"listenInCluster","line":1997,"method":null,"native":false},{"column":7,"file":"node:net","function":"Server.listen","line":2102,"method":"listen","native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\node_modules\\express\\lib\\application.js","function":"app.listen","line":635,"method":"listen","native":false},{"column":32,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"startServer","line":247,"method":null,"native":false},{"column":5,"file":"node:internal/process/task_queues","function":"process.processTicksAndRejections","line":103,"method":"processTicksAndRejections","native":false},{"column":24,"file":"async C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":null,"line":356,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:247:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:356:24
+2025-12-12 17:47:20 [ERROR]: uncaughtException: listen EADDRINUSE: address already in use :::5001
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:247:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:356:24 {"error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::","port":5001},"exception":true,"date":"Fri Dec 12 2025 17:47:20 GMT+0700 (Indochina Time)","process":{"pid":16404,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":131538944,"heapTotal":82522112,"heapUsed":54943352,"external":21940304,"arrayBuffers":18273805}},"os":{"loadavg":[0,0,0],"uptime":34821.515},"trace":[{"column":16,"file":"node:net","function":"Server.setupListenHandle [as _listen2]","line":1940,"method":"setupListenHandle [as _listen2]","native":false},{"column":12,"file":"node:net","function":"listenInCluster","line":1997,"method":null,"native":false},{"column":7,"file":"node:net","function":"Server.listen","line":2102,"method":"listen","native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\node_modules\\express\\lib\\application.js","function":"app.listen","line":635,"method":"listen","native":false},{"column":32,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"startServer","line":247,"method":null,"native":false},{"column":5,"file":"node:internal/process/task_queues","function":"process.processTicksAndRejections","line":103,"method":"processTicksAndRejections","native":false},{"column":24,"file":"async C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":null,"line":356,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:247:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:356:24
+2025-12-12 17:52:40 [ERROR]: uncaughtException: listen EADDRINUSE: address already in use :::5001
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:247:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:356:24 {"error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::","port":5001},"exception":true,"date":"Fri Dec 12 2025 17:52:40 GMT+0700 (Indochina Time)","process":{"pid":5864,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":135720960,"heapTotal":82259968,"heapUsed":54996472,"external":21940304,"arrayBuffers":18273805}},"os":{"loadavg":[0,0,0],"uptime":35141.421},"trace":[{"column":16,"file":"node:net","function":"Server.setupListenHandle [as _listen2]","line":1940,"method":"setupListenHandle [as _listen2]","native":false},{"column":12,"file":"node:net","function":"listenInCluster","line":1997,"method":null,"native":false},{"column":7,"file":"node:net","function":"Server.listen","line":2102,"method":"listen","native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\node_modules\\express\\lib\\application.js","function":"app.listen","line":635,"method":"listen","native":false},{"column":32,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"startServer","line":247,"method":null,"native":false},{"column":5,"file":"node:internal/process/task_queues","function":"process.processTicksAndRejections","line":103,"method":"processTicksAndRejections","native":false},{"column":24,"file":"async C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":null,"line":356,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:247:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:356:24
+2025-12-12 18:05:33 [ERROR]: uncaughtException: listen EADDRINUSE: address already in use :::5001
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:247:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:356:24 {"error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::","port":5001},"exception":true,"date":"Fri Dec 12 2025 18:05:33 GMT+0700 (Indochina Time)","process":{"pid":23828,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":133398528,"heapTotal":84094976,"heapUsed":65851104,"external":21940192,"arrayBuffers":18273693}},"os":{"loadavg":[0,0,0],"uptime":35914.375},"trace":[{"column":16,"file":"node:net","function":"Server.setupListenHandle [as _listen2]","line":1940,"method":"setupListenHandle [as _listen2]","native":false},{"column":12,"file":"node:net","function":"listenInCluster","line":1997,"method":null,"native":false},{"column":7,"file":"node:net","function":"Server.listen","line":2102,"method":"listen","native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\node_modules\\express\\lib\\application.js","function":"app.listen","line":635,"method":"listen","native":false},{"column":32,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"startServer","line":247,"method":null,"native":false},{"column":5,"file":"node:internal/process/task_queues","function":"process.processTicksAndRejections","line":103,"method":"processTicksAndRejections","native":false},{"column":24,"file":"async C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":null,"line":356,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:247:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:356:24
+2025-12-15 08:08:53 [ERROR]: uncaughtException: listen EADDRINUSE: address already in use :::5001
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:247:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:356:24 {"error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::","port":5001},"exception":true,"date":"Mon Dec 15 2025 08:08:53 GMT+0700 (Indochina Time)","process":{"pid":24268,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":139456512,"heapTotal":82522112,"heapUsed":64293920,"external":21940192,"arrayBuffers":18273693}},"os":{"loadavg":[0,0,0],"uptime":259310.765},"trace":[{"column":16,"file":"node:net","function":"Server.setupListenHandle [as _listen2]","line":1940,"method":"setupListenHandle [as _listen2]","native":false},{"column":12,"file":"node:net","function":"listenInCluster","line":1997,"method":null,"native":false},{"column":7,"file":"node:net","function":"Server.listen","line":2102,"method":"listen","native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\node_modules\\express\\lib\\application.js","function":"app.listen","line":635,"method":"listen","native":false},{"column":32,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"startServer","line":247,"method":null,"native":false},{"column":5,"file":"node:internal/process/task_queues","function":"process.processTicksAndRejections","line":103,"method":"processTicksAndRejections","native":false},{"column":24,"file":"async C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":null,"line":356,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:247:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:356:24
+2025-12-15 08:17:29 [ERROR]: uncaughtException: listen EADDRINUSE: address already in use :::5001
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:247:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:356:24 {"error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::","port":5001},"exception":true,"date":"Mon Dec 15 2025 08:17:29 GMT+0700 (Indochina Time)","process":{"pid":14660,"uid":null,"gid":null,"cwd":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v25.1.0","argv":["C:\\Program Files\\nodejs\\node.exe","C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":130879488,"heapTotal":81735680,"heapUsed":63463848,"external":21940192,"arrayBuffers":18273693}},"os":{"loadavg":[0,0,0],"uptime":259826.218},"trace":[{"column":16,"file":"node:net","function":"Server.setupListenHandle [as _listen2]","line":1940,"method":"setupListenHandle [as _listen2]","native":false},{"column":12,"file":"node:net","function":"listenInCluster","line":1997,"method":null,"native":false},{"column":7,"file":"node:net","function":"Server.listen","line":2102,"method":"listen","native":false},{"column":24,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\node_modules\\express\\lib\\application.js","function":"app.listen","line":635,"method":"listen","native":false},{"column":32,"file":"C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"startServer","line":247,"method":null,"native":false},{"column":5,"file":"node:internal/process/task_queues","function":"process.processTicksAndRejections","line":103,"method":"processTicksAndRejections","native":false},{"column":24,"file":"async C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":null,"line":356,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:247:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:356:24

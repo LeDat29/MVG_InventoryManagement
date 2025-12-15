@@ -1,0 +1,18 @@
+﻿// ProjectService - API for projects and warehouse zones
+import axios from 'axios';
+
+const API_BASE = '/api/projects';
+
+const projectService = {
+  async getProjects(params = {}) {
+    const response = await axios.get(API_BASE, { params });
+    return response.data;
+  },
+  async getZones(projectId) {
+    if (!projectId) return { zones: [] };
+    const response = await axios.get(`${API_BASE}/${projectId}/zones`);
+    return response.data;
+  }
+};
+
+export default projectService;

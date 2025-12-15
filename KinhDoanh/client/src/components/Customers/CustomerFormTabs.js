@@ -2,7 +2,6 @@
  * Customer Form with Tabs - KHO MVG
  * Tab 1: Thông tin cá nhân cơ bản
  * Tab 2: Thông tin công ty 
- * Tab 3: Thông tin hợp đồng
  */
 
 import React, { useState, useEffect } from 'react';
@@ -10,7 +9,6 @@ import { Button, Nav, Tab } from 'react-bootstrap';
 // import { useAuth } from '../../contexts/AuthContext';
 import PersonalInfoTab from './PersonalInfoTab';
 import CompanyInfoTab from './CompanyInfoTab';
-import ContractInfoTab from './ContractInfoTab';
 
 function CustomerFormTabs({ customer = null, onSave, onCancel, isLoading = false }) {
   // const { hasPermission } = useAuth();
@@ -37,25 +35,6 @@ function CustomerFormTabs({ customer = null, onSave, onCancel, isLoading = false
         invoice_address: '',
         warehouse_purpose: '', // Mục đích sử dụng kho
         is_primary: true // Công ty chính
-      }
-    ],
-    // Tab 3: Thông tin hợp đồng (một công ty có thể có nhiều hợp đồng)
-    contracts: [
-      {
-        id: null,
-        contract_number: '',
-        project_id: '',
-        warehouse_location: '',
-        company_index: 0, // Index trong mảng companies
-        representative_name: '', // Người đại diện công ty
-        representative_position: '', // Chức vụ
-        area_sqm: 0, // Diện tích thuê (m²)
-        rental_price: 0, // Giá thuê
-        start_date: '',
-        end_date: '',
-        payment_terms: '', // Thông tin thanh toán
-        binding_terms: '', // Điều khoản ràng buộc
-        is_active: true
       }
     ]
   });
@@ -128,46 +107,8 @@ function CustomerFormTabs({ customer = null, onSave, onCancel, isLoading = false
             tax_code: customer.tax_code || '',
             company_name: customer.name || '',  // Always use customer.name as company name
             invoice_address: customer.address || '',
-            warehouse_purpose: '',
+            warehouse_purpose: customer.warehouse_purpose || '',
             is_primary: true
-          }
-        ],
-        contracts: Array.isArray(customer.contracts) ? customer.contracts.map(contract => ({
-          id: contract.id || null,
-          contract_number: contract.contract_number || '',
-          project_id: contract.project_id || '',
-          warehouse_location: `${contract.project_name || ''} - ${contract.zone_code || ''}`.trim(),
-          company_index: 0,
-          representative_name: customer.representative_name || customer.name || '',
-          representative_position: '',
-          area_sqm: contract.zone_area || 0,
-          rental_price: contract.rental_price || contract.total_value || 0,
-          start_date: formatDateForInput(contract.start_date),
-          end_date: formatDateForInput(contract.end_date),
-          payment_terms: contract.payment_cycle || '',
-          binding_terms: contract.contract_terms || '',
-          is_active: contract.status === 'active',
-          status: contract.status || 'draft',
-          project_name: contract.project_name || '',
-          zone_code: contract.zone_code || '',
-          zone_name: contract.zone_name || '',
-          days_until_expiry: contract.days_until_expiry || null
-        })) : [
-          {
-            id: null,
-            contract_number: '',
-            project_id: '',
-            warehouse_location: '',
-            company_index: 0,
-            representative_name: customer.representative_name || customer.name || '',
-            representative_position: '',
-            area_sqm: 0,
-            rental_price: 0,
-            start_date: '',
-            end_date: '',
-            payment_terms: '',
-            binding_terms: '',
-            is_active: true
           }
         ]
       });
@@ -195,12 +136,6 @@ function CustomerFormTabs({ customer = null, onSave, onCancel, isLoading = false
               Thông tin công ty
             </Nav.Link>
           </Nav.Item>
-          <Nav.Item>
-            <Nav.Link eventKey="contracts">
-              <i className="fas fa-file-contract me-2"></i>
-              Thông tin hợp đồng
-            </Nav.Link>
-          </Nav.Item>
         </Nav>
 
         {/* Tab Content */}
@@ -225,18 +160,6 @@ function CustomerFormTabs({ customer = null, onSave, onCancel, isLoading = false
               onCompaniesChange={(companies) => setFormData(prev => ({ ...prev, companies }))}
             />
           </Tab.Pane>
-
-          {/* Tab 3: Thông tin hợp đồng */}
-          <Tab.Pane eventKey="contracts">
-            <ContractInfoTab 
-              contracts={formData.contracts}
-              companies={formData.companies}
-              personalInfo={formData.personal}
-              errors={errors}
-              touched={touched}
-              onContractsChange={(contracts) => setFormData(prev => ({ ...prev, contracts }))}
-            />
-          </Tab.Pane>
         </Tab.Content>
       </Tab.Container>
 
@@ -256,64 +179,40 @@ function CustomerFormTabs({ customer = null, onSave, onCancel, isLoading = false
             <Button 
               variant="outline-primary"
               className="me-2"
-              onClick={() => {
-                const tabs = ['personal', 'company', 'contracts'];
-                const currentIndex = tabs.indexOf(activeTab);
-                if (currentIndex > 0) setActiveTab(tabs[currentIndex - 1]);
-              }}
+              onClick={() => setActiveTab('personal')}
             >
               <i className="fas fa-arrow-left me-2"></i>
               Quay lại
             </Button>
           )}
-          
-          {activeTab !== 'contracts' ? (
-            <Button 
-              variant="primary"
-              onClick={() => {
-                const tabs = ['personal', 'company', 'contracts'];
-                const currentIndex = tabs.indexOf(activeTab);
-                if (currentIndex < tabs.length - 1) setActiveTab(tabs[currentIndex + 1]);
-              }}
-            >
-              Tiếp theo
-              <i className="fas fa-arrow-right ms-2"></i>
-            </Button>
-          ) : (
-            <Button 
-              variant="success"
-              onClick={() => {
-                try {
-                  console.log('🔍 CustomerFormTabs onClick triggered');
-                  console.log('📊 Current formData:', formData);
-                  console.log('🎯 onSave function exists:', typeof onSave);
-                  
-                  if (typeof onSave !== 'function') {
-                    throw new Error('onSave is not a function');
-                  }
-                  
-                  onSave(formData);
-                } catch (error) {
-                  console.error('❌ CustomerFormTabs onClick error:', error);
-                  alert('Error: ' + error.message);
+          <Button 
+            variant="success"
+            onClick={() => {
+              try {
+                if (typeof onSave !== 'function') {
+                  throw new Error('onSave is not a function');
                 }
-              }}
-              disabled={isLoading}
-              size="lg"
-            >
-              {isLoading ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-2"></span>
-                  Đang lưu...
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-save me-2"></i>
-                  {customer ? 'Cập nhật' : 'Lưu thông tin'}
-                </>
-              )}
-            </Button>
-          )}
+                onSave(formData);
+              } catch (error) {
+                console.error('❌ CustomerFormTabs onClick error:', error);
+                alert('Error: ' + error.message);
+              }
+            }}
+            disabled={isLoading}
+            size="lg"
+          >
+            {isLoading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2"></span>
+                Đang lưu...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-save me-2"></i>
+                {customer ? 'Cập nhật' : 'Lưu thông tin'}
+              </>
+            )}
+          </Button>
         </div>
       </div>
     </div>

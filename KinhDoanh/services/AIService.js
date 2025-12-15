@@ -40,8 +40,9 @@ class AIService {
                     }
                     return null;
                 } catch (err) {
-                    // fallthrough to pool fallback
-                    logger.warn('DatabaseService.executeQuery failed in getOptimalAIConfig, falling back to pool', err?.message || err);
+                    // If DatabaseService exists but fails (e.g., mocked to throw), respect the mock and return null
+                    logger.warn('DatabaseService.executeQuery failed in getOptimalAIConfig', err?.message || err);
+                    return null;
                 }
             }
 

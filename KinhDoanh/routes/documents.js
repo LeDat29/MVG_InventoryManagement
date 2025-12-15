@@ -18,6 +18,8 @@ const { logger, logUserActivity, logFileOperation } = require('../config/logger'
 const { catchAsync, AppError } = require('../middleware/errorHandler');
 const { requirePermission } = require('../middleware/auth');
 const { uploadLimiter } = require('../middleware/rateLimiter');
+const FileModel = require('../models/File');
+const mongoose = require('mongoose');
 
 const router = express.Router();
 
@@ -154,36 +156,23 @@ router.post('/categories', requirePermission('document_category_create'), [
         });
     }
 
-    const {
-        category_code, category_name, category_type, description,
-        required_fields, is_required = false, sort_order = 0
-    } = req.body;
+    const { category_code, category_name, category_type, description, required_fields, is_required } = req.body;
 
     const pool = mysqlPool();
 
-    // Kiểm tra mã danh mục đã tồn tại
-    const [existing] = await pool.execute(
-        'SELECT id FROM document_categories WHERE category_code = ?',
-        [category_code]
+    // Insert new category
+    const [result] = await pool.execute(
+        `INSERT INTO document_categories (category_code, category_name, category_type, description, required_fields, is_required, is_active, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, TRUE, NOW())`,
+        [
+            category_code,
+            category_name,
+            category_type,
+            description || null,
+            required_fields ? JSON.stringify(required_fields) : JSON.stringify([]),
+            Boolean(is_required)
+        ]
     );
-
-    if (existing.length > 0) {
-        return res.status(409).json({
-            success: false,
-            message: 'Mã danh mục đã tồn tại'
-        });
-    }
-
-    const [result] = await pool.execute(`
-        INSERT INTO document_categories (
-            category_code, category_name, category_type, description,
-            required_fields, is_required, sort_order
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
-    `, [
-        category_code, category_name, category_type, description,
-        required_fields ? JSON.stringify(required_fields) : null,
-        is_required, sort_order
-    ]);
 
     await logUserActivity(
         req.user.id,
@@ -243,92 +232,110 @@ router.post('/categories', requirePermission('document_category_create'), [
  *       200:
  *         description: Upload thành công
  */
-router.post('/upload', uploadLimiter, requirePermission('document_upload'), upload.array('files', 10), catchAsync(async (req, res) => {
-    if (!req.files || req.files.length === 0) {
-        return res.status(400).json({
-            success: false,
-            message: 'Không có file nào được upload'
-        });
-    }
+// Ensure backing table exists
+async function ensureDocumentFilesTable() {
+    const pool = mysqlPool();
+    await pool.execute(`
+        CREATE TABLE IF NOT EXISTS document_files (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            filename VARCHAR(255) NOT NULL,
+            originalname VARCHAR(255) NOT NULL,
+            mimetype VARCHAR(100) NOT NULL,
+            size INT NOT NULL,
+            path TEXT NOT NULL,
+            resource_type ENUM('project','customer','contract','task') NOT NULL,
+            resource_id INT NOT NULL,
+            category_id INT NULL,
+            description TEXT,
+            uploaded_by INT,
+            uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            is_active BOOLEAN DEFAULT TRUE,
+            INDEX idx_resource (resource_type, resource_id),
+            INDEX idx_category (category_id),
+            INDEX idx_uploaded_at (uploaded_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+}
 
-    const { resource_type, resource_id, category_id, description } = req.body;
+async function ensureProjectCategory() {
+    const pool = mysqlPool();
+    // Try to find a default category for project legal docs
+    const [rows] = await pool.execute(
+        `SELECT id FROM document_categories WHERE category_type = 'project' AND category_code = 'DU_AN' LIMIT 1`
+    );
+    if (rows.length > 0) return rows[0].id;
+    const [result] = await pool.execute(
+        `INSERT INTO document_categories (category_code, category_name, category_type, description, required_fields, is_required, sort_order, is_active, created_at)
+         VALUES ('DU_AN', 'Dự Án', 'project', 'Danh mục hồ sơ pháp lý dự án', JSON_ARRAY(), FALSE, 0, TRUE, NOW())`
+    );
+    return result.insertId;
+}
+
+router.post('/upload', uploadLimiter, requirePermission('document_upload'), upload.array('files', 10), catchAsync(async (req, res) => {
+    await ensureDocumentFilesTable();
+
+    const { resource_type, resource_id } = req.body;
+    let { category_id, description } = req.body;
 
     if (!resource_type || !resource_id) {
-        return res.status(400).json({
-            success: false,
-            message: 'resource_type và resource_id là bắt buộc'
-        });
+        return res.status(400).json({ success: false, message: 'resource_type và resource_id là bắt buộc' });
+    }
+
+    // Default category for project docs if not provided
+    if (resource_type === 'project' && !category_id) {
+        try { category_id = await ensureProjectCategory(); } catch (_) { category_id = null; }
+    }
+
+    if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ success: false, message: 'Không có file nào được upload' });
     }
 
     const pool = mysqlPool();
-    const uploadedFiles = [];
+    const uploaded = [];
 
-    // Lưu thông tin files vào MongoDB
-    const mongoose = require('mongoose');
-    
-    const FileSchema = new mongoose.Schema({
-        filename: String,
-        originalname: String,
-        mimetype: String,
-        size: Number,
-        path: String,
-        resource_type: String,
-        resource_id: Number,
-        category_id: Number,
-        description: String,
-        uploaded_by: Number,
-        uploaded_at: { type: Date, default: Date.now },
-        is_active: { type: Boolean, default: true }
-    });
-
-    const FileModel = mongoose.model('File', FileSchema);
-
-    for (const file of req.files) {
-        const fileDoc = new FileModel({
-            filename: file.filename,
-            originalname: file.originalname,
-            mimetype: file.mimetype,
-            size: file.size,
-            path: file.path,
-            resource_type,
-            resource_id: parseInt(resource_id),
-            category_id: category_id ? parseInt(category_id) : null,
-            description,
-            uploaded_by: req.user.id
+    for (const f of req.files) {
+        const [result] = await pool.execute(
+            `INSERT INTO document_files (filename, originalname, mimetype, size, path, resource_type, resource_id, category_id, description, uploaded_by)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                f.filename,
+                f.originalname,
+                f.mimetype,
+                f.size,
+                f.path,
+                resource_type,
+                parseInt(resource_id),
+                category_id ? parseInt(category_id) : null,
+                description || null,
+                req.user?.id || null
+            ]
+        );
+        uploaded.push({
+            id: result.insertId,
+            filename: f.filename,
+            originalname: f.originalname,
+            size: f.size,
+            mimetype: f.mimetype
         });
 
-        await fileDoc.save();
-        uploadedFiles.push({
-            id: fileDoc._id,
-            filename: file.filename,
-            originalname: file.originalname,
-            size: file.size,
-            mimetype: file.mimetype
-        });
-
-        // Log file operation
-        logFileOperation('upload', file.originalname, req.user.id, {
+        logFileOperation('upload', f.originalname, req.user?.id || null, {
             resourceType: resource_type,
             resourceId: resource_id,
-            fileSize: file.size
+            fileSize: f.size
         });
     }
 
     await logUserActivity(
-        req.user.id,
+        req.user?.id || null,
         'UPLOAD_DOCUMENTS',
         resource_type,
         resource_id,
         req.ip,
         req.get('User-Agent'),
-        { fileCount: req.files.length, totalSize: req.files.reduce((sum, f) => sum + f.size, 0) }
+        { fileCount: uploaded.length, totalSize: uploaded.reduce((s, it) => s + it.size, 0) }
     );
 
-    res.json({
-        success: true,
-        message: `Upload thành công ${req.files.length} file(s)`,
-        data: { files: uploadedFiles }
-    });
+    res.json({ success: true, message: `Upload thành công ${uploaded.length} file(s)`, data: { files: uploaded } });
 }));
 
 /**
@@ -358,45 +365,26 @@ router.post('/upload', uploadLimiter, requirePermission('document_upload'), uplo
  *         description: Danh sách tài liệu
  */
 router.get('/', catchAsync(async (req, res) => {
+    await ensureDocumentFilesTable();
     const { resource_type, resource_id, category_id } = req.query;
-    
-    const mongoose = require('mongoose');
-    const FileModel = mongoose.model('File');
-
-    let query = { is_active: true };
-
-    if (resource_type) query.resource_type = resource_type;
-    if (resource_id) query.resource_id = parseInt(resource_id);
-    if (category_id) query.category_id = parseInt(category_id);
-
-    const files = await FileModel.find(query).sort({ uploaded_at: -1 });
-
-    // Lấy thông tin category names
     const pool = mysqlPool();
-    const categoryIds = [...new Set(files.map(f => f.category_id).filter(id => id))];
-    let categories = [];
-    
-    if (categoryIds.length > 0) {
-        const placeholders = categoryIds.map(() => '?').join(',');
-        const [categoryResults] = await pool.execute(
-            `SELECT id, category_name FROM document_categories WHERE id IN (${placeholders})`,
-            categoryIds
-        );
-        categories = categoryResults;
-    }
 
-    const filesWithCategory = files.map(file => {
-        const category = categories.find(c => c.id === file.category_id);
-        return {
-            ...file.toObject(),
-            category_name: category ? category.category_name : null
-        };
-    });
+    let where = 'WHERE df.is_active = TRUE';
+    const params = [];
+    if (resource_type) { where += ' AND df.resource_type = ?'; params.push(resource_type); }
+    if (resource_id) { where += ' AND df.resource_id = ?'; params.push(parseInt(resource_id)); }
+    if (category_id) { where += ' AND df.category_id = ?'; params.push(parseInt(category_id)); }
 
-    res.json({
-        success: true,
-        data: { files: filesWithCategory }
-    });
+    // join with categories to get category_name
+    const [rows] = await pool.execute(
+        `SELECT df.*, dc.category_name
+         FROM document_files AS df
+         LEFT JOIN document_categories AS dc ON df.category_id = dc.id
+         ${where}
+         ORDER BY df.uploaded_at DESC`
+    , params);
+
+    res.json({ success: true, data: { files: rows } });
 }));
 
 /**
@@ -420,40 +408,61 @@ router.get('/', catchAsync(async (req, res) => {
  *         description: File không tìm thấy
  */
 router.get('/download/:fileId', catchAsync(async (req, res) => {
-    const fileId = req.params.fileId;
-    
-    const mongoose = require('mongoose');
-    const FileModel = mongoose.model('File');
-
-    const file = await FileModel.findById(fileId);
-    
-    if (!file || !file.is_active) {
-        return res.status(404).json({
-            success: false,
-            message: 'File không tìm thấy'
-        });
+    const { fileId } = req.params;
+    const pool = mysqlPool();
+    const [rows] = await pool.execute('SELECT * FROM document_files WHERE id = ? AND is_active = TRUE', [parseInt(fileId)]);
+    const file = rows[0];
+    if (!file) {
+        return res.status(404).json({ success: false, message: 'File không tìm thấy' });
     }
-
-    // Kiểm tra file có tồn tại trên disk
     if (!fs.existsSync(file.path)) {
-        return res.status(404).json({
-            success: false,
-            message: 'File không tồn tại trên server'
-        });
+        return res.status(404).json({ success: false, message: 'File không tồn tại trên server' });
     }
 
-    // Log file download
-    logFileOperation('download', file.originalname, req.user.id, {
-        fileId: file._id,
+    logFileOperation('download', file.originalname, req.user?.id || null, {
+        fileId: file.id,
         resourceType: file.resource_type,
         resourceId: file.resource_id
     });
 
     res.setHeader('Content-Disposition', `attachment; filename="${file.originalname}"`);
     res.setHeader('Content-Type', file.mimetype);
-    
-    const fileStream = fs.createReadStream(file.path);
-    fileStream.pipe(res);
+    fs.createReadStream(file.path).pipe(res);
+}));
+
+/**
+ * Delete (deactivate) file
+ * NOTE: This route marks the file as inactive but does not immediately remove it from disk.
+ * It requires proper permission and will log the deletion action.
+ */
+router.delete('/:fileId', requirePermission('document_delete'), catchAsync(async (req, res) => {
+    const { fileId } = req.params;
+    const pool = mysqlPool();
+    const [rows] = await pool.execute('SELECT * FROM document_files WHERE id = ? AND is_active = TRUE', [parseInt(fileId)]);
+    const file = rows[0];
+    if (!file) {
+        return res.status(404).json({ success: false, message: 'File không tìm thấy' });
+    }
+
+    await pool.execute('UPDATE document_files SET is_active = FALSE WHERE id = ?', [parseInt(fileId)]);
+
+    await logUserActivity(
+        req.user?.id || null,
+        'DELETE_DOCUMENT',
+        file.resource_type,
+        file.resource_id,
+        req.ip,
+        req.get('User-Agent'),
+        { fileId: file.id, filename: file.originalname }
+    );
+
+    await logFileOperation('delete', file.originalname, req.user?.id || null, {
+        fileId: file.id,
+        resourceType: file.resource_type,
+        resourceId: file.resource_id
+    });
+
+    res.json({ success: true, message: 'Xóa tài liệu thành công' });
 }));
 
 /**

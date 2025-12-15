@@ -208,6 +208,96 @@ router.post('/login', authLimiter, [
     });
 }));
 
+    /**
+     * Development helper: dev-login
+     * POST /api/auth/dev-login
+     * Enable by setting ENABLE_DEV_AUTH=true in environment (or when NODE_ENV !== 'production')
+     * Body: { userId } or { username }
+     */
+    router.post('/dev-login', catchAsync(async (req, res) => {
+        const devAuthEnabled = process.env.ENABLE_DEV_AUTH === 'true' || process.env.NODE_ENV !== 'production';
+        if (!devAuthEnabled) {
+            return res.status(404).json({ success: false, message: 'Not found' });
+        }
+
+        const { userId, username } = req.body || {};
+        if (!userId && !username) {
+            return res.status(400).json({ success: false, message: 'Provide userId or username for dev-login' });
+        }
+
+        const pool = mysqlPool();
+        let usersResult;
+        if (userId) {
+            [usersResult] = await pool.execute('SELECT * FROM users WHERE id = ? AND is_active = TRUE', [userId]);
+        } else {
+            [usersResult] = await pool.execute('SELECT * FROM users WHERE (username = ? OR email = ?) AND is_active = TRUE', [username, username]);
+        }
+
+        if (!usersResult || usersResult.length === 0) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        const user = usersResult[0];
+
+        // Generate tokens (no password required in dev)
+        const tokenPayload = {
+            userId: user.id,
+            username: user.username,
+            role: user.role
+        };
+
+        const token = jwt.sign(tokenPayload, process.env.JWT_SECRET || 'devsecret', {
+            expiresIn: process.env.JWT_EXPIRES_IN || '7d'
+        });
+
+        const refreshToken = jwt.sign(tokenPayload, process.env.JWT_REFRESH_SECRET || 'devrefresh', {
+            expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d'
+        });
+
+        // Optionally update last_login for dev user
+        try {
+            await pool.execute('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
+        } catch (e) {
+            // ignore update errors in dev helper
+        }
+
+        // Log dev-login event
+        try {
+            await logUserActivity(
+                user.id,
+                'DEV_LOGIN',
+                'system',
+                user.id,
+                req.ip,
+                req.get('User-Agent'),
+                { devLogin: true }
+            );
+        } catch (e) {
+            // ignore logging errors
+        }
+
+        const userData = {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            full_name: user.full_name,
+            phone: user.phone,
+            role: user.role,
+            permissions: Array.isArray(user.permissions) ? user.permissions : (user.permissions ? JSON.parse(user.permissions) : []),
+            last_login: user.last_login
+        };
+
+        res.json({
+            success: true,
+            message: 'Dev login success',
+            data: {
+                user: userData,
+                token,
+                refreshToken
+            }
+        });
+    }));
+
 /**
  * @swagger
  * /api/auth/logout:

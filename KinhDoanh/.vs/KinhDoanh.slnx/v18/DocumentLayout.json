@@ -1,46 +1,118 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\KinhDoanh\\",
+  "WorkspaceRootPath": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\KinhDoanh\\routes\\contract-templates.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:routes\\contract-templates.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\KinhDoanh\\client\\src\\components\\Contracts\\ContractManager.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:client\\src\\components\\Contracts\\ContractManager.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\KinhDoanh\\server.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:server.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\KinhDoanh\\routes\\customers.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\routes\\customers.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:routes\\customers.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\KinhDoanh\\routes\\contracts.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:routes\\contracts.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tmp_test_request.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:tmp_test_request.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\KinhDoanh\\client\\src\\pages\\Dashboard.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:client\\src\\pages\\Dashboard.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\KinhDoanh\\tests\\unit\\contracts.test.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:tests\\unit\\contracts.test.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\KinhDoanh\\tests\\unit\\contracts_list.test.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:tests\\unit\\contracts_list.test.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\KinhDoanh\\config\\database.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\config\\database.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:config\\database.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\KinhDoanh\\client\\src\\services\\contractService.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tests\\integration\\contracts.test.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:tests\\integration\\contracts.test.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\routes\\contract-templates.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:routes\\contract-templates.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\client\\src\\components\\Contracts\\ContractManager.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:client\\src\\components\\Contracts\\ContractManager.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:server.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\routes\\contracts.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:routes\\contracts.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\client\\src\\pages\\Dashboard.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:client\\src\\pages\\Dashboard.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tests\\unit\\contracts.test.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:tests\\unit\\contracts.test.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tests\\unit\\contracts_list.test.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:tests\\unit\\contracts_list.test.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\client\\src\\services\\contractService.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:client\\src\\services\\contractService.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\client\\src\\components\\Customers\\CustomerFormTabs.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:client\\src\\components\\Customers\\CustomerFormTabs.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\client\\src\\services\\projectService.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:client\\src\\services\\projectService.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\client\\src\\components\\Contracts\\ContractCreator.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:client\\src\\components\\Contracts\\ContractCreator.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\routes\\projects.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:routes\\projects.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tests\\integration\\customers.test.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:tests\\integration\\customers.test.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\scripts\\auto-init-db.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:scripts\\auto-init-db.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\scripts\\add-indexes.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:scripts\\add-indexes.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\scripts\\add-indexes.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:scripts\\add-indexes.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\jest.config.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:jest.config.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\middleware\\auth.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:middleware\\auth.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tmp_db_debug.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:tmp_db_debug.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tmp_test_request2.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:tmp_test_request2.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tmp_sequence.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:tmp_sequence.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tmp_query_customer.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:tmp_query_customer.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tmp_contract_debug.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:tmp_contract_debug.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\services\\AIService.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:services\\AIService.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
     }
   ],
   "DocumentGroupContainers": [
@@ -50,136 +122,354 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 5,
           "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "tmp_contract_debug.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tmp_contract_debug.js",
+              "RelativeDocumentMoniker": "tmp_contract_debug.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tmp_contract_debug.js",
+              "RelativeToolTip": "tmp_contract_debug.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-11T07:22:49.086Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "tmp_query_customer.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tmp_query_customer.js",
+              "RelativeDocumentMoniker": "tmp_query_customer.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tmp_query_customer.js",
+              "RelativeToolTip": "tmp_query_customer.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-11T07:14:50.512Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "tmp_sequence.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tmp_sequence.js",
+              "RelativeDocumentMoniker": "tmp_sequence.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tmp_sequence.js",
+              "RelativeToolTip": "tmp_sequence.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-11T07:14:16.74Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "tmp_test_request2.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tmp_test_request2.js",
+              "RelativeDocumentMoniker": "tmp_test_request2.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tmp_test_request2.js",
+              "RelativeToolTip": "tmp_test_request2.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-11T07:01:23.747Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "customers.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\routes\\customers.js",
+              "RelativeDocumentMoniker": "routes\\customers.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\routes\\customers.js",
+              "RelativeToolTip": "routes\\customers.js",
+              "ViewState": "AgIAAPcDAAAAAAAAAAAmwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-10T03:11:56.27Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "AIService.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\services\\AIService.js",
+              "RelativeDocumentMoniker": "services\\AIService.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\services\\AIService.js",
+              "RelativeToolTip": "services\\AIService.js",
+              "ViewState": "AgIAALICAAAAAAAAAABRwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-11T07:26:20.206Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "tmp_test_request.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tmp_test_request.js",
+              "RelativeDocumentMoniker": "tmp_test_request.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tmp_test_request.js",
+              "RelativeToolTip": "tmp_test_request.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-11T06:55:42.438Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "tmp_db_debug.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tmp_db_debug.js",
+              "RelativeDocumentMoniker": "tmp_db_debug.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tmp_db_debug.js",
+              "RelativeToolTip": "tmp_db_debug.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-11T06:57:49.632Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "database.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\config\\database.js",
+              "RelativeDocumentMoniker": "config\\database.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\config\\database.js",
+              "RelativeToolTip": "config\\database.js",
+              "ViewState": "AgIAALoBAAAAAAAAAAAmwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-11T06:33:59.578Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "auth.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\middleware\\auth.js",
+              "RelativeDocumentMoniker": "middleware\\auth.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\middleware\\auth.js",
+              "RelativeToolTip": "middleware\\auth.js",
+              "ViewState": "AgIAAGoBAAAAAAAAAABRwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-11T06:29:10.559Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
               "Title": "contract-templates.js",
-              "DocumentMoniker": "C:\\KinhDoanh\\routes\\contract-templates.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\routes\\contract-templates.js",
               "RelativeDocumentMoniker": "routes\\contract-templates.js",
-              "ToolTip": "C:\\KinhDoanh\\routes\\contract-templates.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\routes\\contract-templates.js",
               "RelativeToolTip": "routes\\contract-templates.js",
-              "ViewState": "AgIAADYBAAAAAAAAAAASwEQBAAAYAAAAAAAAAA==",
+              "ViewState": "AgIAAB4BAAAAAAAAAAAAACABAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
               "WhenOpened": "2025-12-10T04:49:51.021Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 12,
+              "Title": "CustomerFormTabs.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\client\\src\\components\\Customers\\CustomerFormTabs.js",
+              "RelativeDocumentMoniker": "client\\src\\components\\Customers\\CustomerFormTabs.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\client\\src\\components\\Customers\\CustomerFormTabs.js",
+              "RelativeToolTip": "client\\src\\components\\Customers\\CustomerFormTabs.js",
+              "ViewState": "AgIAANsAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-11T04:38:01.405Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "jest.config.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\jest.config.js",
+              "RelativeDocumentMoniker": "jest.config.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\jest.config.js",
+              "RelativeToolTip": "jest.config.js",
+              "ViewState": "AgIAAFkAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-11T06:20:29.962Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "contracts.test.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tests\\integration\\contracts.test.js",
+              "RelativeDocumentMoniker": "tests\\integration\\contracts.test.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tests\\integration\\contracts.test.js",
+              "RelativeToolTip": "tests\\integration\\contracts.test.js",
+              "ViewState": "AgIAACcAAAAAAAAAAAAAAEIAAAADAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-11T05:37:57.577Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "projectService.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\client\\src\\services\\projectService.js",
+              "RelativeDocumentMoniker": "client\\src\\services\\projectService.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\client\\src\\services\\projectService.js",
+              "RelativeToolTip": "client\\src\\services\\projectService.js",
+              "ViewState": "AgIAABgAAAAAAAAAAEBVwBwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-11T04:58:55.763Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "ContractCreator.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\client\\src\\components\\Contracts\\ContractCreator.js",
+              "RelativeDocumentMoniker": "client\\src\\components\\Contracts\\ContractCreator.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\client\\src\\components\\Contracts\\ContractCreator.js",
+              "RelativeToolTip": "client\\src\\components\\Contracts\\ContractCreator.js",
+              "ViewState": "AgIAADIDAAAAAAAAALiEwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-11T04:59:08.672Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "projects.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\routes\\projects.js",
+              "RelativeDocumentMoniker": "routes\\projects.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\routes\\projects.js",
+              "RelativeToolTip": "routes\\projects.js",
+              "ViewState": "AgIAAGoCAAAAAAAAAABRwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-11T05:17:06.065Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "add-indexes.sql ",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\scripts\\add-indexes.sql",
+              "RelativeDocumentMoniker": "scripts\\add-indexes.sql",
+              "ToolTip": "add-indexes.sql ",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2025-12-11T05:46:26.636Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "auto-init-db.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\scripts\\auto-init-db.js",
+              "RelativeDocumentMoniker": "scripts\\auto-init-db.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\scripts\\auto-init-db.js",
+              "RelativeToolTip": "scripts\\auto-init-db.js",
+              "ViewState": "AgIAACcCAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-11T05:38:23.018Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "customers.test.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tests\\integration\\customers.test.js",
+              "RelativeDocumentMoniker": "tests\\integration\\customers.test.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tests\\integration\\customers.test.js",
+              "RelativeToolTip": "tests\\integration\\customers.test.js",
+              "ViewState": "AgIAADEAAAAAAAAAAOBvwEIAAAADAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-11T05:37:44.462Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
               "Title": "contractService.js",
-              "DocumentMoniker": "C:\\KinhDoanh\\client\\src\\services\\contractService.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\client\\src\\services\\contractService.js",
               "RelativeDocumentMoniker": "client\\src\\services\\contractService.js",
-              "ToolTip": "C:\\KinhDoanh\\client\\src\\services\\contractService.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\client\\src\\services\\contractService.js",
               "RelativeToolTip": "client\\src\\services\\contractService.js",
               "ViewState": "AgIAAOQAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-12-10T04:32:34.198Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-10T04:32:34.198Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "database.js",
-              "DocumentMoniker": "C:\\KinhDoanh\\config\\database.js",
-              "RelativeDocumentMoniker": "config\\database.js",
-              "ToolTip": "C:\\KinhDoanh\\config\\database.js",
-              "RelativeToolTip": "config\\database.js",
-              "ViewState": "AgIAAJEBAAAAAAAAAEBVwAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-12-10T04:09:18.768Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 10,
               "Title": "contracts_list.test.js",
-              "DocumentMoniker": "C:\\KinhDoanh\\tests\\unit\\contracts_list.test.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tests\\unit\\contracts_list.test.js",
               "RelativeDocumentMoniker": "tests\\unit\\contracts_list.test.js",
-              "ToolTip": "C:\\KinhDoanh\\tests\\unit\\contracts_list.test.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tests\\unit\\contracts_list.test.js",
               "RelativeToolTip": "tests\\unit\\contracts_list.test.js",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAFgAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-12-10T04:02:13.513Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-10T04:02:13.513Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 9,
               "Title": "contracts.test.js",
-              "DocumentMoniker": "C:\\KinhDoanh\\tests\\unit\\contracts.test.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tests\\unit\\contracts.test.js",
               "RelativeDocumentMoniker": "tests\\unit\\contracts.test.js",
-              "ToolTip": "C:\\KinhDoanh\\tests\\unit\\contracts.test.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\tests\\unit\\contracts.test.js",
               "RelativeToolTip": "tests\\unit\\contracts.test.js",
               "ViewState": "AgIAAE0AAAAAAAAAAABRwFAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-12-10T03:52:14.804Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "ContractManager.js",
-              "DocumentMoniker": "C:\\KinhDoanh\\client\\src\\components\\Contracts\\ContractManager.js",
-              "RelativeDocumentMoniker": "client\\src\\components\\Contracts\\ContractManager.js",
-              "ToolTip": "C:\\KinhDoanh\\client\\src\\components\\Contracts\\ContractManager.js",
-              "RelativeToolTip": "client\\src\\components\\Contracts\\ContractManager.js",
-              "ViewState": "AgIAAKMCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-12-10T03:38:55.887Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-10T03:52:14.804Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 5,
-              "Title": "Dashboard.js",
-              "DocumentMoniker": "C:\\KinhDoanh\\client\\src\\pages\\Dashboard.js",
-              "RelativeDocumentMoniker": "client\\src\\pages\\Dashboard.js",
-              "ToolTip": "C:\\KinhDoanh\\client\\src\\pages\\Dashboard.js",
-              "RelativeToolTip": "client\\src\\pages\\Dashboard.js",
-              "ViewState": "AgIAAMMBAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Title": "ContractManager.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\client\\src\\components\\Contracts\\ContractManager.js",
+              "RelativeDocumentMoniker": "client\\src\\components\\Contracts\\ContractManager.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\client\\src\\components\\Contracts\\ContractManager.js",
+              "RelativeToolTip": "client\\src\\components\\Contracts\\ContractManager.js",
+              "ViewState": "AgIAAKMCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-12-10T03:35:16.019Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-10T03:38:55.887Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 8,
+              "Title": "Dashboard.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\client\\src\\pages\\Dashboard.js",
+              "RelativeDocumentMoniker": "client\\src\\pages\\Dashboard.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\client\\src\\pages\\Dashboard.js",
+              "RelativeToolTip": "client\\src\\pages\\Dashboard.js",
+              "ViewState": "AgIAAMMBAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-12-10T03:35:16.019Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "contracts.js",
-              "DocumentMoniker": "C:\\KinhDoanh\\routes\\contracts.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\routes\\contracts.js",
               "RelativeDocumentMoniker": "routes\\contracts.js",
-              "ToolTip": "C:\\KinhDoanh\\routes\\contracts.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\routes\\contracts.js",
               "RelativeToolTip": "routes\\contracts.js",
-              "ViewState": "AgIAAAUCAAAAAAAAAHB4wAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAADwCAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
               "WhenOpened": "2025-12-10T03:14:07.711Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 6,
               "Title": "server.js",
-              "DocumentMoniker": "C:\\KinhDoanh\\server.js",
+              "DocumentMoniker": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js",
               "RelativeDocumentMoniker": "server.js",
-              "ToolTip": "C:\\KinhDoanh\\server.js",
+              "ToolTip": "C:\\Users\\Admin\\Documents\\GitHub\\MVG_InventoryManagement\\KinhDoanh\\server.js",
               "RelativeToolTip": "server.js",
-              "ViewState": "AgIAAMgAAAAAAAAAAAAwwPIAAAAVAAAAAAAAAA==",
+              "ViewState": "AgIAAGMBAAAAAAAAAIBJwGUBAAApAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
               "WhenOpened": "2025-12-10T02:47:35.283Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "customers.js",
-              "DocumentMoniker": "C:\\KinhDoanh\\routes\\customers.js",
-              "RelativeDocumentMoniker": "routes\\customers.js",
-              "ToolTip": "C:\\KinhDoanh\\routes\\customers.js",
-              "RelativeToolTip": "routes\\customers.js",
-              "ViewState": "AgIAAHsDAAAAAAAAAMB9wAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-12-10T03:11:56.27Z",
               "EditorCaption": ""
             }
           ]

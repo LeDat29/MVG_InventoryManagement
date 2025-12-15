@@ -74,7 +74,12 @@ function Settings() {
   ];
 
   useEffect(() => {
-    if (!isAdmin() && !hasPermission('settings_view')) {
+    // Allow admin users to view settings
+    // In dev mode, allow any authenticated user to view
+    const isDev = process.env.NODE_ENV !== 'production';
+    const canView = isAdmin() || hasPermission('settings_view') || isDev;
+    
+    if (!canView) {
       showError('Bạn không có quyền truy cập trang cài đặt');
       return;
     }

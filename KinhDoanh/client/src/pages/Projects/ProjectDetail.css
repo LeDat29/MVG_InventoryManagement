@@ -1,0 +1,76 @@
+.project-detail-page .project-header {
+  transition: all 0.3s ease-in-out;
+  padding: 1.5rem;
+  background-color: #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  z-index: 1000;
+}
+
+.project-detail-page .project-header.collapsed {
+  padding: 0.75rem 1.5rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.project-detail-page .project-header.collapsed h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0 !important;
+}
+
+.project-detail-page .project-header.collapsed .text-muted,
+.project-detail-page .project-header.collapsed p {
+  display: none;
+}
+
+.project-detail-page .project-header.collapsed .d-flex.gap-2 {
+  transform: scale(0.9);
+  transform-origin: right;
+}
+
+.sticky-top-container {
+  position: sticky;
+  top: 0; /* Changed to 0 to align with top of viewport */
+  z-index: 1020;
+  background-color: #f8f9fa; /* Or your page's background color */
+  margin-bottom: 1rem; /* Use margin-bottom instead of padding */
+  transition: margin-bottom 0.3s ease-in-out;
+}
+
+.sticky-top-container.collapsed {
+  margin-bottom: 0;
+}
+
+.statistics-container {
+  transition: all 0.3s ease-in-out;
+  max-height: 500px; /* Adjust as needed */
+  overflow: hidden;
+}
+
+.statistics-container.collapsed {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-bottom: 0 !important;
+  overflow: hidden;
+}
+
+.info-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-item strong {
+  color: #495057;
+  display: inline-block;
+  min-width: 120px;
+}

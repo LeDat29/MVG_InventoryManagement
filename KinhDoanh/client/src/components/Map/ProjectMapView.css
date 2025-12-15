@@ -16,27 +16,42 @@
 
 /* Statistics Cards */
 .map-stats {
-  display: flex;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  width: 100%;
 }
 
 .stat-card {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 16px;
   color: white;
   text-align: center;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .stat-label {
   font-size: 12px;
   opacity: 0.9;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  font-weight: 500;
 }
 
 .stat-value {
   font-size: 20px;
   font-weight: 700;
+  line-height: 1.2;
 }
 
 /* Map Container */
@@ -125,11 +140,20 @@
 /* Responsive */
 @media (max-width: 768px) {
   .map-stats {
-    flex-direction: column;
+    grid-template-columns: repeat(2, 1fr);
   }
   
   .stat-card {
-    width: 100%;
+    padding: 12px;
+    min-height: 70px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+  }
+
+  .stat-value {
+    font-size: 18px;
   }
   
   .map-legend-overlay {
@@ -141,6 +165,25 @@
   .map-legend {
     font-size: 12px;
     padding: 10px 12px;
+  }
+}
+
+@media (max-width: 576px) {
+  .map-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    padding: 10px;
+    min-height: 60px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
+
+  .stat-value {
+    font-size: 16px;
   }
 }
 
