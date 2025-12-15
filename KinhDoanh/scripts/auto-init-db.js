@@ -60,7 +60,7 @@ class DatabaseAutoInit {
     async runSQLFile(filePath) {
         try {
             const sqlContent = await fs.readFile(filePath, 'utf8');
-            
+
             // Split by semicolon but be careful with stored procedures
             const statements = sqlContent
                 .split(';')
@@ -69,17 +69,30 @@ class DatabaseAutoInit {
 
             for (const statement of statements) {
                 if (statement.trim()) {
-                    try {
-                        await this.connection.query(statement);
-                    } catch (err) {
-                        // Ignore duplicate key errors and other non-critical errors
-                        if (!err.message.includes('Duplicate') && !err.message.includes('already exists')) {
-                            console.warn(`⚠️  Warning executing statement: ${err.message}`);
+                    let retries = 3; // Retry up to 3 times for deadlock errors
+                    while (retries > 0) {
+                        try {
+                            await this.connection.query(statement);
+                            break; // Exit retry loop on success
+                        } catch (err) {
+                            if (err.message.includes('Deadlock')) {
+                                console.warn(`⚠️  Deadlock detected, retrying... (${4 - retries} attempt)`);
+                                retries -= 1;
+                                if (retries === 0) {
+                                    throw new Error(`Deadlock could not be resolved: ${err.message}`);
+                                }
+                            } else {
+                                // Ignore duplicate key errors and other non-critical errors
+                                if (!err.message.includes('Duplicate') && !err.message.includes('already exists')) {
+                                    console.warn(`⚠️  Warning executing statement: ${err.message}`);
+                                }
+                                break; // Exit retry loop for non-deadlock errors
+                            }
                         }
                     }
                 }
             }
-            
+
             return true;
         } catch (error) {
             console.error(`❌ Lỗi đọc file ${filePath}:`, error.message);
@@ -309,6 +322,17 @@ class DatabaseAutoInit {
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+                CREATE TABLE IF NOT EXISTS documents (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    document_name VARCHAR(255) NOT NULL,
+                    document_type ENUM('contract', 'invoice', 'report') NOT NULL,
+                    content TEXT NOT NULL,
+                    created_by INT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
             `);
             
             console.log('✅ Tables cơ bản đã được tạo');
@@ -369,7 +393,8 @@ class DatabaseAutoInit {
                 const bcrypt = require('bcryptjs');
                 const crypto = require('crypto');
                 
-                const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || crypto.randomBytes(16).toString('hex');
+                // Use environment variable if provided, otherwise fixed default for initial admin
+                const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'admin123!';
                 const hashedPassword = await bcrypt.hash(defaultPassword, 12);
                 
                 await this.connection.query(`
@@ -451,60 +476,64 @@ class DatabaseAutoInit {
         console.log('🚀 AUTO DATABASE INITIALIZATION - KHO MVG');
         console.log('='.repeat(80) + '\n');
 
-        // Step 1: Connect to MySQL
-        const connected = await this.connect();
-        if (!connected) {
-            console.error('❌ Không thể kết nối MySQL. Vui lòng kiểm tra cấu hình.');
-            return false;
-        }
-
-        // Step 2: Create database
-        const dbCreated = await this.createDatabase();
-        if (!dbCreated) {
-            await this.close();
-            return false;
-        }
-
-        // Step 3: Check if tables exist
-        const tablesExist = await this.checkTableExists('users');
-        
-        if (!tablesExist) {
-            console.log('\n🆕 Database mới, khởi tạo lần đầu...');
-            
-            // Initialize tables
-            await this.initializeTables();
-            
-            // Apply indexes
-            await this.applyIndexes();
-            
-            // Create client error tables
-            await this.applyClientErrorTables();
-            
-            // Create admin user
-            await this.checkAndCreateAdminUser();
-        } else {
-            console.log('\n🔄 Database đã tồn tại, kiểm tra cập nhật...');
-            
-            // Apply indexes (if new ones added)
-            await this.applyIndexes();
-            
-            // Check for client error tables
-            const clientErrorTableExists = await this.checkTableExists('client_errors');
-            if (!clientErrorTableExists) {
-                await this.applyClientErrorTables();
+        try {
+            // Step 1: Connect to MySQL
+            const connected = await this.connect();
+            if (!connected) {
+                console.error('❌ Không thể kết nối MySQL. Vui lòng kiểm tra cấu hình.');
+                return false;
             }
-            
-            // Check admin user
-            await this.checkAndCreateAdminUser();
+
+            // Step 2: Create database
+            const dbCreated = await this.createDatabase();
+            if (!dbCreated) {
+                return false;
+            }
+
+            // Step 3: Check if tables exist
+            const tablesExist = await this.checkTableExists('users');
+
+            if (!tablesExist) {
+                console.log('\n🆕 Database mới, khởi tạo lần đầu...');
+
+                // Initialize tables
+                await this.initializeTables();
+
+                // Apply indexes
+                await this.applyIndexes();
+
+                // Create client error tables
+                await this.applyClientErrorTables();
+
+                // Create admin user
+                await this.checkAndCreateAdminUser();
+            } else {
+                console.log('\n🔄 Database đã tồn tại, kiểm tra cập nhật...');
+
+                // Apply indexes (if new ones added)
+                await this.applyIndexes();
+
+                // Check for client error tables
+                const clientErrorTableExists = await this.checkTableExists('client_errors');
+                if (!clientErrorTableExists) {
+                    await this.applyClientErrorTables();
+                }
+
+                // Check admin user
+                await this.checkAndCreateAdminUser();
+            }
+
+            // Print summary
+            await this.printSummary();
+
+            return true;
+        } catch (error) {
+            console.error('❌ Lỗi trong quá trình khởi tạo:', error.message);
+            return false;
+        } finally {
+            // Ensure connection is closed
+            await this.close();
         }
-
-        // Print summary
-        await this.printSummary();
-
-        // Close connection
-        await this.close();
-
-        return true;
     }
 }
 

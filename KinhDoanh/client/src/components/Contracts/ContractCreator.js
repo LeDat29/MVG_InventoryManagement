@@ -11,8 +11,9 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
 import contractService from '../../services/contractService';
 import customerService from '../../services/customerService';
+import projectService from '../../services/projectService';
 
-const ContractCreator = ({ show, onHide, onSuccess }) => {
+const ContractCreator = ({ show, onHide, onSuccess, initialCustomerId = '' }) => {
   const { user } = useAuth();
   const { showSuccess, showError } = useNotification();
   
@@ -21,9 +22,17 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
   
   // Data states
   const [customers, setCustomers] = useState([]);
+  const [customersLoaded, setCustomersLoaded] = useState(false);
   const [templates, setTemplates] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [zones, setZones] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedZone, setSelectedZone] = useState(null);
+  const [templatesLoaded, setTemplatesLoaded] = useState(false);
+  const [projectsLoaded, setProjectsLoaded] = useState(false);
+  
   
   // Form data
   const [formData, setFormData] = useState({
@@ -32,6 +41,8 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
     customer_id: '',
     customer_company_id: '',
     template_id: '',
+    project_id: '',
+    zone_id: '',
     
     // Party A (Lessor) - Bên cho thuê
     party_a_name: 'CÔNG TY KHO MVG',
@@ -43,6 +54,7 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
     // Contract terms
     warehouse_location: '',
     warehouse_area: 0,
+    warehouse_purpose: '',
     rental_price: 0,
     deposit_amount: 0,
     service_fee: 0,
@@ -71,17 +83,37 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
   const loadInitialData = useCallback(async () => {
     try {
       setLoading(true);
-      
-      // Load customers and templates
-      const [customersResponse, templatesResponse] = await Promise.all([
+      const [customersResponse, templatesResponse, projectsResponse] = await Promise.all([
         customerService.getCustomers({ limit: 100 }),
-        contractService.getContractTemplates({ is_active: true })
+        contractService.getContractTemplates({ is_active: true }),
+        projectService.getProjects({ limit: 100 })
       ]);
-      
-      setCustomers(customersResponse.data.customers || []);
-      setTemplates(templatesResponse.data || []);
-      
+      // Customers: API shape { success, data: { customers: [...] } }
+      setCustomers(customersResponse?.data?.customers || customersResponse?.customers || []);
+      setCustomersLoaded(true);
+      // Templates: API shape can be: { success, data: [...] } or { success, data: { templates: [...] } } or { templates: [...] }
+      const loadedTemplates = 
+        templatesResponse?.data?.templates || 
+        templatesResponse?.data || 
+        templatesResponse?.templates || 
+        templatesResponse || [];
+      setTemplates(Array.isArray(loadedTemplates) ? loadedTemplates : []);
+      setTemplatesLoaded(true);
+      // Auto-select default template if available
+      const defaultTpl = Array.isArray(loadedTemplates) && loadedTemplates.find(t => t.is_default);
+      if (defaultTpl) {
+        setSelectedTemplate(defaultTpl);
+        setFormData(prev => ({ ...prev, template_id: String(defaultTpl.id) }));
+      }
+      // Projects: shape could be { success, data: { projects: [...] } } or { success, projects: [...] }
+      const loadedProjects = 
+        projectsResponse?.data?.projects || 
+        projectsResponse?.projects || 
+        projectsResponse?.data || [];
+      setProjects(Array.isArray(loadedProjects) ? loadedProjects : (Array.isArray(projectsResponse?.data?.projects) ? projectsResponse.data.projects : []));
+      setProjectsLoaded(true);
     } catch (error) {
+      console.error('Error loading initial data:', error);
       showError('Không thể tải dữ liệu: ' + error.message);
     } finally {
       setLoading(false);
@@ -95,6 +127,62 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
     }
   }, [show, loadInitialData]);
 
+  // Read customer id from URL if not provided via props
+  useEffect(() => {
+    if (!show) return;
+    if (initialCustomerId) return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const fromUrl = params.get('customer') || params.get('customer_id');
+      if (fromUrl) {
+        handleCustomerSelect(fromUrl);
+      }
+    } catch (e) {
+      // no-op
+    }
+  }, [show, initialCustomerId]);
+
+  // If initialCustomerId is provided, preselect it after data loads
+  useEffect(() => {
+    async function ensureAndSelectInitialCustomer() {
+      if (!show || !initialCustomerId) return;
+      // If list already contains the customer, select it
+      const exists = customers.some(c => String(c.id) === String(initialCustomerId));
+      if (exists) {
+        handleCustomerSelect(initialCustomerId);
+        return;
+      }
+      // Otherwise fetch it and add to list
+      try {
+        const customerResponse = await customerService.getCustomer(initialCustomerId);
+        const customerData = customerResponse?.data?.customer || customerResponse?.data || customerResponse;
+        if (customerData && customerData.id) {
+          setCustomers(prev => {
+            const already = prev.some(c => String(c.id) === String(customerData.id));
+            return already ? prev : [customerData, ...prev];
+          });
+          handleCustomerSelect(customerData.id);
+        }
+      } catch (e) {
+        console.warn('Could not preload initial customer', e?.message || e);
+      }
+    }
+    ensureAndSelectInitialCustomer();
+  }, [show, initialCustomerId, customers, customersLoaded]);
+
+  // Load zones when project changes
+  useEffect(() => {
+    async function fetchZones() {
+      if (formData.project_id) {
+        const zonesResponse = await projectService.getZones(formData.project_id);
+        setZones(zonesResponse.zones || []);
+      } else {
+        setZones([]);
+      }
+    }
+    fetchZones();
+  }, [formData.project_id]);
+
   // Handle customer selection
   const handleCustomerSelect = async (customerId) => {
     try {
@@ -103,25 +191,28 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
       
       setSelectedCustomer(customer);
       
-      // Load customer details with companies
+      // Load customer details
       const customerResponse = await customerService.getCustomer(customerId);
-      const customerData = customerResponse.data;
+      const customerData = customerResponse?.data?.customer || customerResponse?.data || customerResponse;
       
-      // Auto-fill contract data
+      // Auto-fill contract data based on available fields from API
       setFormData(prev => ({
         ...prev,
         customer_id: customerId,
-        customer_company_id: customerData.companies?.[0]?.id || '',
-        contract_title: `Hợp đồng thuê kho - ${customerData.company_name || customerData.full_name}`,
+        contract_title: `Hợp đồng thuê kho - ${customerData.name || customerData.full_name || 'Khách hàng'}`,
+        warehouse_purpose: customerData.warehouse_purpose || 'Lưu kho hàng hóa',
         variables: {
           ...prev.variables,
           // Auto-fill Party B info
-          party_b_name: customerData.companies?.[0]?.company_name || customerData.full_name,
-          party_b_address: customerData.companies?.[0]?.invoice_address || customerData.address,
-          party_b_representative: customerData.full_name || customerData.contact_person,
+          party_b_name: customerData.name || customerData.full_name,
+          party_b_address: customerData.address || '',
+          party_b_representative: customerData.representative_name || customerData.full_name || '',
           party_b_position: 'Giám đốc',
-          party_b_tax_code: customerData.companies?.[0]?.tax_code || '',
-          warehouse_purpose: customerData.companies?.[0]?.warehouse_purpose || ''
+          party_b_tax_code: customerData.tax_code || '',
+          warehouse_purpose: customerData.warehouse_purpose || 'Lưu kho hàng hóa',
+          payment_cycle: prev.payment_cycle === 'monthly' ? 'Hàng tháng' :
+                        prev.payment_cycle === 'quarterly' ? 'Hàng quý' : 'Hàng năm',
+          payment_due_date: prev.payment_due_date
         }
       }));
       
@@ -132,6 +223,11 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
 
   // Handle template selection
   const handleTemplateSelect = (templateId) => {
+    if (!templateId) {
+      setSelectedTemplate(null);
+      setFormData(prev => ({ ...prev, template_id: '' }));
+      return;
+    }
     const template = templates.find(t => t.id === parseInt(templateId));
     if (!template) return;
     
@@ -140,9 +236,15 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
     
     // Parse template variables
     if (template.variables) {
-      const templateVars = typeof template.variables === 'string' 
-        ? JSON.parse(template.variables) 
-        : template.variables;
+      let templateVars = [];
+      try {
+        templateVars = typeof template.variables === 'string' 
+          ? JSON.parse(template.variables) 
+          : (Array.isArray(template.variables) ? template.variables : []);
+      } catch (e) {
+        console.warn('Invalid template variables JSON:', e?.message || e);
+        templateVars = [];
+      }
       
       // Initialize variables with current form data
       const newVariables = { ...formData.variables };
@@ -175,6 +277,8 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
       });
       
       setFormData(prev => ({ ...prev, variables: newVariables }));
+      // Move to variables tab to let user fill missing variables
+      setActiveTab('variables');
     }
   };
 
@@ -229,6 +333,8 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
       customer_id: '',
       customer_company_id: '',
       template_id: '',
+      project_id: '',
+      zone_id: '',
       party_a_name: 'CÔNG TY KHO MVG',
       party_a_address: 'Khu công nghiệp ABC, Bình Dương',
       party_a_representative: 'Nguyễn Văn A',
@@ -236,6 +342,7 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
       party_a_id_number: '123456789',
       warehouse_location: '',
       warehouse_area: 0,
+      warehouse_purpose: '',
       rental_price: 0,
       deposit_amount: 0,
       service_fee: 0,
@@ -254,12 +361,19 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
     });
     setSelectedCustomer(null);
     setSelectedTemplate(null);
+    setSelectedProject(null);
+    setSelectedZone(null);
     setActiveTab('basic');
   };
 
-  // Format currency
+  // Format currency for display (without currency symbol)
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN').format(amount);
+  };
+
+  // Format currency for variables (with currency symbol)
+  const formatCurrencyForVariable = (amount) => {
+    return new Intl.NumberFormat('vi-VN').format(amount) + ' VNĐ';
   };
 
   return (
@@ -272,33 +386,46 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
       </Modal.Header>
       
       <Modal.Body>
+        {selectedCustomer && (
+          <Alert variant="info" className="mb-3">
+            <Row>
+              <Col md={4}>
+                <div><strong>Khách hàng:</strong> {selectedCustomer.name || selectedCustomer.full_name}</div>
+                {selectedCustomer.customer_code && (
+                  <div><small className="text-muted">Mã KH: {selectedCustomer.customer_code}</small></div>
+                )}
+              </Col>
+              <Col md={4}>
+                <div><strong>Điện thoại:</strong> {selectedCustomer.phone || selectedCustomer.representative_phone || '—'}</div>
+                <div><strong>Email:</strong> {selectedCustomer.email || selectedCustomer.representative_email || '—'}</div>
+              </Col>
+              <Col md={4}>
+                <div><strong>Địa chỉ:</strong> {selectedCustomer.address || '—'}</div>
+              </Col>
+            </Row>
+          </Alert>
+        )}
         <Form onSubmit={handleSubmit}>
-          <Tabs 
-            activeKey={activeTab} 
-            onSelect={setActiveTab}
-            className="mb-3"
-          >
-            {/* Tab 1: Basic Info */}
-            <Tab eventKey="basic" title="Thông tin cơ bản">
+          <Tabs activeKey={activeTab} onSelect={setActiveTab} className="mb-3">
+            {/* Tab 1: Thông tin hợp đồng (gộp cơ bản + điều khoản) */}
+            <Tab eventKey="basic" title="Thông tin hợp đồng">
               <Row>
                 <Col md={6}>
                   <Form.Group className="mb-3">
                     <Form.Label>Chọn khách hàng *</Form.Label>
                     <Form.Select
                       value={formData.customer_id}
-                      onChange={(e) => handleCustomerSelect(e.target.value)}
+                      onChange={e => handleCustomerSelect(e.target.value)}
                       required
                     >
                       <option value="">-- Chọn khách hàng --</option>
                       {customers.map(customer => (
                         <option key={customer.id} value={customer.id}>
-                          {customer.company_name || customer.full_name} 
-                          ({customer.customer_code})
+                          {(customer.name || customer.full_name || 'Khách hàng')} {customer.customer_code ? `(${customer.customer_code})` : ''}
                         </option>
                       ))}
                     </Form.Select>
                   </Form.Group>
-                  
                   {selectedCustomer && (
                     <Alert variant="info">
                       <strong>Thông tin khách hàng:</strong><br/>
@@ -309,14 +436,58 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
                       </small>
                     </Alert>
                   )}
+                  <Form.Group className="mb-3">
+                    <Form.Label>Chọn dự án *</Form.Label>
+                    <Form.Select
+                      value={formData.project_id || ''}
+                      onChange={e => {
+                        const projectId = e.target.value;
+                        const project = projects.find(p => p.id === parseInt(projectId));
+                        setSelectedProject(project || null);
+                        setFormData(prev => ({ ...prev, project_id: projectId, zone_id: '', warehouse_location: '' }));
+                      }}
+                      required
+                    >
+                      <option value="">-- Chọn dự án --</option>
+                      {projects.map(project => (
+                        <option key={project.id} value={project.id}>{project.name}</option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Vị trí kho thuê *</Form.Label>
+                    <Form.Select
+                      value={formData.zone_id || ''}
+                      onChange={e => {
+                        const zoneId = e.target.value;
+                        const selectedZone = zones.find(z => z.id === parseInt(zoneId));
+                        setFormData(prev => ({
+                          ...prev,
+                          zone_id: zoneId,
+                          warehouse_location: selectedZone ? `${selectedZone.zone_name || selectedZone.zone_code} - ${selectedProject?.name || ''}` : '',
+                          variables: {
+                            ...prev.variables,
+                            warehouse_location: selectedZone ? `${selectedZone.zone_name || selectedZone.zone_code} - ${selectedProject?.name || ''}` : ''
+                          }
+                        }));
+                        setSelectedZone(selectedZone || null);
+                      }}
+                      required
+                      disabled={!formData.project_id}
+                    >
+                      <option value="">-- Chọn kho --</option>
+                      {zones.map(zone => (
+                        <option key={zone.id} value={zone.id}>{zone.zone_name} ({zone.zone_code})</option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
                 </Col>
-                
                 <Col md={6}>
                   <Form.Group className="mb-3">
                     <Form.Label>Chọn mẫu hợp đồng *</Form.Label>
                     <Form.Select
                       value={formData.template_id}
-                      onChange={(e) => handleTemplateSelect(e.target.value)}
+                      onChange={e => handleTemplateSelect(e.target.value)}
                       required
                     >
                       <option value="">-- Chọn mẫu hợp đồng --</option>
@@ -328,7 +499,6 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
                       ))}
                     </Form.Select>
                   </Form.Group>
-                  
                   {selectedTemplate && (
                     <Alert variant="success">
                       <strong>Mẫu đã chọn:</strong><br/>
@@ -339,47 +509,13 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
                       </small>
                     </Alert>
                   )}
-                </Col>
-              </Row>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Tiêu đề hợp đồng *</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={formData.contract_title}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    contract_title: e.target.value
-                  }))}
-                  placeholder="VD: Hợp đồng thuê kho - Công ty ABC"
-                  required
-                />
-              </Form.Group>
-            </Tab>
-
-            {/* Tab 2: Contract Terms */}
-            <Tab eventKey="terms" title="Điều khoản hợp đồng">
-              <Row>
-                <Col md={6}>
-                  <h5>Thông tin kho</h5>
-                  
                   <Form.Group className="mb-3">
-                    <Form.Label>Vị trí kho *</Form.Label>
+                    <Form.Label>Tiêu đề hợp đồng *</Form.Label>
                     <Form.Control
                       type="text"
-                      value={formData.warehouse_location}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setFormData(prev => ({
-                          ...prev,
-                          warehouse_location: value,
-                          variables: {
-                            ...prev.variables,
-                            warehouse_location: value
-                          }
-                        }));
-                      }}
-                      placeholder="VD: Khu A, Lô 01, Tầng 1"
+                      value={formData.contract_title}
+                      onChange={e => setFormData(prev => ({ ...prev, contract_title: e.target.value }))}
+                      placeholder="VD: Hợp đồng thuê kho - Công ty ABC"
                       required
                     />
                   </Form.Group>
@@ -413,20 +549,22 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
                       <Form.Group className="mb-3">
                         <Form.Label>Giá thuê/tháng (VNĐ) *</Form.Label>
                         <Form.Control
-                          type="number"
-                          min="0"
-                          value={formData.rental_price}
+                          type="text"
+                          value={formData.rental_price ? formatCurrency(formData.rental_price) : ''}
                           onChange={(e) => {
-                            const value = parseInt(e.target.value) || 0;
+                            // Remove all non-digits
+                            const numericValue = e.target.value.replace(/\D/g, '');
+                            const value = parseInt(numericValue) || 0;
                             setFormData(prev => ({
                               ...prev,
                               rental_price: value,
                               variables: {
                                 ...prev.variables,
-                                rental_price: formatCurrency(value) + ' VNĐ'
+                                rental_price: formatCurrencyForVariable(value)
                               }
                             }));
                           }}
+                          placeholder="VD: 10,000,000"
                           required
                         />
                         {formData.rental_price > 0 && formData.warehouse_area > 0 && (
@@ -443,20 +581,22 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
                       <Form.Group className="mb-3">
                         <Form.Label>Tiền cọc (VNĐ)</Form.Label>
                         <Form.Control
-                          type="number"
-                          min="0"
-                          value={formData.deposit_amount}
+                          type="text"
+                          value={formData.deposit_amount ? formatCurrency(formData.deposit_amount) : ''}
                           onChange={(e) => {
-                            const value = parseInt(e.target.value) || 0;
+                            // Remove all non-digits
+                            const numericValue = e.target.value.replace(/\D/g, '');
+                            const value = parseInt(numericValue) || 0;
                             setFormData(prev => ({
                               ...prev,
                               deposit_amount: value,
                               variables: {
                                 ...prev.variables,
-                                deposit_amount: formatCurrency(value) + ' VNĐ'
+                                deposit_amount: formatCurrencyForVariable(value)
                               }
                             }));
                           }}
+                          placeholder="VD: 5,000,000"
                         />
                       </Form.Group>
                     </Col>
@@ -465,22 +605,27 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
                       <Form.Group className="mb-3">
                         <Form.Label>Phí dịch vụ (VNĐ)</Form.Label>
                         <Form.Control
-                          type="number"
-                          min="0"
-                          value={formData.service_fee}
-                          onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            service_fee: parseInt(e.target.value) || 0
-                          }))}
+                          type="text"
+                          value={formData.service_fee ? formatCurrency(formData.service_fee) : ''}
+                          onChange={(e) => {
+                            // Remove all non-digits
+                            const numericValue = e.target.value.replace(/\D/g, '');
+                            const value = parseInt(numericValue) || 0;
+                            setFormData(prev => ({
+                              ...prev,
+                              service_fee: value,
+                              variables: {
+                                ...prev.variables,
+                                service_fee: formatCurrencyForVariable(value)
+                              }
+                            }));
+                          }}
+                          placeholder="VD: 500,000"
                         />
                       </Form.Group>
                     </Col>
                   </Row>
-                </Col>
 
-                <Col md={6}>
-                  <h5>Thời hạn & Thanh toán</h5>
-                  
                   <Row>
                     <Col md={6}>
                       <Form.Group className="mb-3">
@@ -605,32 +750,52 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
                       }))}
                     />
                   </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Mục đích sử dụng kho</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={formData.warehouse_purpose}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setFormData(prev => ({
+                          ...prev,
+                          warehouse_purpose: value,
+                          variables: {
+                            ...prev.variables,
+                            warehouse_purpose: value
+                          }
+                        }));
+                      }}
+                      placeholder="VD: Lưu kho hàng hóa, Sản xuất, Phân phối..."
+                    />
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Điều khoản đặc biệt</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      value={formData.special_terms}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setFormData(prev => ({
+                          ...prev,
+                          special_terms: value,
+                          variables: {
+                            ...prev.variables,
+                            special_terms: value
+                          }
+                        }));
+                      }}
+                      placeholder="Các điều khoản đặc biệt khác..."
+                    />
+                  </Form.Group>
                 </Col>
               </Row>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Điều khoản đặc biệt</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  value={formData.special_terms}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setFormData(prev => ({
-                      ...prev,
-                      special_terms: value,
-                      variables: {
-                        ...prev.variables,
-                        special_terms: value
-                      }
-                    }));
-                  }}
-                  placeholder="Các điều khoản đặc biệt khác..."
-                />
-              </Form.Group>
             </Tab>
 
-            {/* Tab 3: Template Variables */}
+            {/* Tab 2: Biến mẫu */}
             <Tab eventKey="variables" title="Biến mẫu" disabled={!selectedTemplate}>
               {selectedTemplate && selectedTemplate.variables && (
                 <div>
@@ -640,7 +805,7 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
                   </Alert>
                   
                   <Row>
-                    {(typeof selectedTemplate.variables === 'string' ? JSON.parse(selectedTemplate.variables) : selectedTemplate.variables || []).map(variable => (
+                    {(() => { let vars = []; try { vars = typeof selectedTemplate.variables === 'string' ? JSON.parse(selectedTemplate.variables) : (Array.isArray(selectedTemplate.variables) ? selectedTemplate.variables : []); } catch (e) { vars = []; } return vars; })().map(variable => (
                       <Col md={6} key={variable.name}>
                         <Form.Group className="mb-3">
                           <Form.Label>
@@ -688,7 +853,7 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
               )}
             </Tab>
 
-            {/* Tab 4: Preview */}
+            {/* Tab 3: Preview */}
             <Tab eventKey="preview" title="Xem trước" disabled={!selectedTemplate}>
               {selectedTemplate && (
                 <div>
@@ -702,7 +867,7 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
                       <div 
                         className="contract-preview"
                         dangerouslySetInnerHTML={{
-                          __html: selectedTemplate.template_content.replace(
+                          __html: String(selectedTemplate?.template_content || '').replace(
                             /\{\{(\w+)\}\}/g,
                             (match, varName) => formData.variables[varName] || `[${varName}]`
                           )
@@ -727,7 +892,7 @@ const ContractCreator = ({ show, onHide, onSuccess }) => {
               <Row>
                 <Col md={3}>
                   <strong>Khách hàng:</strong><br/>
-                  {selectedCustomer?.company_name || selectedCustomer?.full_name}
+                  {selectedCustomer?.name || selectedCustomer?.full_name}
                 </Col>
                 <Col md={3}>
                   <strong>Mẫu hợp đồng:</strong><br/>

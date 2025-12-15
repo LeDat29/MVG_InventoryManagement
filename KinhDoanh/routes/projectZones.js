@@ -84,14 +84,26 @@ router.get('/', catchAsync(async (req, res) => {
     const status = req.query.status;
     const zoneType = req.query.zone_type;
 
+    const pool = mysqlPool();
+
+    // Detect if is_active column exists to avoid SQL errors
+    const [colCheck] = await pool.execute(`
+        SELECT COUNT(*) AS col_exists
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'warehouse_zones'
+          AND COLUMN_NAME = 'is_active'
+    `);
+    const hasIsActive = colCheck[0]?.col_exists > 0;
+
     let query = `
-        SELECT wz.*, 
-               c.customer_code, c.company_name, c.contact_person,
+         SELECT wz.*, 
+             c.customer_code, COALESCE(c.name, c.full_name) AS company_name, c.representative_name as contact_person,
                ct.contract_number, ct.start_date, ct.end_date, ct.rental_price as current_rental_price
         FROM warehouse_zones wz
         LEFT JOIN contracts ct ON wz.id = ct.zone_id AND ct.status = 'active'
         LEFT JOIN customers c ON ct.customer_id = c.id
-        WHERE wz.project_id = ? AND wz.is_active = TRUE
+        WHERE wz.project_id = ? ${hasIsActive ? 'AND wz.is_active = TRUE' : ''} /* filter by is_active only if column exists */
     `;
     const params = [projectId];
 
@@ -107,13 +119,22 @@ router.get('/', catchAsync(async (req, res) => {
 
     query += ' ORDER BY wz.zone_code';
 
-    const pool = mysqlPool();
+    // pool already initialized above
     const [zones] = await pool.execute(query, params);
 
     // Parse JSON fields và thêm thông tin color
     zones.forEach(zone => {
-        zone.coordinates = zone.coordinates ? JSON.parse(zone.coordinates) : null;
-        zone.facilities = zone.facilities ? JSON.parse(zone.facilities) : null;
+        // Parse JSON fields safely
+        try {
+            zone.coordinates = zone.coordinates ? JSON.parse(zone.coordinates) : null;
+        } catch (e) {
+            zone.coordinates = null;
+        }
+        try {
+            zone.facilities = zone.facilities ? JSON.parse(zone.facilities) : null;
+        } catch (e) {
+            zone.facilities = null;
+        }
         
         // Thêm thông tin màu sắc dựa trên status
         switch (zone.status) {
@@ -168,7 +189,9 @@ router.get('/', catchAsync(async (req, res) => {
         maintenance: { color: '#ffffff', name: 'Trắng - Khu vực cố định/bảo trì' }
     };
 
+    if (req.user && req.user.id) {
     await logUserActivity(req.user.id, 'VIEW_PROJECT_ZONES', 'project', projectId, req.ip, req.get('User-Agent'));
+  }
 
     res.json({
         success: true,
@@ -221,15 +244,26 @@ router.get('/:zoneId', [
     const zoneId = req.params.zoneId;
 
     const pool = mysqlPool();
+
+    // Detect if is_active column exists
+    const [colCheck2] = await pool.execute(`
+        SELECT COUNT(*) AS col_exists
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'warehouse_zones'
+          AND COLUMN_NAME = 'is_active'
+    `);
+    const hasIsActive2 = colCheck2[0]?.col_exists > 0;
+
     const [zones] = await pool.execute(`
         SELECT wz.*, 
-               c.customer_code, c.company_name, c.contact_person, c.email, c.phone,
+               c.customer_code, COALESCE(c.name, c.full_name) AS company_name, c.representative_name as contact_person, c.email, c.phone,
                ct.contract_number, ct.start_date, ct.end_date, ct.rental_price,
                ct.deposit_amount, ct.payment_cycle, ct.status as contract_status
         FROM warehouse_zones wz
         LEFT JOIN contracts ct ON wz.id = ct.zone_id AND ct.status = 'active'
         LEFT JOIN customers c ON ct.customer_id = c.id
-        WHERE wz.id = ? AND wz.project_id = ? AND wz.is_active = TRUE
+        WHERE wz.id = ? AND wz.project_id = ? ${hasIsActive2 ? 'AND wz.is_active = TRUE' : ''}
     `, [zoneId, projectId]);
 
     if (zones.length === 0) {
@@ -263,7 +297,7 @@ router.get('/:zoneId', [
 
     // Lịch sử hợp đồng
     const [contractHistory] = await pool.execute(`
-        SELECT ct.*, c.company_name, c.contact_person
+        SELECT ct.*, COALESCE(c.name, c.full_name) AS company_name, c.representative_name as contact_person
         FROM contracts ct
         LEFT JOIN customers c ON ct.customer_id = c.id
         WHERE ct.zone_id = ?
@@ -271,7 +305,9 @@ router.get('/:zoneId', [
         LIMIT 10
     `, [zoneId]);
 
-    await logUserActivity(req.user.id, 'VIEW_ZONE_DETAIL', 'warehouse_zone', zoneId, req.ip, req.get('User-Agent'));
+    if (req.user && req.user.id) {
+        await logUserActivity(req.user.id, 'VIEW_ZONE_DETAIL', 'warehouse_zone', zoneId, req.ip, req.get('User-Agent'));
+    }
 
     res.json({
         success: true,

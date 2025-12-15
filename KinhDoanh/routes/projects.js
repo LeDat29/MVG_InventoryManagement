@@ -219,31 +219,35 @@ router.get('/', catchAsync(async (req, res) => {
     const search = req.query.search;
 
     const pool = mysqlPool();
+    // Build base query without GROUP BY to avoid ONLY_FULL_GROUP_BY issues
     let query = `
-        SELECT p.*, 
-               u.username as created_by_username,
-               COUNT(wz.id) as zone_count,
-               SUM(CASE WHEN wz.status = 'rented' THEN wz.area ELSE 0 END) as rented_area,
-               SUM(CASE WHEN wz.status = 'available' THEN wz.area ELSE 0 END) as available_area_calc
+        SELECT 
+            p.*, 
+            u.username as created_by_username,
+            (SELECT COUNT(*) FROM warehouse_zones wz WHERE wz.project_id = p.id AND wz.is_active = 1) as zone_count,
+            (SELECT COALESCE(SUM(CASE WHEN wz2.status = 'rented' THEN wz2.area ELSE 0 END), 0) FROM warehouse_zones wz2 WHERE wz2.project_id = p.id AND wz2.is_active = 1) as rented_area,
+            (SELECT COALESCE(SUM(CASE WHEN wz3.status = 'available' THEN wz3.area ELSE 0 END), 0) FROM warehouse_zones wz3 WHERE wz3.project_id = p.id AND wz3.is_active = 1) as available_area_calc
         FROM projects p 
         LEFT JOIN users u ON p.created_by = u.id
-        LEFT JOIN warehouse_zones wz ON p.id = wz.project_id AND wz.is_active = TRUE
-        WHERE p.is_active = TRUE
+        WHERE p.is_active = 1
     `;
     
-    let countQuery = 'SELECT COUNT(*) as total FROM projects p WHERE p.is_active = TRUE';
+    let countQuery = 'SELECT COUNT(*) as total FROM projects p WHERE p.is_active = 1';
     const params = [];
+    const countParams = [];
 
     if (status) {
         query += ' AND p.status = ?';
         countQuery += ' AND p.status = ?';
         params.push(status);
+        countParams.push(status);
     }
 
     if (province) {
         query += ' AND p.province = ?';
         countQuery += ' AND p.province = ?';
         params.push(province);
+        countParams.push(province);
     }
 
     if (search) {
@@ -251,36 +255,43 @@ router.get('/', catchAsync(async (req, res) => {
         countQuery += ' AND (p.name LIKE ? OR p.code LIKE ?)';
         const searchPattern = `%${search}%`;
         params.push(searchPattern, searchPattern);
+        countParams.push(searchPattern, searchPattern);
     }
 
-    query += ' GROUP BY p.id ORDER BY p.created_at DESC LIMIT ? OFFSET ?';
-    params.push(limit, offset);
+    query += ` ORDER BY p.created_at DESC LIMIT ${Number(limit)} OFFSET ${Number(offset)}`;
 
-    const [projects] = await pool.execute(query, params);
-    const [countResult] = await pool.execute(countQuery, params.slice(0, -2));
+    try {
+        const [projects] = await pool.execute(query, params);
+        const [countResult] = await pool.execute(countQuery, countParams);
 
-    // Parse JSON fields
-    projects.forEach(project => {
-        project.owner_info = project.owner_info ? JSON.parse(project.owner_info) : null;
-        project.legal_documents = project.legal_documents ? JSON.parse(project.legal_documents) : null;
-        project.map_data = project.map_data ? JSON.parse(project.map_data) : null;
-        project.warehouse_layout = project.warehouse_layout ? JSON.parse(project.warehouse_layout) : null;
-    });
+        // Parse JSON fields
+        projects.forEach(project => {
+            project.owner_info = project.owner_info ? JSON.parse(project.owner_info) : null;
+            project.legal_documents = project.legal_documents ? JSON.parse(project.legal_documents) : null;
+            project.map_data = project.map_data ? JSON.parse(project.map_data) : null;
+            project.warehouse_layout = project.warehouse_layout ? JSON.parse(project.warehouse_layout) : null;
+        });
 
-    await logUserActivity(req.user.id, 'VIEW_PROJECTS_LIST', 'project', null, req.ip, req.get('User-Agent'));
-
-    res.json({
-        success: true,
-        data: {
-            projects,
-            pagination: {
-                page,
-                limit,
-                total: countResult[0].total,
-                pages: Math.ceil(countResult[0].total / limit)
-            }
+        if (req.user && req.user.id) {
+            await logUserActivity(req.user.id, 'VIEW_PROJECTS_LIST', 'project', null, req.ip, req.get('User-Agent'));
         }
-    });
+
+        res.json({
+            success: true,
+            data: {
+                projects,
+                pagination: {
+                    page,
+                    limit,
+                    total: countResult[0].total,
+                    pages: Math.ceil(countResult[0].total / limit)
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching projects:', error);
+        res.status(500).json({ success: false, message: 'Lỗi khi truy vấn danh sách dự án', error: error.message });
+    }
 }));
 
 /**
@@ -368,7 +379,9 @@ router.get('/:id', [
         WHERE project_id = ? AND is_active = TRUE
     `, [projectId]);
 
-    await logUserActivity(req.user.id, 'VIEW_PROJECT_DETAIL', 'project', projectId, req.ip, req.get('User-Agent'));
+    if (req.user && req.user.id) {
+      await logUserActivity(req.user.id, 'VIEW_PROJECT_DETAIL', 'project', projectId, req.ip, req.get('User-Agent'));
+    }
 
     res.json({
         success: true,
@@ -584,5 +597,23 @@ router.use('/:id/zones', require('./projectZones'));
 router.use('/:id/tasks', require('./projectTasks'));
 // TODO: Implement this route in future
 // router.use('/:id/files', require('./projectFiles'));
+
+// Lấy danh sách kho (zones) của dự án (API đơn giản cho ContractCreator)
+router.get('/:id/zones', async (req, res) => {
+  try {
+    const pool = mysqlPool();
+    
+    // Check if warehouse_zones table exists before querying
+    const [tableCheck] = await pool.execute('SHOW TABLES LIKE "warehouse_zones"');
+    if (tableCheck.length === 0) {
+        return res.status(200).json({ success: true, data: { zones: [] } });
+    }
+
+    const [zones] = await pool.execute('SELECT id, zone_code, zone_name FROM warehouse_zones WHERE project_id = ? ORDER BY zone_code', [req.params.id]);
+    res.json({ success: true, data: { zones } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Lỗi lấy danh sách kho', error: error.message });
+  }
+});
 
 module.exports = router;

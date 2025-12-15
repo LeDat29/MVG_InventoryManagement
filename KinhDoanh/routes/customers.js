@@ -151,38 +151,12 @@ const router = express.Router();
  */
 router.get('/', async (req, res) => {
     try {
-        console.log('🔍 Customer API called - getting pool...');
         const pool = mysqlPool();
-        console.log('📊 Pool obtained, testing connection...');
-        
-        // Test database connection and verify we're on correct database
-        const [dbTest] = await pool.execute('SELECT DATABASE() as current_db');
-        console.log(`🗄️ API Connected to database: ${dbTest[0].current_db}`);
-        
-        // Check if customers table exists
-        const [tableCheck] = await pool.execute('SHOW TABLES LIKE "customers"');
-        console.log(`📋 Customers table exists: ${tableCheck.length > 0 ? 'YES' : 'NO'}`);
-        
-        if (tableCheck.length > 0) {
-            const [countCheck] = await pool.execute('SELECT COUNT(*) as customer_count FROM customers');
-            console.log(`📊 Customer count in API database: ${countCheck[0].customer_count}`);
-        } else {
-            console.log('❌ PROBLEM: customers table does not exist in API database!');
-        }
-        
-        // Test simple query first
+
+        // Simple safety checks
         const [simpleTest] = await pool.execute('SELECT COUNT(*) as total FROM customers');
-        console.log(`🧪 Simple count query: ${simpleTest[0].total} customers`);
-        
         const [customers] = await pool.execute('SELECT * FROM customers ORDER BY id DESC LIMIT 20');
-        console.log(`✅ Query executed successfully, found ${customers.length} customers`);
-        
-        if (customers.length > 0) {
-            console.log(`📋 First customer: ${customers[0].name} (ID: ${customers[0].id})`);
-        } else {
-            console.log('⚠️ No customers found in query result');
-        }
-        
+
         const result = {
             success: true,
             data: {
@@ -190,11 +164,10 @@ router.get('/', async (req, res) => {
                 pagination: { page: 1, limit: 20, total: customers.length, pages: 1 }
             }
         };
-        
-        console.log(`📤 Sending response with ${result.data.customers.length} customers`);
+
         res.json(result);
     } catch (error) {
-        console.error('❌ Customer API Error:', error);
+        logger.error('Customer API Error:', error);
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
@@ -236,12 +209,11 @@ router.get('/:id(\\d+)', [
 
     // Lấy thông tin khách hàng - explicitly include warehouse_purpose
     const [customers] = await pool.execute(`
-        SELECT c.id, c.customer_code, c.name, c.full_name, c.company_name, 
-               c.representative_name, c.phone, c.email, c.address, 
-               c.tax_code, c.business_license, c.bank_info, 
-               c.customer_type, c.credit_rating, c.status, 
-               c.id_number, c.representative_phone, c.representative_email,
+        SELECT c.id, c.customer_code, c.name, c.full_name,
+               c.representative_name, c.representative_phone, c.phone, c.email, c.address,
+               c.tax_code, c.id_number, c.representative_email,
                c.warehouse_purpose, c.notes,
+               c.customer_type, c.status,
                c.created_at, c.updated_at, c.created_by,
                u.username as created_by_username
         FROM customers c
@@ -257,7 +229,16 @@ router.get('/:id(\\d+)', [
     }
 
     const customer = customers[0];
-    customer.bank_info = customer.bank_info ? JSON.parse(customer.bank_info) : null;
+    // Parse bank_info field safely if present
+    if (customer.bank_info) {
+        try {
+            customer.bank_info = JSON.parse(customer.bank_info);
+        } catch (err) {
+            customer.bank_info = null;
+        }
+    } else {
+        customer.bank_info = null;
+    }
 
     // Lấy danh sách hợp đồng
     const [contracts] = await pool.execute(`
@@ -366,8 +347,8 @@ router.post('/', requirePermission('customer_create'), [
     const customer_code = `CUST${currentYear}${String(customerCount[0].count + 1).padStart(4, '0')}`;
 
     // Tạo khách hàng mới - only insert fields that are provided
-    const insertFields = ['customer_code', 'name', 'customer_type', 'created_by'];
-    const insertValues = [customer_code, name, customer_type, req.user.id];
+    const insertFields = ['customer_code', 'name', 'customer_type'];
+    const insertValues = [customer_code, name, customer_type];
     
     // Add optional fields if they exist
     if (full_name) {
@@ -415,33 +396,53 @@ router.post('/', requirePermission('customer_create'), [
         insertValues.push(notes);
     }
     
+    // Check if req.user exists in DB to set created_by safely
+    let createdById = null;
+    try {
+        if (req.user && req.user.id) {
+            const [userRows] = await pool.execute('SELECT id FROM users WHERE id = ?', [req.user.id]);
+            if (userRows.length > 0) {
+                createdById = req.user.id;
+                insertFields.push('created_by');
+                insertValues.push(createdById);
+            } else {
+                // don't include created_by if user not present in DB (test env)
+                logger.warn('Create customer: req.user.id not found in users table, inserting without created_by');
+            }
+        }
+    } catch (err) {
+        logger.warn('Error checking creating user existence:', err.message);
+    }
+
     const placeholders = insertFields.map(() => '?').join(', ');
     const insertQuery = `INSERT INTO customers (${insertFields.join(', ')}) VALUES (${placeholders})`;
     
-    console.log('🔍 Customer INSERT query:', insertQuery);
-    console.log('🔍 Customer INSERT values:', insertValues);
-    
-    const [result] = await pool.execute(insertQuery, insertValues);
+    try {
+        const [result] = await pool.execute(insertQuery, insertValues);
 
-    await logUserActivity(
-        req.user.id,
-        'CREATE_CUSTOMER',
-        'customer',
-        result.insertId,
-        req.ip,
-        req.get('User-Agent'),
-        { customerCode: customer_code, companyName: name }
-    );
+        await logUserActivity(
+            req.user && req.user.id ? req.user.id : null,
+            'CREATE_CUSTOMER',
+            'customer',
+            result.insertId,
+            req.ip,
+            req.get('User-Agent'),
+            { customerCode: customer_code, companyName: name }
+        );
 
-    res.status(201).json({
-        success: true,
-        message: 'Tạo khách hàng thành công',
-        data: {
-            id: result.insertId,
-            customer_code,
-            name
-        }
-    });
+        res.status(201).json({
+            success: true,
+            message: 'Tạo khách hàng thành công',
+            data: {
+                id: result.insertId,
+                customer_code,
+                name
+            }
+        });
+    } catch (error) {
+        logger.error('Error creating customer:', error);
+        return res.status(500).json({ success: false, message: 'Lỗi tạo khách hàng', error: error.message });
+    }
 }));
 
 /**
@@ -879,6 +880,7 @@ router.put('/:id(\\d+)', requirePermission('customer_update'), [
         message: 'Cập nhật thông tin khách hàng thành công'
     });
 }));
+
 
 /**
  * @swagger

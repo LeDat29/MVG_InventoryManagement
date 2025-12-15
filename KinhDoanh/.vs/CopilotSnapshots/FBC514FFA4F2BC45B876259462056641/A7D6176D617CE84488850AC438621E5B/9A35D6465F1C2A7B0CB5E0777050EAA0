@@ -1,0 +1,36 @@
+﻿const request = require('supertest');
+const app = require('../../server'); // Đảm bảo đường dẫn đúng đến file server.js
+
+describe('Contract Management API', () => {
+  let contractId;
+
+  it('should fetch the list of contracts', async () => {
+    const res = await request(app).get('/api/contracts').expect(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.data.contracts)).toBe(true);
+  });
+
+  it('should create a new contract', async () => {
+    const newContract = {
+      contract_title: 'Hợp đồng thuê kho ABC',
+      customer_id: 1, // Đảm bảo ID khách hàng tồn tại trong DB
+      template_id: 1, // Đảm bảo ID mẫu hợp đồng tồn tại trong DB
+      warehouse_location: 'Khu A',
+      warehouse_area: 100,
+      rental_price: 5000000,
+      start_date: '2023-12-01',
+      end_date: '2024-12-01'
+    };
+
+    const res = await request(app).post('/api/contracts').send(newContract).expect(201);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data).toHaveProperty('id');
+    contractId = res.body.data.id;
+  });
+
+  it('should fetch contract details', async () => {
+    const res = await request(app).get(`/api/contracts/${contractId}`).expect(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.contract).toHaveProperty('id', contractId);
+  });
+});

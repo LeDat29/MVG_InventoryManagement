@@ -74,6 +74,21 @@ function TaskManager({ projectId, projectName }) {
       const response = await fetch(`/api/projects/${projectId}/tasks?${queryParams}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+
+      if (!response) {
+        console.error('Error loading tasks: Response is null');
+        alert('Could not retrieve tasks. The server response was empty.');
+        return;
+      }
+
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Error loading tasks: Invalid content type');
+        const text = await response.text();
+        console.error('Response:', text);
+        alert('Could not retrieve tasks. The server sent an invalid response.');
+        return;
+      }
       
       const data = await response.json();
       if (data.success) {

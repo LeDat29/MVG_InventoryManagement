@@ -22,6 +22,7 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Login = React.lazy(() => import('./pages/Auth/Login'));
 const Projects = React.lazy(() => import('./pages/Projects'));
 const ProjectDetail = React.lazy(() => import('./pages/Projects/ProjectDetail'));
+const ProjectEdit = React.lazy(() => import('./pages/Projects/ProjectEdit'));
 const Customers = React.lazy(() => import('./pages/Customers'));
 const CustomerDetail = React.lazy(() => import('./pages/Customers/CustomerDetail'));
 const Contracts = React.lazy(() => import('./pages/Contracts'));
@@ -172,6 +173,12 @@ function App() {
                       </ProtectedRoute>
                     } />
                     
+                    <Route path="/projects/:id/edit" element={
+                      <ProtectedRoute>
+                        <ProjectEdit />
+                      </ProtectedRoute>
+                    } />
+                    
                     <Route path="/customers" element={
                       <ProtectedRoute>
                         <Customers />
@@ -185,6 +192,12 @@ function App() {
                     } />
                     
                     <Route path="/contracts" element={
+                      <ProtectedRoute>
+                        <Contracts />
+                      </ProtectedRoute>
+                    } />
+
+                    <Route path="/contracts/create" element={
                       <ProtectedRoute>
                         <Contracts />
                       </ProtectedRoute>

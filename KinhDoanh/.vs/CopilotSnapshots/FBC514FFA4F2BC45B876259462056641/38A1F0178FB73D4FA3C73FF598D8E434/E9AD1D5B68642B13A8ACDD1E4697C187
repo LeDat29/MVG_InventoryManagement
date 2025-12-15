@@ -1,0 +1,50 @@
+﻿const request = require('supertest');
+const app = require('../../server'); // Đảm bảo đường dẫn đúng đến file server.js
+
+describe('Customer Management API', () => {
+  let customerId;
+
+  it('should fetch the list of customers', async () => {
+    const res = await request(app).get('/api/customers').expect(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.data.customers)).toBe(true);
+  });
+
+  it('should create a new customer', async () => {
+    const newCustomer = {
+      name: 'Công ty ABC',
+      representative_name: 'Nguyễn Văn A',
+      phone: '0123456789',
+      email: 'abc@example.com',
+      address: '123 Đường ABC, TP.HCM'
+    };
+
+    const res = await request(app).post('/api/customers').send(newCustomer).expect(201);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data).toHaveProperty('id');
+    customerId = res.body.data.id;
+  });
+
+  it('should fetch customer details', async () => {
+    const res = await request(app).get(`/api/customers/${customerId}`).expect(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.customer).toHaveProperty('id', customerId);
+  });
+
+  it('should update customer details', async () => {
+    const updatedCustomer = {
+      name: 'Công ty XYZ',
+      phone: '0987654321'
+    };
+
+    const res = await request(app).put(`/api/customers/${customerId}`).send(updatedCustomer).expect(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.message).toBe('Cập nhật thông tin khách hàng thành công');
+  });
+
+  it('should delete the customer', async () => {
+    const res = await request(app).delete(`/api/customers/${customerId}`).expect(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.message).toBe('Xóa khách hàng thành công');
+  });
+});

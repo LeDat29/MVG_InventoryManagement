@@ -15,51 +15,51 @@ const { catchAsync } = require('../middleware/errorHandler');
  * Lấy danh sách tasks của dự án
  */
 router.get('/', authenticateToken, catchAsync(async (req, res) => {
-    const { projectId } = req.params;
-    const { status, assigned_to, task_type, page = 1, limit = 20 } = req.query;
-    const offset = (page - 1) * limit;
+    const projectIdParam = req.params.projectId || req.params.id;
+    const projectId = parseInt(projectIdParam);
+    const { status, assigned_to, task_type } = req.query;
+    const pageRaw = req.query.page;
+    const limitRaw = req.query.limit;
+    const pageNum = Number(pageRaw) > 0 ? Number(pageRaw) : 1;
+    const limitNum = Number(limitRaw) > 0 ? Number(limitRaw) : 20;
+    const offset = (pageNum - 1) * limitNum;
 
     const pool = mysqlPool();
     let query = `
         SELECT 
-            t.*,
+            t.*, 
             u1.full_name as assigned_to_name,
-            u2.full_name as created_by_name,
-            u3.full_name as completed_by_name
+            u2.full_name as created_by_name
         FROM project_tasks t
         LEFT JOIN users u1 ON t.assigned_to = u1.id
         LEFT JOIN users u2 ON t.created_by = u2.id
-        LEFT JOIN users u3 ON t.completed_by = u3.id
-        WHERE t.project_id = ?
+        WHERE t.project_id = ${projectId}
     `;
-    const params = [projectId];
 
     if (status) {
-        query += ' AND t.status = ?';
-        params.push(status);
+        query += ` AND t.status = '${status}'`;
     }
 
     if (assigned_to) {
-        query += ' AND t.assigned_to = ?';
-        params.push(assigned_to);
+        query += ` AND t.assigned_to = ${Number(assigned_to)}`;
     }
 
     if (task_type) {
-        query += ' AND t.task_type = ?';
-        params.push(task_type);
+        query += ` AND t.task_type = '${task_type}'`;
     }
 
-    query += ' ORDER BY t.priority DESC, t.due_date ASC LIMIT ? OFFSET ?';
-    params.push(parseInt(limit), parseInt(offset));
+    const lim = limitNum;
+    const off = offset;
+    query += ` ORDER BY t.priority DESC, t.next_due_date ASC LIMIT ${lim} OFFSET ${off}`;
 
-    const [tasks] = await pool.execute(query, params);
+    const [tasks] = await pool.query(query);
 
     // Get total count
-    let countQuery = 'SELECT COUNT(*) as total FROM project_tasks WHERE project_id = ?';
+    let countQuery = 'SELECT COUNT(*) as total FROM project_tasks t WHERE t.project_id = ?';
     const countParams = [projectId];
     
     if (status) {
-        countQuery += ' AND status = ?';
+        countQuery += ' AND t.status = ?';
         countParams.push(status);
     }
     if (assigned_to) {
@@ -71,17 +71,17 @@ router.get('/', authenticateToken, catchAsync(async (req, res) => {
         countParams.push(task_type);
     }
 
-    const [countResult] = await pool.execute(countQuery, countParams);
+    const [countResult] = await pool.execute(countQuery, countParams.filter(p => p !== undefined));
 
     res.json({
         success: true,
         data: {
             tasks,
             pagination: {
-                page: parseInt(page),
-                limit: parseInt(limit),
+                page: pageNum,
+                limit: limitNum,
                 total: countResult[0].total,
-                pages: Math.ceil(countResult[0].total / limit)
+                pages: Math.ceil(countResult[0].total / limitNum)
             }
         }
     });

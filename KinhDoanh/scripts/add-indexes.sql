@@ -149,14 +149,12 @@ CREATE INDEX idx_ai_functions_usage_count ON ai_function_definitions(usage_count
 -- ============================================
 -- DOCUMENTS TABLE INDEXES (if exists)
 -- ============================================
-CREATE INDEX idx_documents_project_id ON documents(project_id);
-CREATE INDEX idx_documents_customer_id ON documents(customer_id);
 CREATE INDEX idx_documents_category_id ON documents(category_id);
 CREATE INDEX idx_documents_uploaded_by ON documents(uploaded_by);
 CREATE INDEX idx_documents_created_at ON documents(created_at);
 
 -- Composite index
-CREATE INDEX idx_documents_project_category ON documents(project_id, category_id);
+CREATE INDEX idx_documents_category_uploaded ON documents(category_id, uploaded_by);
 
 -- ============================================
 -- FULL-TEXT SEARCH INDEXES
@@ -195,5 +193,3 @@ ANALYZE TABLE ai_chat_sessions;
 ANALYZE TABLE ai_chat_messages;
 ANALYZE TABLE ai_query_cache;
 ANALYZE TABLE user_logs;
-
-PRINT 'Database indexes created successfully!';
