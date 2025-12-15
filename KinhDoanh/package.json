@@ -1,6 +1,6 @@
 {
   "name": "kho-mvg-management",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Hệ thống quản lý hỗ trợ kinh doanh các dự án kho xưởng - KHO MVG",
   "main": "server.js",
   "scripts": {

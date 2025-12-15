@@ -9,7 +9,7 @@ Tất cả các thay đổi đáng chú ý cho dự án này sẽ được ghi l
 - Bổ sung tài liệu phát triển và kịch bản kiểm thử bổ sung cho các luồng quan trọng (Customers, Contracts, Projects).
 
 
-## [1.0.0] - 2025-12-12
+## [1.0.1] - 2025-12-15
 Tổng hợp các cải tiến, tính năng, và sửa lỗi lớn đã được thực hiện trong giai đoạn hoàn thiện hệ thống.
 
 ### Added
@@ -88,4 +88,4 @@ Tổng hợp các cải tiến, tính năng, và sửa lỗi lớn đã được
 
 
 [Unreleased]: ./
-[1.0.0]: ./
+[1.0.1]: ./
