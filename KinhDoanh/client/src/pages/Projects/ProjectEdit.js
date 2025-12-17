@@ -18,11 +18,13 @@ function ProjectEdit() {
   const { hasPermission } = useAuth();
   const { showNotification } = useNotification();
 
+  const defaultCenter = { lat: 10.9045, lng: 106.7213 };
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [showMapModal, setShowMapModal] = useState(false);
-  const [mapCenter, setMapCenter] = useState({ lat: 10.9045, lng: 106.7213 });
+  const [mapCenter, setMapCenter] = useState(defaultCenter);
   const [addressSearch, setAddressSearch] = useState('');
   
   const [formData, setFormData] = useState({
@@ -108,7 +110,7 @@ function ProjectEdit() {
     };
 
     fetchProject();
-  }, [id, hasPermission, defaultCenter.lat, defaultCenter.lng]);
+  }, [id, hasPermission]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

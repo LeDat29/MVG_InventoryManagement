@@ -20,10 +20,25 @@ function UserManagement() {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
   const [showPermissionModal, setShowPermissionModal] = useState(false);
   const [showAIConfigModal, setShowAIConfigModal] = useState(false);
+  const [showDeactivateModal, setShowDeactivateModal] = useState(false);
+  const [userToDeactivate, setUserToDeactivate] = useState(null);
   // const [showActivityModal, setShowActivityModal] = useState(false);
   const [activeTab, setActiveTab] = useState('list');
+  
+  // Form state for creating user
+  const [userForm, setUserForm] = useState({
+    username: '',
+    email: '',
+    password: '123456', // Mật khẩu mặc định
+    full_name: '',
+    phone: '',
+    role: 'staff'
+  });
+  const [formErrors, setFormErrors] = useState({});
+  const [saving, setSaving] = useState(false);
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -193,6 +208,74 @@ function UserManagement() {
       <Badge bg="secondary">Vô hiệu hóa</Badge>;
   };
 
+  const handleCreateUser = async (e) => {
+    e.preventDefault();
+    setFormErrors({});
+    setSaving(true);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post('/api/users', userForm, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        showSuccess('Tạo người dùng thành công!');
+        setShowCreateUserModal(false);
+        setUserForm({
+          username: '',
+          email: '',
+          password: '123456', // Mật khẩu mặc định
+          full_name: '',
+          phone: '',
+          role: 'staff'
+        });
+        loadUsers();
+      }
+    } catch (error) {
+      console.error('Error creating user:', error);
+      if (error.response?.data?.errors) {
+        const errors = {};
+        error.response.data.errors.forEach(err => {
+          errors[err.param || err.path] = err.msg || err.message;
+        });
+        setFormErrors(errors);
+      } else {
+        showError(error.response?.data?.message || 'Lỗi tạo người dùng');
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeactivateUser = async () => {
+    if (!userToDeactivate) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        `/api/users/${userToDeactivate.id}/deactivate`,
+        {},
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        showSuccess('Vô hiệu hóa người dùng thành công!');
+        setShowDeactivateModal(false);
+        setUserToDeactivate(null);
+        loadUsers();
+      }
+    } catch (error) {
+      console.error('Error deactivating user:', error);
+      showError(error.response?.data?.message || 'Lỗi vô hiệu hóa người dùng');
+    }
+  };
+
+  const handleShowDeactivateModal = (user) => {
+    setUserToDeactivate(user);
+    setShowDeactivateModal(true);
+  };
+
   if (loading) {
     return <LoadingSpinner text="Đang tải danh sách người dùng..." />;
   }
@@ -221,7 +304,7 @@ function UserManagement() {
               </p>
             </div>
             {hasPermission('user_create') && (
-              <Button variant="primary">
+              <Button variant="primary" onClick={() => setShowCreateUserModal(true)}>
                 <i className="fas fa-plus me-2"></i>
                 Thêm người dùng
               </Button>
@@ -372,6 +455,17 @@ function UserManagement() {
                                 <i className="fas fa-history"></i>
                               </Button>
                             )}
+                            
+                            {(isAdmin() || hasPermission('user_delete')) && userItem.is_active && (
+                              <Button
+                                variant="outline-danger"
+                                size="sm"
+                                onClick={() => handleShowDeactivateModal(userItem)}
+                                title="Vô hiệu hóa người dùng"
+                              >
+                                <i className="fas fa-ban"></i>
+                              </Button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -504,6 +598,239 @@ function UserManagement() {
           showSuccess('Cập nhật quyền hạn thành công!');
         }}
       />
+
+      {/* Create User Modal */}
+      <Modal show={showCreateUserModal} onHide={() => {
+        setShowCreateUserModal(false);
+        setUserForm({
+          username: '',
+          email: '',
+          password: '123456', // Mật khẩu mặc định
+          full_name: '',
+          phone: '',
+          role: 'staff'
+        });
+        setFormErrors({});
+      }} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <i className="fas fa-user-plus me-2"></i>
+            Thêm người dùng mới
+          </Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleCreateUser}>
+          <Modal.Body>
+            <Alert variant="info" className="mb-3">
+              <i className="fas fa-info-circle me-2"></i>
+              Điền thông tin để tạo người dùng mới. Tất cả trường có dấu <span className="text-danger">*</span> là bắt buộc.
+            </Alert>
+
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Tên đầy đủ <span className="text-danger">*</span>
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={userForm.full_name}
+                    onChange={(e) => setUserForm({ ...userForm, full_name: e.target.value })}
+                    isInvalid={!!formErrors.full_name}
+                    placeholder="Nhập tên đầy đủ"
+                    required
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {formErrors.full_name}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Username <span className="text-danger">*</span>
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={userForm.username}
+                    onChange={(e) => setUserForm({ ...userForm, username: e.target.value })}
+                    isInvalid={!!formErrors.username}
+                    placeholder="Nhập username (tối thiểu 3 ký tự)"
+                    required
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {formErrors.username}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Email <span className="text-danger">*</span>
+                  </Form.Label>
+                  <Form.Control
+                    type="email"
+                    value={userForm.email}
+                    onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
+                    isInvalid={!!formErrors.email}
+                    placeholder="email@example.com"
+                    required
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {formErrors.email}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Số điện thoại
+                  </Form.Label>
+                  <Form.Control
+                    type="tel"
+                    value={userForm.phone}
+                    onChange={(e) => setUserForm({ ...userForm, phone: e.target.value })}
+                    placeholder="0123456789"
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Mật khẩu <span className="text-danger">*</span>
+                  </Form.Label>
+                  <Form.Control
+                    type="password"
+                    value={userForm.password}
+                    onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
+                    isInvalid={!!formErrors.password}
+                    placeholder="Mật khẩu mặc định: 123456"
+                    required
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {formErrors.password}
+                  </Form.Control.Feedback>
+                  <Form.Text className="text-muted">
+                    Mật khẩu mặc định là "123456". Người dùng nên đổi mật khẩu sau khi đăng nhập lần đầu.
+                  </Form.Text>
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Vai trò <span className="text-danger">*</span>
+                  </Form.Label>
+                  <Form.Select
+                    value={userForm.role}
+                    onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
+                    isInvalid={!!formErrors.role}
+                    required
+                  >
+                    <option value="staff">Staff</option>
+                    <option value="manager">Manager</option>
+                    <option value="viewer">Viewer</option>
+                    {isAdmin() && <option value="admin">Admin</option>}
+                  </Form.Select>
+                  <Form.Control.Feedback type="invalid">
+                    {formErrors.role}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+            </Row>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowCreateUserModal(false);
+                setUserForm({
+                  username: '',
+                  email: '',
+                  password: '',
+                  full_name: '',
+                  phone: '',
+                  role: 'staff'
+                });
+                setFormErrors({});
+              }}
+              disabled={saving}
+            >
+              Hủy
+            </Button>
+            <Button variant="primary" type="submit" disabled={saving}>
+              {saving ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Đang tạo...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-save me-2"></i>
+                  Tạo người dùng
+                </>
+              )}
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
+
+      {/* Deactivate User Confirmation Modal */}
+      <Modal show={showDeactivateModal} onHide={() => {
+        setShowDeactivateModal(false);
+        setUserToDeactivate(null);
+      }}>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <i className="fas fa-exclamation-triangle text-warning me-2"></i>
+            Xác nhận vô hiệu hóa người dùng
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {userToDeactivate && (
+            <Alert variant="warning">
+              <p className="mb-2">
+                Bạn có chắc chắn muốn vô hiệu hóa người dùng này?
+              </p>
+              <div className="mt-3">
+                <strong>Thông tin người dùng:</strong>
+                <ul className="mt-2 mb-0">
+                  <li><strong>Tên:</strong> {userToDeactivate.full_name}</li>
+                  <li><strong>Username:</strong> {userToDeactivate.username}</li>
+                  <li><strong>Email:</strong> {userToDeactivate.email}</li>
+                  <li><strong>Vai trò:</strong> {getRoleBadge(userToDeactivate.role)}</li>
+                </ul>
+              </div>
+              <p className="mt-3 mb-0 text-danger">
+                <i className="fas fa-info-circle me-2"></i>
+                Người dùng sẽ không thể đăng nhập sau khi bị vô hiệu hóa. Bạn có thể kích hoạt lại sau.
+              </p>
+            </Alert>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setShowDeactivateModal(false);
+              setUserToDeactivate(null);
+            }}
+          >
+            Hủy
+          </Button>
+          <Button variant="danger" onClick={handleDeactivateUser}>
+            <i className="fas fa-ban me-2"></i>
+            Vô hiệu hóa
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 }

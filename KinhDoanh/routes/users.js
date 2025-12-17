@@ -1,8 +1,3 @@
-/**
- * Users Management Routes - KHO MVG
- * Phân hệ 2.4 - Quản lý User nâng cao
- */
-
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { body, validationResult, param } = require('express-validator');
@@ -75,10 +70,6 @@ const router = express.Router();
  */
 
 /**
- * 2.4.1 - Quản lý thông tin người dùng
- */
-
-/**
  * @swagger
  * /api/users:
  *   get:
@@ -96,7 +87,6 @@ router.get('/', requireRole(['admin', 'manager']), catchAsync(async (req, res) =
 
     const pool = mysqlPool();
     
-    // Use simple query that works reliably
     let baseQuery = `
         SELECT u.id, u.username, u.email, u.full_name, u.role, u.permissions, 
                u.is_active, u.created_at, u.updated_at, u.last_login,
@@ -110,54 +100,36 @@ router.get('/', requireRole(['admin', 'manager']), catchAsync(async (req, res) =
     const params = [];
     let whereClause = '';
 
-    // Add search filter
     if (search && search.trim()) {
         whereClause += ` AND (u.full_name LIKE ? OR u.username LIKE ? OR u.email LIKE ?)`;
         const searchPattern = `%${search.trim()}%`;
         params.push(searchPattern, searchPattern, searchPattern);
     }
 
-    // Add role filter  
     if (role && role.trim()) {
         whereClause += ` AND u.role = ?`;
         params.push(role.trim());
     }
     
-    // Build final query with safe LIMIT/OFFSET
     const finalQuery = baseQuery + whereClause + ` ORDER BY u.created_at DESC LIMIT ${limit} OFFSET ${offset}`;
     
-    console.log('Users Query:', finalQuery);
-    console.log('Params:', params);
-    
     try {
-        // Execute the main query
         const [users] = await pool.execute(finalQuery, params);
-        
-        // Execute count query
         const countQuery = `SELECT COUNT(*) as total FROM users u WHERE u.is_active = TRUE` + whereClause;
         const [countResult] = await pool.execute(countQuery, params);
 
-        // Process users data
         for (let user of users) {
-            // Parse permissions safely
             try {
                 user.permissions = user.permissions ? JSON.parse(user.permissions) : [];
             } catch (e) {
                 user.permissions = [];
             }
-            
-            // Remove sensitive data
             delete user.password_hash;
-            
-            // Add computed fields if needed
             if (user.assigned_projects === null) user.assigned_projects = 0;
             if (user.ai_configs_count === null) user.ai_configs_count = 0;
         }
 
-        // Log user activity
         await logUserActivity(req.user.id, 'VIEW_USERS_LIST', 'user', null, req.ip, req.get('User-Agent'));
-
-        // Return successful response
         res.json({
             success: true,
             data: {
@@ -189,7 +161,6 @@ router.get('/:id', [
     const pool = mysqlPool();
 
     try {
-        // Get user basic info with safe query
         const [users] = await pool.execute(
             'SELECT id, username, email, full_name, phone, role, permissions, is_active, created_at, last_login FROM users WHERE id = ?',
             [userId]
@@ -204,7 +175,6 @@ router.get('/:id', [
 
         const user = users[0];
         
-        // Parse permissions safely
         try {
             if (user.permissions && typeof user.permissions === 'string') {
                 user.permissions = JSON.parse(user.permissions);
@@ -216,7 +186,6 @@ router.get('/:id', [
             user.permissions = [];
         }
 
-        // Get project permissions safely
         let projectPerms = [];
         try {
             const [projectResult] = await pool.execute(`
@@ -230,7 +199,6 @@ router.get('/:id', [
             console.warn('Could not load project permissions:', projectError.message);
         }
 
-        // Get AI configurations safely
         let aiConfigs = [];
         try {
             const [aiResult] = await pool.execute(
@@ -239,7 +207,6 @@ router.get('/:id', [
             );
             aiConfigs = aiResult || [];
 
-            // Mask API keys for display
             const EncryptionService = require('../utils/encryption');
             aiConfigs.forEach(config => {
                 if (config.api_key) {
@@ -247,7 +214,6 @@ router.get('/:id', [
                         const decryptedKey = EncryptionService.decrypt(config.api_key);
                         config.api_key = EncryptionService.maskAPIKey(decryptedKey);
                     } catch (error) {
-                        // If decryption fails (old unencrypted keys), just mask
                         config.api_key = '****' + (config.api_key.length > 4 ? config.api_key.slice(-4) : '****');
                     }
                 }
@@ -301,7 +267,6 @@ router.post('/', requirePermission('user_create'), [
     const { username, email, password, full_name, phone, role, permissions = [] } = req.body;
     const pool = mysqlPool();
 
-    // Check if username or email exists
     const [existing] = await pool.execute(
         'SELECT id FROM users WHERE username = ? OR email = ?',
         [username, email]
@@ -314,30 +279,42 @@ router.post('/', requirePermission('user_create'), [
         });
     }
 
-    // Hash password
     const passwordHash = await bcrypt.hash(password, 12);
 
-    // Create user
-    const [result] = await pool.execute(`
-        INSERT INTO users (username, email, password_hash, full_name, phone, role, permissions, created_by)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `, [username, email, passwordHash, full_name, phone, role, JSON.stringify(permissions), req.user.id]);
+    try {
+        const [result] = await pool.execute(`
+            INSERT INTO users (username, email, password_hash, full_name, phone, role, permissions, is_active, created_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, TRUE, ?)
+        `, [username, email, passwordHash, full_name, phone || null, role, JSON.stringify(permissions), req.user.id]);
 
-    await logUserActivity(req.user.id, 'CREATE_USER', 'user', result.insertId, req.ip, req.get('User-Agent'), {
-        username, email, full_name, role
-    });
+        await logUserActivity(req.user.id, 'CREATE_USER', 'user', result.insertId, req.ip, req.get('User-Agent'), {
+            username, email, full_name, role
+        });
 
-    res.status(201).json({
-        success: true,
-        message: 'Tạo người dùng thành công',
-        data: {
-            id: result.insertId,
-            username,
-            email,
-            full_name,
-            role
+        const [verifyUser] = await pool.execute(
+            'SELECT id, username, email, is_active FROM users WHERE id = ?',
+            [result.insertId]
+        );
+
+        if (verifyUser.length === 0) {
+            throw new Error('User was not created in database');
         }
-    });
+
+        res.status(201).json({
+            success: true,
+            message: 'Tạo người dùng thành công',
+            data: {
+                id: result.insertId,
+                username,
+                email,
+                full_name,
+                role,
+                is_active: true
+            }
+        });
+    } catch (dbError) {
+        throw new Error('Lỗi khi tạo người dùng trong database: ' + dbError.message);
+    }
 }));
 
 /**
@@ -358,7 +335,6 @@ router.put('/:id/permissions', [
     const pool = mysqlPool();
 
     try {
-        // Verify user exists
         const [users] = await pool.execute('SELECT id FROM users WHERE id = ?', [userId]);
         if (users.length === 0) {
             return res.status(404).json({
@@ -367,10 +343,8 @@ router.put('/:id/permissions', [
             });
         }
 
-        // Validate permissions array
         const validPermissions = Array.isArray(permissions) ? permissions : [];
         
-        // Update user permissions
         await pool.execute(
             'UPDATE users SET permissions = ?, updated_at = NOW() WHERE id = ?',
             [JSON.stringify(validPermissions), userId]
@@ -395,10 +369,6 @@ router.put('/:id/permissions', [
 }));
 
 /**
- * 2.4.2 - Quản lý quyền hạn theo dự án
- */
-
-/**
  * @swagger
  * /api/users/{id}/project-permissions:
  *   post:
@@ -413,7 +383,6 @@ router.post('/:id/project-permissions', [
     const { project_id, permissions } = req.body;
     const pool = mysqlPool();
 
-    // Verify project exists
     const [projects] = await pool.execute('SELECT id FROM projects WHERE id = ?', [project_id]);
     if (projects.length === 0) {
         return res.status(404).json({
@@ -422,20 +391,17 @@ router.post('/:id/project-permissions', [
         });
     }
 
-    // Check if permission already exists
     const [existing] = await pool.execute(
         'SELECT id FROM user_project_permissions WHERE user_id = ? AND project_id = ?',
         [userId, project_id]
     );
 
     if (existing.length > 0) {
-        // Update existing permissions
         await pool.execute(
             'UPDATE user_project_permissions SET permissions = ?, updated_by = ?, updated_at = NOW() WHERE user_id = ? AND project_id = ?',
             [JSON.stringify(permissions), req.user.id, userId, project_id]
         );
     } else {
-        // Create new permissions
         await pool.execute(`
             INSERT INTO user_project_permissions (user_id, project_id, permissions, created_by)
             VALUES (?, ?, ?, ?)
@@ -451,10 +417,6 @@ router.post('/:id/project-permissions', [
         message: 'Cập nhật quyền dự án thành công'
     });
 }));
-
-/**
- * 2.4.3 - Quản lý API các mô hình AI
- */
 
 /**
  * @swagger
@@ -496,7 +458,6 @@ router.post('/:id/ai-configs', [
     const { provider, api_key, model, cost_per_1k_tokens, priority = 1 } = req.body;
     const pool = mysqlPool();
 
-    // Check if user already has config for this provider
     const [existing] = await pool.execute(
         'SELECT id FROM user_ai_configs WHERE user_id = ? AND provider = ?',
         [userId, provider]
@@ -509,7 +470,6 @@ router.post('/:id/ai-configs', [
         });
     }
 
-    // Encrypt API key before storing
     const EncryptionService = require('../utils/encryption');
     const encryptedApiKey = EncryptionService.encrypt(api_key);
 
@@ -528,10 +488,6 @@ router.post('/:id/ai-configs', [
         data: { id: result.insertId }
     });
 }));
-
-/**
- * 2.4.4 - Quản lý lịch sử thao tác (Admin only)
- */
 
 /**
  * @swagger
@@ -588,12 +544,10 @@ router.get('/activity-logs', requireRole(['admin']), catchAsync(async (req, res)
 
     const [logs] = await pool.execute(query, params);
 
-    // Parse details JSON
     logs.forEach(log => {
         log.details = log.details ? JSON.parse(log.details) : null;
     });
 
-    // Get statistics
     const [stats] = await pool.execute(`
         SELECT 
             COUNT(*) as total_actions,
@@ -649,7 +603,6 @@ router.get('/:id/activity-logs', [
         [userId]
     );
 
-    // Parse details
     logs.forEach(log => {
         log.details = log.details ? JSON.parse(log.details) : null;
     });
@@ -666,6 +619,70 @@ router.get('/:id/activity-logs', [
             }
         }
     });
+}));
+
+/**
+ * @swagger
+ * /api/users/{id}/deactivate:
+ *   put:
+ *     summary: Vô hiệu hóa người dùng (Deactivate user)
+ *     tags: [User Management]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.put('/:id/deactivate', [
+    param('id').isInt().withMessage('User ID phải là số nguyên')
+], requirePermission('user_delete'), catchAsync(async (req, res) => {
+    const userId = req.params.id;
+    const pool = mysqlPool();
+
+    try {
+        const [users] = await pool.execute('SELECT id, username, full_name, is_active, is_deleted FROM users WHERE id = ?', [userId]);
+        if (users.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Người dùng không tìm thấy'
+            });
+        }
+
+        const user = users[0];
+
+        if (user.is_deleted) {
+            return res.status(400).json({
+                success: false,
+                message: 'Người dùng đã bị vô hiệu hóa'
+            });
+        }
+
+        if (parseInt(userId, 10) === req.user.id) {
+            return res.status(400).json({
+                success: false,
+                message: 'Bạn không thể vô hiệu hóa chính mình'
+            });
+        }
+
+        await pool.execute(
+            'UPDATE users SET is_active = FALSE, is_deleted = TRUE, updated_at = NOW() WHERE id = ?',
+            [userId]
+        );
+
+        await logUserActivity(req.user.id, 'DEACTIVATE_USER', 'user', userId, req.ip, req.get('User-Agent'), {
+            deactivated_user: user.username,
+            deactivated_user_name: user.full_name
+        });
+
+        res.json({
+            success: true,
+            message: 'Vô hiệu hóa người dùng thành công'
+        });
+        
+    } catch (error) {
+        console.error('Deactivate user error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi khi vô hiệu hóa người dùng: ' + error.message
+        });
+    }
 }));
 
 module.exports = router;
