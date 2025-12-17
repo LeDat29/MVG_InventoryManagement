@@ -10,6 +10,7 @@ import AIConfigManager from '../components/Users/AIConfigManagerComplete';
 import './Settings.css';
 import { useNotification } from '../contexts/NotificationContext';
 import LoadingSpinner from '../components/Common/LoadingSpinner';
+import axios from 'axios';
 
 function Settings() {
   const { user, isAdmin, hasPermission } = useAuth();
@@ -29,50 +30,6 @@ function Settings() {
     session_timeout: 30
   });
 
-  // Mock users data
-  const mockUsers = [
-    {
-      id: 1,
-      username: 'admin',
-      full_name: 'Administrator',
-      email: 'admin@kho-mvg.com',
-      role: 'admin',
-      is_active: true,
-      last_login: '2024-02-15T10:30:00Z',
-      created_at: '2024-01-01T00:00:00Z'
-    },
-    {
-      id: 2,
-      username: 'manager1',
-      full_name: 'Nguyễn Văn Manager',
-      email: 'manager@kho-mvg.com',
-      role: 'manager',
-      is_active: true,
-      last_login: '2024-02-14T15:20:00Z',
-      created_at: '2024-01-15T00:00:00Z'
-    },
-    {
-      id: 3,
-      username: 'staff1',
-      full_name: 'Trần Thị Staff',
-      email: 'staff@kho-mvg.com',
-      role: 'staff',
-      is_active: true,
-      last_login: '2024-02-13T09:45:00Z',
-      created_at: '2024-02-01T00:00:00Z'
-    },
-    {
-      id: 4,
-      username: 'viewer1',
-      full_name: 'Lê Văn Viewer',
-      email: 'viewer@kho-mvg.com',
-      role: 'viewer',
-      is_active: false,
-      last_login: '2024-02-10T14:30:00Z',
-      created_at: '2024-02-05T00:00:00Z'
-    }
-  ];
-
   useEffect(() => {
     // Allow admin users to view settings
     // In dev mode, allow any authenticated user to view
@@ -84,10 +41,29 @@ function Settings() {
       return;
     }
 
-    setTimeout(() => {
-      setUsers(mockUsers);
-      setLoading(false);
-    }, 1000);
+    const fetchUsers = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        const resp = await axios.get('/api/users', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        if (resp.data?.success) {
+          setUsers(resp.data.data?.users || []);
+        } else {
+          showError('Không tải được danh sách người dùng');
+          setUsers([]);
+        }
+      } catch (err) {
+        console.error('Load users failed', err);
+        showError('Không tải được danh sách người dùng');
+        setUsers([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
   }, [isAdmin, hasPermission, showError]);
 
   const handleSystemSettingsSubmit = async (e) => {

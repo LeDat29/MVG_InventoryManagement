@@ -69,7 +69,7 @@ async function connectMySQL() {
             host: process.env.MYSQL_HOST || 'localhost',
             port: process.env.MYSQL_PORT || 3306,
             user: process.env.MYSQL_USER || 'root',
-            password: process.env.MYSQL_PASSWORD || '',
+            password: process.env.MYSQL_PASSWORD || '12345678',
             database: process.env.NODE_ENV === 'test' 
                 ? process.env.MYSQL_DATABASE || process.env.MYSQL_TEST_DATABASE || 'kho_mvg'
                 : process.env.MYSQL_DATABASE || 'kho_mvg',
@@ -349,9 +349,8 @@ async function createDefaultAdmin() {
             const bcrypt = require('bcryptjs');
             const crypto = require('crypto');
             
-            // Generate secure random password or use env variable
-            // Use environment variable if provided, otherwise fixed default for initial admin
-            const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'admin123!';
+            // Use environment variable if provided, otherwise fixed default password: 12345678
+            const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || '12345678';
              const hashedPassword = await bcrypt.hash(defaultPassword, 12);
              
              logger.warn('='.repeat(80));
@@ -374,7 +373,7 @@ async function createDefaultAdmin() {
                  ]
              );
             
-             logger.info('Default admin user created: admin/admin123!');
+             logger.info('Default admin user created: admin/12345678');
          }
      } catch (error) {
          logger.error('Error creating default admin:', error);

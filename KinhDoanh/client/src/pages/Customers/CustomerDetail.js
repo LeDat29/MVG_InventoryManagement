@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Badge, Tab, Nav, Table, Modal, Alert, Form } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
 import LoadingSpinner from '../../components/Common/LoadingSpinner';
@@ -20,90 +21,35 @@ function CustomerDetail() {
   const [customer, setCustomer] = useState(null);
   const [contracts, setContracts] = useState([]);
   const [activeTab, setActiveTab] = useState('info');
-  // const [showContractModal, setShowContractModal] = useState(false);
-
-  // Mock customer data
-  const mockCustomer = {
-    id: parseInt(id),
-    customer_code: 'KH001',
-    company_name: 'Công ty TNHH ABC Logistics',
-    contact_person: 'Nguyễn Văn A',
-    email: 'contact@abc.com',
-    phone: '0123456789',
-    address: '123 Đường XYZ, Quận 1, TP.HCM',
-    tax_code: '0123456789',
-    business_license: 'GP-12345678',
-    customer_type: 'company',
-    credit_rating: 'A',
-    bank_info: {
-      bank_name: 'Vietcombank',
-      account_number: '1234567890',
-      account_holder: 'CONG TY TNHH ABC LOGISTICS'
-    },
-    notes: 'Khách hàng lâu năm, uy tín tốt',
-    created_at: '2024-01-15',
-    created_by_username: 'admin'
-  };
-
-  const mockContracts = [
-    {
-      id: 1,
-      contract_number: 'HD240001',
-      project_name: 'Kho xưởng Bình Dương',
-      project_code: 'KX-BD-001',
-      zone_code: 'A1',
-      zone_name: 'Khu vực A1',
-      zone_area: 500,
-      start_date: '2024-01-01',
-      end_date: '2024-12-31',
-      rental_price: 150000,
-      deposit_amount: 37500000,
-      payment_cycle: 'monthly',
-      status: 'active',
-      days_until_expiry: 120
-    },
-    {
-      id: 2,
-      contract_number: 'HD240005',
-      project_name: 'Kho xưởng Bình Dương',
-      project_code: 'KX-BD-001',
-      zone_code: 'B2',
-      zone_name: 'Khu vực B2',
-      zone_area: 300,
-      start_date: '2024-02-01',
-      end_date: '2024-07-31',
-      rental_price: 160000,
-      deposit_amount: 24000000,
-      payment_cycle: 'monthly',
-      status: 'active',
-      days_until_expiry: 90
-    },
-    {
-      id: 3,
-      contract_number: 'HD230012',
-      project_name: 'Trung tâm logistics Đồng Nai',
-      project_code: 'KX-DN-002',
-      zone_code: 'C1',
-      zone_name: 'Khu vực C1',
-      zone_area: 400,
-      start_date: '2023-06-01',
-      end_date: '2023-12-31',
-      rental_price: 140000,
-      deposit_amount: 28000000,
-      payment_cycle: 'monthly',
-      status: 'expired',
-      days_until_expiry: -45
-    }
-  ];
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setCustomer(mockCustomer);
-      setContracts(mockContracts);
-      setLoading(false);
-    }, 1000);
-  }, [id, mockCustomer, mockContracts]);
+    const fetchCustomer = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        const resp = await axios.get(`/api/customers/${id}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        if (resp.data?.success) {
+          setCustomer(resp.data.data.customer);
+          setContracts(resp.data.data.contracts || []);
+        } else {
+          showError(resp.data?.message || 'Không tải được khách hàng');
+          setCustomer(null);
+          setContracts([]);
+        }
+      } catch (err) {
+        console.error('Load customer failed', err);
+        showError('Không tải được khách hàng');
+        setCustomer(null);
+        setContracts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCustomer();
+  }, [id, showError]);
 
   const getCreditRatingBadge = (rating) => {
     const ratingMap = {

@@ -25,6 +25,16 @@ router.get('/', authenticateToken, catchAsync(async (req, res) => {
     const offset = (pageNum - 1) * limitNum;
 
     const pool = mysqlPool();
+    
+    // Validate projectId
+    if (!projectId || isNaN(projectId) || projectId <= 0) {
+        return res.status(400).json({
+            success: false,
+            message: 'Project ID không hợp lệ'
+        });
+    }
+
+    // Build query with parameterized statements to prevent SQL injection
     let query = `
         SELECT 
             t.*, 
@@ -33,26 +43,33 @@ router.get('/', authenticateToken, catchAsync(async (req, res) => {
         FROM project_tasks t
         LEFT JOIN users u1 ON t.assigned_to = u1.id
         LEFT JOIN users u2 ON t.created_by = u2.id
-        WHERE t.project_id = ${projectId}
+        WHERE t.project_id = ?
     `;
+    
+    const queryParams = [projectId];
 
     if (status) {
-        query += ` AND t.status = '${status}'`;
+        query += ` AND t.status = ?`;
+        queryParams.push(status);
     }
 
     if (assigned_to) {
-        query += ` AND t.assigned_to = ${Number(assigned_to)}`;
+        const assignedToNum = Number(assigned_to);
+        if (!isNaN(assignedToNum)) {
+            query += ` AND t.assigned_to = ?`;
+            queryParams.push(assignedToNum);
+        }
     }
 
     if (task_type) {
-        query += ` AND t.task_type = '${task_type}'`;
+        query += ` AND t.task_type = ?`;
+        queryParams.push(task_type);
     }
 
-    const lim = limitNum;
-    const off = offset;
-    query += ` ORDER BY t.priority DESC, t.next_due_date ASC LIMIT ${lim} OFFSET ${off}`;
+    query += ` ORDER BY t.priority DESC, t.next_due_date ASC LIMIT ? OFFSET ?`;
+    queryParams.push(limitNum, offset);
 
-    const [tasks] = await pool.query(query);
+    const [tasks] = await pool.execute(query, queryParams);
 
     // Get total count
     let countQuery = 'SELECT COUNT(*) as total FROM project_tasks t WHERE t.project_id = ?';
@@ -73,15 +90,17 @@ router.get('/', authenticateToken, catchAsync(async (req, res) => {
 
     const [countResult] = await pool.execute(countQuery, countParams.filter(p => p !== undefined));
 
+    // Ensure response is always JSON
+    res.setHeader('Content-Type', 'application/json');
     res.json({
         success: true,
         data: {
-            tasks,
+            tasks: tasks || [],
             pagination: {
                 page: pageNum,
                 limit: limitNum,
-                total: countResult[0].total,
-                pages: Math.ceil(countResult[0].total / limitNum)
+                total: countResult[0]?.total || 0,
+                pages: Math.ceil((countResult[0]?.total || 0) / limitNum)
             }
         }
     });
@@ -105,7 +124,16 @@ router.post('/', [
         return res.status(400).json({ success: false, errors: errors.array() });
     }
 
-    const { projectId } = req.params;
+    const projectIdParam = req.params.projectId || req.params.id;
+    const projectId = parseInt(projectIdParam);
+    
+    if (!projectId || isNaN(projectId) || projectId <= 0) {
+        return res.status(400).json({
+            success: false,
+            message: 'Project ID không hợp lệ'
+        });
+    }
+    
     const {
         title,
         description,

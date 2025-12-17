@@ -264,12 +264,32 @@ router.get('/', catchAsync(async (req, res) => {
         const [projects] = await pool.execute(query, params);
         const [countResult] = await pool.execute(countQuery, countParams);
 
-        // Parse JSON fields
+        // Parse JSON fields safely to avoid breaking the response
         projects.forEach(project => {
-            project.owner_info = project.owner_info ? JSON.parse(project.owner_info) : null;
-            project.legal_documents = project.legal_documents ? JSON.parse(project.legal_documents) : null;
-            project.map_data = project.map_data ? JSON.parse(project.map_data) : null;
-            project.warehouse_layout = project.warehouse_layout ? JSON.parse(project.warehouse_layout) : null;
+            try {
+                project.owner_info = project.owner_info ? JSON.parse(project.owner_info) : null;
+            } catch (e) {
+                project.owner_info = null;
+                console.warn('Invalid owner_info JSON for project', project.id, e.message);
+            }
+            try {
+                project.legal_documents = project.legal_documents ? JSON.parse(project.legal_documents) : null;
+            } catch (e) {
+                project.legal_documents = null;
+                console.warn('Invalid legal_documents JSON for project', project.id, e.message);
+            }
+            try {
+                project.map_data = project.map_data ? JSON.parse(project.map_data) : null;
+            } catch (e) {
+                project.map_data = null;
+                console.warn('Invalid map_data JSON for project', project.id, e.message);
+            }
+            try {
+                project.warehouse_layout = project.warehouse_layout ? JSON.parse(project.warehouse_layout) : null;
+            } catch (e) {
+                project.warehouse_layout = null;
+                console.warn('Invalid warehouse_layout JSON for project', project.id, e.message);
+            }
         });
 
         if (req.user && req.user.id) {

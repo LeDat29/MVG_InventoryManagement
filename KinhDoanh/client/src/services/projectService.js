@@ -33,6 +33,23 @@ const projectService = {
       const msg = (error && error.response && error.response.data && error.response.data.message) || error.message || 'Loi tai danh sach kho';
       throw new Error(msg);
     }
+  },
+
+  async createProject(projectData) {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(API_BASE, projectData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error creating project:', error);
+      const msg = (error && error.response && error.response.data && error.response.data.message) || error.message || 'Lỗi tạo dự án';
+      throw new Error(msg);
+    }
   }
 };
 

@@ -39,8 +39,8 @@ module.exports = {
     // Coverage directory
     coverageDirectory: 'coverage',
 
-    // Coverage reporters
-    coverageReporters: ['text', 'lcov', 'html'],
+    // Coverage reporters (only text in console, no file output)
+    coverageReporters: ['text'],
 
     // Verbose output
     verbose: true,

@@ -21,6 +21,7 @@ import FloatingChatButton from './components/AI/FloatingChatButton';
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Login = React.lazy(() => import('./pages/Auth/Login'));
 const Projects = React.lazy(() => import('./pages/Projects'));
+const ProjectCreate = React.lazy(() => import('./pages/Projects/ProjectCreate'));
 const ProjectDetail = React.lazy(() => import('./pages/Projects/ProjectDetail'));
 const ProjectEdit = React.lazy(() => import('./pages/Projects/ProjectEdit'));
 const Customers = React.lazy(() => import('./pages/Customers'));
@@ -164,6 +165,12 @@ function App() {
                     <Route path="/projects" element={
                       <ProtectedRoute>
                         <Projects />
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/projects/new" element={
+                      <ProtectedRoute>
+                        <ProjectCreate />
                       </ProtectedRoute>
                     } />
                     

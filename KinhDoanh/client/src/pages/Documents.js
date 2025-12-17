@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Table, Badge, Form, Modal, Alert, Tab, Nav } from 'react-bootstrap';
 import { useDropzone } from 'react-dropzone';
+import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
 import LoadingSpinner from '../components/Common/LoadingSpinner';
@@ -27,115 +28,37 @@ function Documents() {
     resource_type: ''
   });
 
-  // Mock data
-  const mockDocuments = [
-    {
-      id: 1,
-      filename: 'hop-dong-abc-logistics.pdf',
-      originalname: 'Hợp đồng ABC Logistics.pdf',
-      mimetype: 'application/pdf',
-      size: 2048576,
-      resource_type: 'contract',
-      resource_id: 1,
-      category: 'Hợp đồng chính',
-      description: 'Hợp đồng thuê kho HD240001',
-      uploaded_by: 'Admin',
-      uploaded_at: '2024-01-15T10:30:00Z'
-    },
-    {
-      id: 2,
-      filename: 'bang-ve-kx-bd-001.dwg',
-      originalname: 'Bản vẽ KX-BD-001.dwg',
-      mimetype: 'application/acad',
-      size: 5242880,
-      resource_type: 'project',
-      resource_id: 1,
-      category: 'Bản vẽ kỹ thuật',
-      description: 'Mặt bằng dự án Bình Dương',
-      uploaded_by: 'Kỹ thuật viên',
-      uploaded_at: '2024-01-10T14:20:00Z'
-    },
-    {
-      id: 3,
-      filename: 'giay-phep-kd-abc.jpg',
-      originalname: 'Giấy phép kinh doanh ABC.jpg',
-      mimetype: 'image/jpeg',
-      size: 1024000,
-      resource_type: 'customer',
-      resource_id: 1,
-      category: 'Giấy tờ pháp lý',
-      description: 'GPKD của Công ty ABC',
-      uploaded_by: 'Admin',
-      uploaded_at: '2024-01-12T09:15:00Z'
-    }
-  ];
-
-  const mockCategories = [
-    {
-      id: 1,
-      category_code: 'HD_CHINH',
-      category_name: 'Hợp đồng chính',
-      category_type: 'contract',
-      description: 'Hợp đồng thuê kho chính thức',
-      is_required: true,
-      sort_order: 1
-    },
-    {
-      id: 2,
-      category_code: 'HD_PHU_LUC',
-      category_name: 'Phụ lục hợp đồng',
-      category_type: 'contract',
-      description: 'Các phụ lục bổ sung hợp đồng',
-      is_required: false,
-      sort_order: 2
-    },
-    {
-      id: 3,
-      category_code: 'BANG_VE_KT',
-      category_name: 'Bản vẽ kỹ thuật',
-      category_type: 'project',
-      description: 'Bản vẽ mặt bằng, thiết kế',
-      is_required: true,
-      sort_order: 1
-    },
-    {
-      id: 4,
-      category_code: 'GIAY_TO_PL',
-      category_name: 'Giấy tờ pháp lý',
-      category_type: 'customer',
-      description: 'GPKD, MST, các giấy tờ khác',
-      is_required: true,
-      sort_order: 1
-    }
-  ];
-
-  const mockTemplates = [
-    {
-      id: 1,
-      template_name: 'Hợp đồng thuê kho tiêu chuẩn',
-      template_type: 'contract',
-      description: 'Template chuẩn cho hợp đồng thuê kho',
-      placeholders: ['{{contract_number}}', '{{company_name}}', '{{contact_person}}', '{{rental_price}}'],
-      created_at: '2024-01-01'
-    },
-    {
-      id: 2,
-      template_name: 'Thông báo gia hạn hợp đồng',
-      template_type: 'notice',
-      description: 'Thông báo nhắc nhở gia hạn hợp đồng',
-      placeholders: ['{{contract_number}}', '{{end_date}}', '{{customer_name}}'],
-      created_at: '2024-01-01'
-    }
-  ];
-
   useEffect(() => {
-    setTimeout(() => {
-      setDocuments(mockDocuments);
-      setCategories(mockCategories);
-      setTemplates(mockTemplates);
-      setLoading(false);
-    }, 1000);
-  }, [mockCategories, mockDocuments, mockTemplates]);
+    const token = localStorage.getItem('token');
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    const fetchAll = async () => {
+      setLoading(true);
+      try {
+        const resp = await axios.get('/api/documents', { headers });
+        if (resp.data?.success) {
+          setDocuments(resp.data.data?.files || []);
+          setCategories(resp.data.data?.categories || []);
+          setTemplates(resp.data.data?.templates || []);
+        } else {
+          showError('Không tải được danh sách tài liệu');
+          setDocuments([]);
+          setCategories([]);
+          setTemplates([]);
+        }
+      } catch (err) {
+        console.error('Load documents failed', err);
+        showError('Không tải được danh sách tài liệu');
+        setDocuments([]);
+        setCategories([]);
+        setTemplates([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAll();
+  }, [showError]);
 
   // File upload with react-dropzone
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

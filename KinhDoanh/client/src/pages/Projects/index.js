@@ -4,8 +4,9 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Table, Badge, Form, Modal, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Table, Badge, Form, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
 import LoadingSpinner from '../../components/Common/LoadingSpinner';
@@ -18,70 +19,46 @@ function Projects() {
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState([]);
   const [filteredProjects, setFilteredProjects] = useState([]);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     search: '',
     status: '',
     province: ''
   });
   
-  // Mock data - trong thực tế sẽ fetch từ API
-  const mockProjects = [
-    {
-      id: 1,
-      name: 'Kho xưởng Bình Dương',
-      code: 'KX-BD-001',
-      address: '123 Đường ABC, Thuận An, Bình Dương',
-      province: 'Bình Dương',
-      status: 'operational',
-      total_area: 15000,
-      used_area: 12000,
-      available_area: 3000,
-      zone_count: 25,
-      rented_zones: 20,
-      revenue: 2500000000,
-      created_at: '2024-01-15'
-    },
-    {
-      id: 2,
-      name: 'Trung tâm logistics Đồng Nai',
-      code: 'KX-DN-002',
-      address: '456 Đường XYZ, Biên Hòa, Đồng Nai',
-      province: 'Đồng Nai',
-      status: 'construction',
-      total_area: 20000,
-      used_area: 0,
-      available_area: 20000,
-      zone_count: 30,
-      rented_zones: 0,
-      revenue: 0,
-      created_at: '2024-02-01'
-    },
-    {
-      id: 3,
-      name: 'Kho Tân Phú',
-      code: 'KX-TP-003',
-      address: '789 Đường DEF, Tân Phú, TP.HCM',
-      province: 'TP.HCM',
-      status: 'planning',
-      total_area: 8000,
-      used_area: 0,
-      available_area: 8000,
-      zone_count: 15,
-      rented_zones: 0,
-      revenue: 0,
-      created_at: '2024-02-10'
-    }
-  ];
-
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setProjects(mockProjects);
-      setFilteredProjects(mockProjects);
-      setLoading(false);
-    }, 1000);
-  }, [mockProjects]);
+    const fetchProjects = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        const resp = await axios.get('/api/projects', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        if (resp.data?.success) {
+          setProjects(resp.data.data?.projects || []);
+          setFilteredProjects(resp.data.data?.projects || []);
+          setError(null);
+        } else {
+          const msg = resp.data?.message || 'Không tải được danh sách dự án';
+          showError(msg);
+          setError(msg);
+          setProjects([]);
+          setFilteredProjects([]);
+        }
+      } catch (err) {
+        console.error('Load projects failed', err);
+        const msg = 'Không tải được danh sách dự án';
+        showError(msg);
+        setError(msg);
+        setProjects([]);
+        setFilteredProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, [showError]);
 
   // Filter projects based on search and filters
   useEffect(() => {
@@ -125,9 +102,12 @@ function Projects() {
     return <Badge bg={statusInfo.variant}>{statusInfo.label}</Badge>;
   };
 
+  // Tỷ lệ thuê = diện tích đã thuê / tổng diện tích
   const calculateOccupancyRate = (project) => {
-    if (project.zone_count === 0) return 0;
-    return Math.round((project.rented_zones / project.zone_count) * 100);
+    const total = Number(project.total_area) || 0;
+    const rentedArea = Number(project.rented_area) || 0;
+    if (total <= 0) return 0;
+    return Math.round((rentedArea / total) * 100);
   };
 
   const formatCurrency = (amount) => {
@@ -150,7 +130,7 @@ function Projects() {
       showError('Bạn không có quyền tạo dự án mới');
       return;
     }
-    setShowCreateModal(true);
+    navigate('/projects/new');
   };
 
   const provinces = [...new Set(projects.map(p => p.province))];
@@ -182,6 +162,17 @@ function Projects() {
       </Row>
 
       {/* Statistics Cards */}
+      {error && (
+        <Row className="mb-3">
+          <Col>
+            <Alert variant="danger" className="mb-0">
+              <i className="fas fa-exclamation-triangle me-2"></i>
+              {error}
+            </Alert>
+          </Col>
+        </Row>
+      )}
+
       <Row className="mb-4">
         <Col md={3} className="mb-3">
           <Card className="border-0 shadow-sm">
@@ -308,6 +299,7 @@ function Projects() {
                   <th>Địa chỉ</th>
                   <th>Trạng thái</th>
                   <th>Diện tích</th>
+                  <th>Đã thuê</th>
                   <th>Tỷ lệ thuê</th>
                   <th>Doanh thu/tháng</th>
                   <th>Thao tác</th>
@@ -339,6 +331,14 @@ function Projects() {
                         </div>
                       </td>
                       <td>
+                        <div>
+                          <div>{formatArea(project.rented_area || project.used_area || 0)}</div>
+                          <small className="text-muted">
+                            Tổng: {formatArea(project.total_area || 0)}
+                          </small>
+                        </div>
+                      </td>
+                      <td>
                         <div className="d-flex align-items-center">
                           <div className="progress me-2" style={{ width: '60px', height: '8px' }}>
                             <div 
@@ -351,7 +351,7 @@ function Projects() {
                           </span>
                         </div>
                         <small className="text-muted">
-                          {project.rented_zones}/{project.zone_count} zones
+                          {formatArea(project.rented_area || project.used_area || 0)} / {formatArea(project.total_area || 0)}
                         </small>
                       </td>
                       <td>
@@ -397,26 +397,6 @@ function Projects() {
         </Card.Body>
       </Card>
 
-      {/* Create Project Modal */}
-      <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>Tạo dự án mới</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Alert variant="info">
-            <i className="fas fa-info-circle me-2"></i>
-            Form tạo dự án sẽ được phát triển ở phiên bản tiếp theo
-          </Alert>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
-            Đóng
-          </Button>
-          <Button variant="primary">
-            Tạo dự án
-          </Button>
-        </Modal.Footer>
-      </Modal>
     </Container>
   );
 }

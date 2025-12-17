@@ -66,37 +66,69 @@ function TaskManager({ projectId, projectName }) {
   }, [projectId, filters]);
 
   const loadTasks = async () => {
+    if (!projectId) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
       const queryParams = new URLSearchParams(filters);
       
       const response = await fetch(`/api/projects/${projectId}/tasks?${queryParams}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
-      if (!response) {
-        console.error('Error loading tasks: Response is null');
-        alert('Could not retrieve tasks. The server response was empty.');
-        return;
+      if (!response.ok) {
+        // Handle HTTP errors
+        if (response.status === 404) {
+          // Project not found or no tasks - return empty array
+          setTasks([]);
+          calculateStats([]);
+          return;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
-        console.error('Error loading tasks: Invalid content type');
         const text = await response.text();
-        console.error('Response:', text);
-        alert('Could not retrieve tasks. The server sent an invalid response.');
+        console.error('Invalid response type:', contentType);
+        console.error('Response text:', text.substring(0, 200));
+        // Try to parse as JSON anyway if it looks like JSON
+        try {
+          const data = JSON.parse(text);
+          if (data.success) {
+            setTasks(data.data?.tasks || []);
+            calculateStats(data.data?.tasks || []);
+            return;
+          }
+        } catch (e) {
+          // Not JSON, show error
+          console.error('Could not parse response as JSON');
+        }
+        setTasks([]);
+        calculateStats([]);
         return;
       }
       
       const data = await response.json();
-      if (data.success) {
-        setTasks(data.data.tasks || []);
-        calculateStats(data.data.tasks || []);
+      if (data && data.success) {
+        setTasks(data.data?.tasks || []);
+        calculateStats(data.data?.tasks || []);
+      } else {
+        setTasks([]);
+        calculateStats([]);
       }
     } catch (error) {
       console.error('Error loading tasks:', error);
+      // Don't show alert, just set empty tasks
+      setTasks([]);
+      calculateStats([]);
     } finally {
       setLoading(false);
     }

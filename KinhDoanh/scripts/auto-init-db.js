@@ -393,8 +393,8 @@ class DatabaseAutoInit {
                 const bcrypt = require('bcryptjs');
                 const crypto = require('crypto');
                 
-                // Use environment variable if provided, otherwise fixed default for initial admin
-                const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'admin123!';
+                // Use environment variable if provided, otherwise fixed default password: 12345678
+                const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || '12345678';
                 const hashedPassword = await bcrypt.hash(defaultPassword, 12);
                 
                 await this.connection.query(`

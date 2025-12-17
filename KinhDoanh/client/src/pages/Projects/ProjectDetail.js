@@ -55,108 +55,39 @@ function ProjectDetail() {
     };
   }, []);
 
-  // Mock project data
-  const mockProject = {
-    id: parseInt(id),
-    name: 'Kho xưởng Bình Dương',
-    code: 'KX-BD-001',
-    description: 'Khu kho xưởng hiện đại với đầy đủ tiện ích và hạ tầng logistics.',
-    address: '123 Đường ABC, Thuận An, Bình Dương',
-    province: 'Bình Dương',
-    district: 'Thuận An',
-    ward: 'Phường An Thạnh',
-    latitude: 10.9045,
-    longitude: 106.7213,
-    status: 'operational',
-    total_area: 15000,
-    used_area: 12000,
-    available_area: 3000,
-    fixed_area: 500,
-    owner_info: {
-      name: 'Công ty TNHH ABC',
-      phone: '0123456789',
-      email: 'contact@abc.com'
-    },
-    project_director: {
-      name: 'Nguyễn Văn Kiên',
-      phone: '0987654321',
-      email: 'kien@abc.com',
-      position: 'Giám đốc dự án'
-    },
-    project_manager: {
-      name: 'Trần Thị Liên',
-      phone: '0976543210',
-      email: 'lien@abc.com',
-      position: 'Người quản lý dự án'
-    },
-    legal_documents: {
-      business_license: 'GP-123456789',
-      construction_permit: 'XD-987654321',
-      fire_safety_cert: 'PCCC-111222333'
-    },
-    created_at: '2024-01-15',
-    created_by_username: 'admin'
-  };
-
-  const mockZones = [
-    {
-      id: 1,
-      zone_code: 'A1',
-      zone_name: 'Khu vực A1',
-      area: 500,
-      status: 'rented',
-      rental_price: 150000,
-      tenant_info: {
-        customer_code: 'KH001',
-        company_name: 'Công ty XYZ',
-        contact_person: 'Nguyễn Văn A',
-        contract_number: 'HD240001',
-        end_date: '2024-12-31'
-      }
-    },
-    {
-      id: 2,
-      zone_code: 'A2',
-      zone_name: 'Khu vực A2',
-      area: 750,
-      status: 'available',
-      rental_price: 140000,
-      tenant_info: null
-    },
-    {
-      id: 3,
-      zone_code: 'B1',
-      zone_name: 'Khu vực B1',
-      area: 600,
-      status: 'deposited',
-      rental_price: 160000,
-      tenant_info: {
-        customer_code: 'KH002',
-        company_name: 'Công ty DEF',
-        contact_person: 'Trần Thị B',
-        contract_number: 'HD240002',
-        end_date: '2024-06-30'
-      }
-    },
-    {
-      id: 4,
-      zone_code: 'C1',
-      zone_name: 'Khu vực C1 - Văn phòng',
-      area: 200,
-      status: 'maintenance',
-      rental_price: 0,
-      tenant_info: null
-    }
-  ];
-
+  // Load project & zones from API (no mock data)
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setProject(mockProject);
-      setZones(mockZones);
-      setLoading(false);
-    }, 1000);
-  }, [id, mockProject, mockZones]);
+    let isMounted = true;
+    const fetchProject = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const resp = await axios.get(`/api/projects/${id}`, { headers });
+        if (resp.data?.success) {
+          if (!isMounted) return;
+          setProject(resp.data.data.project);
+          setZones(resp.data.data.zones || []);
+        } else {
+          throw new Error(resp.data?.message || 'Không tải được dự án');
+        }
+      } catch (err) {
+        console.error('Không tải được dự án', err);
+        showNotification('Không tải được dự án, vui lòng thử lại.', 'danger');
+        if (isMounted) {
+          setProject(null);
+          setZones([]);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchProject();
+    return () => { isMounted = false; };
+  }, [id, showNotification]);
 
   useEffect(() => {
     // Fetch uploaded documents for this project

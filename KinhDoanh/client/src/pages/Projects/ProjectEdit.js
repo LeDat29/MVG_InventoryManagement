@@ -8,6 +8,7 @@ import { Row, Col, Form, Button, Card, Alert, Breadcrumb, Modal } from 'react-bo
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
+import axios from 'axios';
 import LoadingSpinner from '../../components/Common/LoadingSpinner';
 import GoogleMapWrapper from '../../components/Map/GoogleMapWrapper';
 
@@ -50,85 +51,64 @@ function ProjectEdit() {
     owner_address: ''
   });
 
-  // Mock project data
-  const mockProject = {
-    id: parseInt(id),
-    name: 'Kho xưởng Bình Dương',
-    code: 'KX-BD-001',
-    description: 'Khu kho xưởng hiện đại với đầy đủ tiện ích và hạ tầng logistics.',
-    address: '123 Đường ABC, Thuận An, Bình Dương',
-    province: 'Bình Dương',
-    ward: 'Phường An Thạnh',
-    latitude: 10.9045,
-    longitude: 106.7213,
-    status: 'operational',
-    total_area: 15000,
-    project_director: {
-      name: 'Nguyễn Văn Kiên',
-      phone: '0987654321',
-      email: 'kien@abc.com',
-      position: 'Giám đốc dự án'
-    },
-    project_manager: {
-      name: 'Trần Thị Liên',
-      phone: '0976543210',
-      email: 'lien@abc.com',
-      position: 'Người quản lý dự án'
-    },
-    owner_info: {
-      name: 'Công ty TNHH ABC',
-      phone: '0123456789',
-      email: 'contact@abc.com',
-      tax_code: '0123456789123',
-      address: '456 Đường XYZ, Quận 1, TP.HCM'
-    }
-  };
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    // Check permission
     if (!hasPermission('project_update')) {
       setError('Bạn không có quyền chỉnh sửa dự án');
       return;
     }
 
-    // Load project data (using mock data for this demo)
-    const loadProjectData = () => {
-      setFormData({
-        name: mockProject.name,
-        code: mockProject.code,
-        description: mockProject.description,
-        address: mockProject.address,
-        province: mockProject.province,
-        ward: mockProject.ward,
-        latitude: mockProject.latitude.toString(),
-        longitude: mockProject.longitude.toString(),
-        status: mockProject.status,
-        total_area: mockProject.total_area.toString(),
-        project_director_name: mockProject.project_director.name,
-        project_director_phone: mockProject.project_director.phone,
-        project_director_email: mockProject.project_director.email,
-        project_director_position: mockProject.project_director.position,
-        project_manager_name: mockProject.project_manager.name,
-        project_manager_phone: mockProject.project_manager.phone,
-        project_manager_email: mockProject.project_manager.email,
-        project_manager_position: mockProject.project_manager.position,
-        owner_name: mockProject.owner_info.name,
-        owner_phone: mockProject.owner_info.phone,
-        owner_email: mockProject.owner_info.email,
-        owner_tax_code: mockProject.owner_info.tax_code,
-        owner_address: mockProject.owner_info.address
-      });
-      setMapCenter({
-        lat: parseFloat(mockProject.latitude),
-        lng: parseFloat(mockProject.longitude)
-      });
-      setLoading(false);
+    const fetchProject = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        const resp = await axios.get(`/api/projects/${id}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        if (resp.data?.success) {
+          const p = resp.data.data.project;
+          setFormData({
+            name: p.name || '',
+            code: p.code || '',
+            description: p.description || '',
+            address: p.address || '',
+            province: p.province || '',
+            ward: p.ward || '',
+            latitude: p.latitude ? p.latitude.toString() : '',
+            longitude: p.longitude ? p.longitude.toString() : '',
+            status: p.status || 'planning',
+            total_area: p.total_area ? p.total_area.toString() : '',
+            project_director_name: p.project_director?.name || '',
+            project_director_phone: p.project_director?.phone || '',
+            project_director_email: p.project_director?.email || '',
+            project_director_position: p.project_director?.position || '',
+            project_manager_name: p.project_manager?.name || '',
+            project_manager_phone: p.project_manager?.phone || '',
+            project_manager_email: p.project_manager?.email || '',
+            project_manager_position: p.project_manager?.position || '',
+            owner_name: p.owner_info?.name || '',
+            owner_phone: p.owner_info?.phone || '',
+            owner_email: p.owner_info?.email || '',
+            owner_tax_code: p.owner_info?.tax_code || '',
+            owner_address: p.owner_info?.address || ''
+          });
+
+          setMapCenter({
+            lat: p.latitude || defaultCenter.lat,
+            lng: p.longitude || defaultCenter.lng
+          });
+        } else {
+          setError(resp.data?.message || 'Không tải được dự án');
+        }
+      } catch (err) {
+        console.error('Load project failed', err);
+        setError('Không tải được dự án');
+      } finally {
+        setLoading(false);
+      }
     };
 
-    loadProjectData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, hasPermission]);
+    fetchProject();
+  }, [id, hasPermission, defaultCenter.lat, defaultCenter.lng]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -153,36 +133,7 @@ function ProjectEdit() {
     if (!addressSearch.trim()) return;
 
     try {
-      // Using geocoding API to convert address to coordinates
-      // For demo purposes, we'll use a simple mock implementation
-      // In production, use Google Geocoding API or Nominatim API
-      
-      const mockCoordinates = {
-        'bình dương': { lat: 10.9045, lng: 106.7213 },
-        'hồ chí minh': { lat: 10.8231, lng: 106.6297 },
-        'hà nội': { lat: 21.0285, lng: 105.8542 },
-        'đà nẵng': { lat: 16.0544, lng: 108.2022 }
-      };
-
-      const searchKey = addressSearch.toLowerCase().trim();
-      let newCenter = null;
-
-      // Check for exact matches first
-      for (const [key, coords] of Object.entries(mockCoordinates)) {
-        if (searchKey.includes(key)) {
-          newCenter = coords;
-          break;
-        }
-      }
-
-      if (newCenter) {
-        setMapCenter(newCenter);
-        setAddressSearch('');
-        // Show a small notification
-        showNotification(`Đã di chuyển đến ${addressSearch}`, 'success');
-      } else {
-        showNotification('Không tìm thấy địa chỉ. Vui lòng thử lại.', 'warning');
-      }
+      showNotification('Chức năng tìm địa chỉ cần cấu hình API geocoding (Google/Nominatim).', 'info');
     } catch (err) {
       showNotification('Lỗi tìm kiếm địa chỉ', 'error');
     }
@@ -205,21 +156,17 @@ function ProjectEdit() {
         throw new Error('Địa chỉ là bắt buộc');
       }
 
-      // TODO: Replace with actual API call
-      // const response = await fetch(`/api/projects/${id}`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData)
-      // });
-      // if (!response.ok) throw new Error('Lỗi cập nhật dự án');
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
+      const token = localStorage.getItem('token');
+      const resp = await axios.put(
+        `/api/projects/${id}`,
+        formData,
+        { headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) } }
+      );
+      if (!resp.data?.success) {
+        throw new Error(resp.data?.message || 'Lỗi cập nhật dự án');
+      }
       showNotification('Dự án đã được cập nhật thành công!', 'success');
-      setTimeout(() => {
-        navigate(`/projects/${id}`);
-      }, 1500);
+      navigate(`/projects/${id}`);
     } catch (err) {
       setError(err.message);
       showNotification(err.message, 'error');
@@ -244,7 +191,7 @@ function ProjectEdit() {
           <i className="fas fa-home me-2"></i>Dự án
         </Breadcrumb.Item>
         <Breadcrumb.Item onClick={() => navigate(`/projects/${id}`)} style={{ cursor: 'pointer' }}>
-          {mockProject.name}
+          {formData.name || 'Chi tiết dự án'}
         </Breadcrumb.Item>
         <Breadcrumb.Item active>Chỉnh sửa</Breadcrumb.Item>
       </Breadcrumb>
@@ -263,7 +210,7 @@ function ProjectEdit() {
             <Card.Header className="bg-white border-bottom">
               <h5 className="mb-0">
                 <i className="fas fa-edit me-2 text-primary"></i>
-                Chỉnh sửa Dự án: {mockProject.name}
+                Chỉnh sửa Dự án: {formData.name || '---'}
               </h5>
             </Card.Header>
 
@@ -694,10 +641,10 @@ function ProjectEdit() {
             </Card.Header>
             <Card.Body className="small">
               <div className="mb-2">
-                <span className="text-muted">Mã:</span> <strong>{mockProject.code}</strong>
+                <span className="text-muted">Mã:</span> <strong>{formData.code}</strong>
               </div>
               <div className="mb-2">
-                <span className="text-muted">Tên:</span> <strong>{mockProject.name}</strong>
+                <span className="text-muted">Tên:</span> <strong>{formData.name}</strong>
               </div>
               <div className="mb-2">
                 <span className="text-muted">Tạo lúc:</span> <strong>15/01/2024</strong>
