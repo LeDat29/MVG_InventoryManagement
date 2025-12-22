@@ -1,8 +1,3 @@
-/**
- * User Management Page - KHO MVG
- * Phân hệ 2.4 - Quản lý User nâng cao
- */
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Row, Col, Card, Button, Table, Badge, Form, Modal, Alert, Tab, Nav } from 'react-bootstrap';
 import { useAuth } from '../../contexts/AuthContext';
@@ -25,14 +20,12 @@ function UserManagement() {
   const [showAIConfigModal, setShowAIConfigModal] = useState(false);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [userToDeactivate, setUserToDeactivate] = useState(null);
-  // const [showActivityModal, setShowActivityModal] = useState(false);
   const [activeTab, setActiveTab] = useState('list');
   
-  // Form state for creating user
   const [userForm, setUserForm] = useState({
     username: '',
     email: '',
-    password: '123456', // Mật khẩu mặc định
+    password: '123456',
     full_name: '',
     phone: '',
     role: 'staff'
@@ -40,7 +33,6 @@ function UserManagement() {
   const [formErrors, setFormErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
-  // Filter states
   const [filters, setFilters] = useState({
     search: '',
     role: '',
@@ -58,16 +50,11 @@ function UserManagement() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      console.log('Loading users with token:', token ? 'Present' : 'Missing');
-      console.log('Filters:', filters);
-      
       const response = await axios.get('/api/users', { 
         params: filters,
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
-      console.log('Users API response:', response.data);
-      
+
       if (response.data.success) {
         setUsers(response.data.data.users || []);
       } else {
@@ -91,14 +78,10 @@ function UserManagement() {
   const handleViewUser = async (userId) => {
     try {
       const token = localStorage.getItem('token');
-      console.log('Viewing user:', userId);
-      
       const response = await axios.get(`/api/users/${userId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
-      console.log('User details response:', response.data);
-      
+
       setSelectedUser(response.data.data || response.data.user);
       setShowUserModal(true);
     } catch (error) {
@@ -110,18 +93,13 @@ function UserManagement() {
   const handleShowPermissions = async (userId) => {
     try {
       const token = localStorage.getItem('token');
-      console.log('Loading permissions for user:', userId);
-      
       // Get user info first
       const response = await axios.get(`/api/users/${userId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
-      console.log('User permissions response:', response.data);
-      
+
       if (response.data.success) {
         const userData = response.data.data;
-        console.log('Setting selected user data:', userData);
         setSelectedUser(userData);
         setShowPermissionModal(true);
       } else {
@@ -136,8 +114,6 @@ function UserManagement() {
   const handleShowAIConfigs = async (userId) => {
     try {
       const token = localStorage.getItem('token');
-      console.log('Loading AI configs for user:', userId);
-      
       // Get user info first
       const userResponse = await axios.get(`/api/users/${userId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -155,7 +131,6 @@ function UserManagement() {
           ai_configurations: aiResponse.data.data || []
         });
       } catch (aiError) {
-        console.log('AI configs endpoint not found, using basic user data');
         setSelectedUser(userResponse.data.data);
       }
       
@@ -173,22 +148,13 @@ function UserManagement() {
         ...prev,
         activity_logs: response.data.data.logs
       }));
-      // setShowActivityModal(true);
+      // TODO: add activity modal when needed
     } catch (error) {
       showError('Lỗi tải lịch sử hoạt động');
     }
   };
 
-  // Add AI configuration for user
-  // const handleAddAIConfig = async (userId, configData) => {
-  //   try {
-  //     await axios.post(`/api/users/${userId}/ai-configs`, configData);
-  //     showSuccess('Thêm cấu hình AI thành công');
-  //     handleShowAIConfigs(userId); // Refresh configs
-  //   } catch (error) {
-  //     showError(error.response?.data?.message || 'Lỗi thêm cấu hình AI');
-  //   }
-  // };
+
 
   const getRoleBadge = (role) => {
     const roleMap = {
@@ -268,6 +234,25 @@ function UserManagement() {
     } catch (error) {
       console.error('Error deactivating user:', error);
       showError(error.response?.data?.message || 'Lỗi vô hiệu hóa người dùng');
+    }
+  };
+
+  const handleActivateUser = async (user) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        `/api/users/${user.id}/activate`,
+        {},
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        showSuccess('Khôi phục người dùng thành công!');
+        loadUsers();
+      }
+    } catch (error) {
+      console.error('Error activating user:', error);
+      showError(error.response?.data?.message || 'Lỗi khôi phục người dùng');
     }
   };
 
@@ -390,10 +375,10 @@ function UserManagement() {
                   </thead>
                   <tbody>
                     {users.map((userItem) => (
-                      <tr key={userItem.id}>
+                      <tr key={userItem.id} className={!userItem.is_active ? 'table-secondary opacity-75' : ''}>
                         <td>
                           <div>
-                            <div className="fw-bold">{userItem.full_name}</div>
+                            <div className={`fw-bold ${!userItem.is_active ? 'text-muted' : ''}`}>{userItem.full_name}</div>
                             <small className="text-muted">
                               {userItem.username} • {userItem.email}
                             </small>
@@ -456,15 +441,26 @@ function UserManagement() {
                               </Button>
                             )}
                             
-                            {(isAdmin() || hasPermission('user_delete')) && userItem.is_active && (
-                              <Button
-                                variant="outline-danger"
-                                size="sm"
-                                onClick={() => handleShowDeactivateModal(userItem)}
-                                title="Vô hiệu hóa người dùng"
-                              >
-                                <i className="fas fa-ban"></i>
-                              </Button>
+                            {(isAdmin() || hasPermission('user_delete')) && (
+                              userItem.is_active ? (
+                                <Button
+                                  variant="outline-danger"
+                                  size="sm"
+                                  onClick={() => handleShowDeactivateModal(userItem)}
+                                  title="Vô hiệu hóa người dùng"
+                                >
+                                  <i className="fas fa-ban"></i>
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline-success"
+                                  size="sm"
+                                  onClick={() => handleActivateUser(userItem)}
+                                  title="Khôi phục người dùng"
+                                >
+                                  <i className="fas fa-check-circle"></i>
+                                </Button>
+                              )
                             )}
                           </div>
                         </td>

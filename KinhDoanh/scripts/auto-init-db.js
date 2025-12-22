@@ -116,7 +116,6 @@ class DatabaseAutoInit {
                     role ENUM('admin', 'manager', 'staff', 'viewer') DEFAULT 'staff',
                     permissions JSON,
                     is_active BOOLEAN DEFAULT TRUE,
-                    is_deleted BOOLEAN DEFAULT FALSE,
                     created_by INT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -381,6 +380,7 @@ class DatabaseAutoInit {
             return true; // Non-critical
         }
     }
+
 
     async checkAndCreateAdminUser() {
         console.log('\n👤 Kiểm tra admin user...');

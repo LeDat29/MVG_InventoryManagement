@@ -94,7 +94,7 @@ router.get('/', requireRole(['admin', 'manager']), catchAsync(async (req, res) =
                0 as ai_configs_count,
                NULL as last_activity
         FROM users u
-        WHERE u.is_active = TRUE
+        WHERE 1=1
     `;
     
     const params = [];
@@ -111,11 +111,11 @@ router.get('/', requireRole(['admin', 'manager']), catchAsync(async (req, res) =
         params.push(role.trim());
     }
     
-    const finalQuery = baseQuery + whereClause + ` ORDER BY u.created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+    const finalQuery = baseQuery + whereClause + ` ORDER BY u.is_active DESC, u.created_at DESC LIMIT ${limit} OFFSET ${offset}`;
     
     try {
         const [users] = await pool.execute(finalQuery, params);
-        const countQuery = `SELECT COUNT(*) as total FROM users u WHERE u.is_active = TRUE` + whereClause;
+        const countQuery = `SELECT COUNT(*) as total FROM users u WHERE 1=1` + whereClause;
         const [countResult] = await pool.execute(countQuery, params);
 
         for (let user of users) {
@@ -637,7 +637,7 @@ router.put('/:id/deactivate', [
     const pool = mysqlPool();
 
     try {
-        const [users] = await pool.execute('SELECT id, username, full_name, is_active, is_deleted FROM users WHERE id = ?', [userId]);
+        const [users] = await pool.execute('SELECT id, username, full_name, is_active FROM users WHERE id = ?', [userId]);
         if (users.length === 0) {
             return res.status(404).json({
                 success: false,
@@ -647,13 +647,6 @@ router.put('/:id/deactivate', [
 
         const user = users[0];
 
-        if (user.is_deleted) {
-            return res.status(400).json({
-                success: false,
-                message: 'Người dùng đã bị vô hiệu hóa'
-            });
-        }
-
         if (parseInt(userId, 10) === req.user.id) {
             return res.status(400).json({
                 success: false,
@@ -662,7 +655,7 @@ router.put('/:id/deactivate', [
         }
 
         await pool.execute(
-            'UPDATE users SET is_active = FALSE, is_deleted = TRUE, updated_at = NOW() WHERE id = ?',
+            'UPDATE users SET is_active = FALSE, updated_at = NOW() WHERE id = ?',
             [userId]
         );
 
@@ -681,6 +674,63 @@ router.put('/:id/deactivate', [
         res.status(500).json({
             success: false,
             message: 'Lỗi khi vô hiệu hóa người dùng: ' + error.message
+        });
+    }
+}));
+
+/**
+ * @swagger
+ * /api/users/{id}/activate:
+ *   put:
+ *     summary: Khôi phục/Kích hoạt người dùng (Activate user)
+ *     tags: [User Management]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.put('/:id/activate', [
+    param('id').isInt().withMessage('User ID phải là số nguyên')
+], requirePermission('user_delete'), catchAsync(async (req, res) => {
+    const userId = req.params.id;
+    const pool = mysqlPool();
+
+    try {
+        const [users] = await pool.execute('SELECT id, username, full_name, is_active FROM users WHERE id = ?', [userId]);
+        if (users.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Người dùng không tìm thấy'
+            });
+        }
+
+        const user = users[0];
+
+        if (user.is_active) {
+            return res.status(400).json({
+                success: false,
+                message: 'Người dùng đã được kích hoạt'
+            });
+        }
+
+        await pool.execute(
+            'UPDATE users SET is_active = TRUE, updated_at = NOW() WHERE id = ?',
+            [userId]
+        );
+
+        await logUserActivity(req.user.id, 'ACTIVATE_USER', 'user', userId, req.ip, req.get('User-Agent'), {
+            activated_user: user.username,
+            activated_user_name: user.full_name
+        });
+
+        res.json({
+            success: true,
+            message: 'Khôi phục người dùng thành công'
+        });
+        
+    } catch (error) {
+        console.error('Activate user error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi khi khôi phục người dùng: ' + error.message
         });
     }
 }));

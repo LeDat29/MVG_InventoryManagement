@@ -602,7 +602,7 @@ router.get('/users', authenticateToken, requireRole(['admin', 'manager']), catch
         params.push(searchPattern, searchPattern, searchPattern);
     }
 
-    query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+    query += ' ORDER BY is_active DESC, created_at DESC LIMIT ? OFFSET ?';
     params.push(limit, offset);
 
     const [users] = await pool.execute(query, params);

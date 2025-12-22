@@ -104,19 +104,38 @@ function Settings() {
       <Badge bg="secondary">Vô hiệu hóa</Badge>;
   };
 
-  const handleToggleUser = (userId, currentStatus) => {
+  const handleToggleUser = async (userId, currentStatus) => {
     if (!hasPermission('user_update')) {
       showError('Bạn không có quyền thay đổi trạng thái người dùng');
       return;
     }
 
-    setUsers(prevUsers => 
-      prevUsers.map(user => 
-        user.id === userId ? { ...user, is_active: !currentStatus } : user
-      )
-    );
-    
-    showSuccess(`${currentStatus ? 'Vô hiệu hóa' : 'Kích hoạt'} người dùng thành công`);
+    try {
+      const token = localStorage.getItem('token');
+      const endpoint = currentStatus 
+        ? `/api/users/${userId}/deactivate`
+        : `/api/users/${userId}/activate`;
+      
+      const response = await axios.put(
+        endpoint,
+        {},
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        showSuccess(`${currentStatus ? 'Vô hiệu hóa' : 'Khôi phục'} người dùng thành công`);
+        // Reload users list
+        const resp = await axios.get('/api/users', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        if (resp.data?.success) {
+          setUsers(resp.data.data?.users || []);
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling user status:', error);
+      showError(error.response?.data?.message || `Lỗi ${currentStatus ? 'vô hiệu hóa' : 'khôi phục'} người dùng`);
+    }
   };
 
   const systemInfo = {
@@ -353,10 +372,7 @@ function Settings() {
                         </div>
                         <Button
                           variant="primary"
-                          onClick={() => {
-                            console.log('Opening AI Config Manager...');
-                            setShowAIConfig(true);
-                          }}
+                          onClick={() => setShowAIConfig(true)}
                         >
                           <i className="fas fa-cog me-2"></i>
                           Quản lý API Keys
@@ -433,10 +449,10 @@ function Settings() {
                       </thead>
                       <tbody>
                         {users.map((userItem) => (
-                          <tr key={userItem.id}>
+                          <tr key={userItem.id} className={!userItem.is_active ? 'table-secondary opacity-75' : ''}>
                             <td>
                               <div>
-                                <div className="fw-bold">{userItem.full_name}</div>
+                                <div className={`fw-bold ${!userItem.is_active ? 'text-muted' : ''}`}>{userItem.full_name}</div>
                                 <small className="text-muted">{userItem.username}</small>
                               </div>
                             </td>
@@ -698,10 +714,7 @@ function Settings() {
           userId={user.id}
           show={showAIConfig}
           onHide={() => setShowAIConfig(false)}
-          onSave={() => {
-            console.log('AI Config saved!');
-            setShowAIConfig(false);
-          }}
+          onSave={() => setShowAIConfig(false)}
         />
       )}
     </Container>
