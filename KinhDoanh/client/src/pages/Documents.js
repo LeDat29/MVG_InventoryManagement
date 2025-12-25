@@ -35,15 +35,27 @@ function Documents() {
     const fetchAll = async () => {
       setLoading(true);
       try {
-        const resp = await axios.get('/api/documents', { headers });
-        if (resp.data?.success) {
-          setDocuments(resp.data.data?.files || []);
-          setCategories(resp.data.data?.categories || []);
-          setTemplates(resp.data.data?.templates || []);
+        const [documentsResp, categoriesResp, templatesResp] = await Promise.all([
+          axios.get('/api/documents', { headers }),
+          axios.get('/api/documents/categories', { headers }).catch(() => ({ data: { success: true, data: { categories: [] } } })),
+          axios.get('/api/documents/templates', { headers }).catch(() => ({ data: { success: true, data: { templates: [] } } }))
+        ]);
+
+        if (documentsResp.data?.success) {
+          setDocuments(documentsResp.data.data?.files || []);
         } else {
-          showError('Không tải được danh sách tài liệu');
           setDocuments([]);
+        }
+
+        if (categoriesResp.data?.success) {
+          setCategories(categoriesResp.data.data?.categories || []);
+        } else {
           setCategories([]);
+        }
+
+        if (templatesResp.data?.success) {
+          setTemplates(templatesResp.data.data?.templates || []);
+        } else {
           setTemplates([]);
         }
       } catch (err) {
@@ -133,7 +145,7 @@ function Documents() {
     };
     
     const typeInfo = typeMap[type] || { variant: 'secondary', label: type };
-    return <Badge bg={typeInfo.variant}>{typeInfo.label}</Badge>;
+    return { variant: typeInfo.variant, label: typeInfo.label };
   };
 
   const filteredDocuments = documents.filter(doc => {
@@ -149,26 +161,26 @@ function Documents() {
   }
 
   return (
-    <Container fluid className="p-4">
+    <Container fluid className="p-4" style={{ fontSize: '16px' }}>
       {/* Page Header */}
       <Row className="mb-4">
         <Col>
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h2 className="mb-1">Quản lý Hồ sơ</h2>
-              <p className="text-muted mb-0">
+              <h2 className="mb-2" style={{ fontSize: '28px', fontWeight: '600' }}>Quản lý Hồ sơ</h2>
+              <p className="text-muted mb-0" style={{ fontSize: '15px' }}>
                 Quản lý tài liệu, mẫu hợp đồng và danh mục hồ sơ
               </p>
             </div>
-            <div className="d-flex gap-2">
+            <div className="d-flex gap-3">
               {hasPermission('document_upload') && (
-                <Button variant="primary" onClick={() => setShowUploadModal(true)}>
+                <Button variant="primary" onClick={() => setShowUploadModal(true)} size="lg" style={{ fontSize: '15px', padding: '10px 20px' }}>
                   <i className="fas fa-upload me-2"></i>
                   Upload tài liệu
                 </Button>
               )}
               {hasPermission('document_category_create') && (
-                <Button variant="outline-primary" onClick={() => setShowCategoryModal(true)}>
+                <Button variant="outline-primary" onClick={() => setShowCategoryModal(true)} size="lg" style={{ fontSize: '15px', padding: '10px 20px' }}>
                   <i className="fas fa-plus me-2"></i>
                   Thêm danh mục
                 </Button>
@@ -179,57 +191,57 @@ function Documents() {
       </Row>
 
       {/* Statistics Cards */}
-      <Row className="mb-4">
+      <Row className="mb-4 g-3">
         <Col md={3}>
-          <Card className="border-0 shadow-sm">
-            <Card.Body>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Body className="p-4">
               <div className="d-flex justify-content-between align-items-center">
                 <div>
-                  <h6 className="text-muted mb-1">Tổng tài liệu</h6>
-                  <h4 className="mb-0 text-primary">{documents.length}</h4>
+                  <div className="text-muted mb-2" style={{ fontSize: '14px', fontWeight: '500' }}>Tổng tài liệu</div>
+                  <h3 className="mb-0 text-primary" style={{ fontSize: '32px', fontWeight: '700' }}>{documents.length}</h3>
                 </div>
-                <i className="fas fa-file fa-2x text-primary opacity-25"></i>
+                <i className="fas fa-file fa-3x text-primary opacity-25"></i>
               </div>
             </Card.Body>
           </Card>
         </Col>
         <Col md={3}>
-          <Card className="border-0 shadow-sm">
-            <Card.Body>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Body className="p-4">
               <div className="d-flex justify-content-between align-items-center">
                 <div>
-                  <h6 className="text-muted mb-1">Danh mục</h6>
-                  <h4 className="mb-0 text-success">{categories.length}</h4>
+                  <div className="text-muted mb-2" style={{ fontSize: '14px', fontWeight: '500' }}>Danh mục</div>
+                  <h3 className="mb-0 text-success" style={{ fontSize: '32px', fontWeight: '700' }}>{categories.length}</h3>
                 </div>
-                <i className="fas fa-folder fa-2x text-success opacity-25"></i>
+                <i className="fas fa-folder fa-3x text-success opacity-25"></i>
               </div>
             </Card.Body>
           </Card>
         </Col>
         <Col md={3}>
-          <Card className="border-0 shadow-sm">
-            <Card.Body>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Body className="p-4">
               <div className="d-flex justify-content-between align-items-center">
                 <div>
-                  <h6 className="text-muted mb-1">Template</h6>
-                  <h4 className="mb-0 text-warning">{templates.length}</h4>
+                  <div className="text-muted mb-2" style={{ fontSize: '14px', fontWeight: '500' }}>Template</div>
+                  <h3 className="mb-0 text-warning" style={{ fontSize: '32px', fontWeight: '700' }}>{templates.length}</h3>
                 </div>
-                <i className="fas fa-file-contract fa-2x text-warning opacity-25"></i>
+                <i className="fas fa-file-contract fa-3x text-warning opacity-25"></i>
               </div>
             </Card.Body>
           </Card>
         </Col>
         <Col md={3}>
-          <Card className="border-0 shadow-sm">
-            <Card.Body>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Body className="p-4">
               <div className="d-flex justify-content-between align-items-center">
                 <div>
-                  <h6 className="text-muted mb-1">Dung lượng</h6>
-                  <h4 className="mb-0 text-info">
+                  <div className="text-muted mb-2" style={{ fontSize: '14px', fontWeight: '500' }}>Dung lượng</div>
+                  <h3 className="mb-0 text-info" style={{ fontSize: '28px', fontWeight: '700' }}>
                     {formatFileSize(documents.reduce((sum, doc) => sum + doc.size, 0))}
-                  </h4>
+                  </h3>
                 </div>
-                <i className="fas fa-hdd fa-2x text-info opacity-25"></i>
+                <i className="fas fa-hdd fa-3x text-info opacity-25"></i>
               </div>
             </Card.Body>
           </Card>
@@ -238,23 +250,23 @@ function Documents() {
 
       {/* Main Content with Tabs */}
       <Card className="border-0 shadow-sm">
-        <Card.Header className="bg-white border-0">
+        <Card.Header className="bg-white border-0 pb-0">
           <Tab.Container activeKey={activeTab} onSelect={setActiveTab}>
-            <Nav variant="tabs" className="border-0">
+            <Nav variant="tabs" className="border-0" style={{ fontSize: '16px' }}>
               <Nav.Item>
-                <Nav.Link eventKey="files">
+                <Nav.Link eventKey="files" style={{ padding: '14px 20px', fontWeight: '500' }}>
                   <i className="fas fa-file me-2"></i>
                   Tài liệu ({documents.length})
                 </Nav.Link>
               </Nav.Item>
               <Nav.Item>
-                <Nav.Link eventKey="categories">
+                <Nav.Link eventKey="categories" style={{ padding: '14px 20px', fontWeight: '500' }}>
                   <i className="fas fa-folder me-2"></i>
                   Danh mục ({categories.length})
                 </Nav.Link>
               </Nav.Item>
               <Nav.Item>
-                <Nav.Link eventKey="templates">
+                <Nav.Link eventKey="templates" style={{ padding: '14px 20px', fontWeight: '500' }}>
                   <i className="fas fa-file-contract me-2"></i>
                   Template ({templates.length})
                 </Nav.Link>
@@ -263,25 +275,27 @@ function Documents() {
           </Tab.Container>
         </Card.Header>
 
-        <Card.Body>
+        <Card.Body className="p-4">
           <Tab.Container activeKey={activeTab}>
             <Tab.Content>
               {/* Files Tab */}
               <Tab.Pane eventKey="files">
                 {/* Filters */}
-                <Row className="mb-3">
+                <Row className="mb-4 g-3">
                   <Col md={4}>
                     <Form.Control
                       type="text"
                       placeholder="Tìm kiếm tài liệu..."
                       value={filters.search}
                       onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                      style={{ fontSize: '15px', padding: '10px 15px', height: '45px' }}
                     />
                   </Col>
                   <Col md={3}>
                     <Form.Select
                       value={filters.category}
                       onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
+                      style={{ fontSize: '15px', padding: '10px 15px', height: '45px' }}
                     >
                       <option value="">Tất cả danh mục</option>
                       {categories.map(cat => (
@@ -293,6 +307,7 @@ function Documents() {
                     <Form.Select
                       value={filters.resource_type}
                       onChange={(e) => setFilters(prev => ({ ...prev, resource_type: e.target.value }))}
+                      style={{ fontSize: '15px', padding: '10px 15px', height: '45px' }}
                     >
                       <option value="">Tất cả loại</option>
                       <option value="project">Dự án</option>
@@ -306,6 +321,7 @@ function Documents() {
                       variant="outline-secondary" 
                       className="w-100"
                       onClick={() => setFilters({ search: '', category: '', resource_type: '' })}
+                      style={{ fontSize: '15px', padding: '10px', height: '45px' }}
                     >
                       <i className="fas fa-times me-2"></i>
                       Xóa bộ lọc
@@ -314,59 +330,64 @@ function Documents() {
                 </Row>
 
                 <div className="table-responsive">
-                  <Table hover>
+                  <Table hover style={{ fontSize: '15px' }}>
                     <thead className="bg-light">
                       <tr>
-                        <th>Tài liệu</th>
-                        <th>Loại</th>
-                        <th>Danh mục</th>
-                        <th>Kích thước</th>
-                        <th>Người upload</th>
-                        <th>Ngày upload</th>
-                        <th>Thao tác</th>
+                        <th style={{ fontSize: '15px', fontWeight: '600', padding: '14px 12px' }}>Tài liệu</th>
+                        <th style={{ fontSize: '15px', fontWeight: '600', padding: '14px 12px' }}>Loại</th>
+                        <th style={{ fontSize: '15px', fontWeight: '600', padding: '14px 12px' }}>Danh mục</th>
+                        <th style={{ fontSize: '15px', fontWeight: '600', padding: '14px 12px' }}>Kích thước</th>
+                        <th style={{ fontSize: '15px', fontWeight: '600', padding: '14px 12px' }}>Người upload</th>
+                        <th style={{ fontSize: '15px', fontWeight: '600', padding: '14px 12px' }}>Ngày upload</th>
+                        <th style={{ fontSize: '15px', fontWeight: '600', padding: '14px 12px' }}>Thao tác</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredDocuments.length > 0 ? (
                         filteredDocuments.map((doc) => (
                           <tr key={doc.id}>
-                            <td>
+                            <td style={{ padding: '16px 12px', verticalAlign: 'middle' }}>
                               <div className="d-flex align-items-center">
-                                <i className={`${getFileIcon(doc.mimetype)} fa-lg me-3`}></i>
+                                <i className={`${getFileIcon(doc.mimetype)} me-3`} style={{ fontSize: '20px' }}></i>
                                 <div>
-                                  <div className="fw-medium">{doc.originalname}</div>
+                                  <div className="fw-medium" style={{ fontSize: '15px', marginBottom: '4px' }}>{doc.originalname}</div>
                                   {doc.description && (
-                                    <small className="text-muted">{doc.description}</small>
+                                    <div className="text-muted" style={{ fontSize: '13px' }}>{doc.description}</div>
                                   )}
                                 </div>
                               </div>
                             </td>
-                            <td>{getResourceTypeBadge(doc.resource_type)}</td>
-                            <td>
-                              <Badge bg="outline-secondary">{doc.category}</Badge>
+                            <td style={{ padding: '16px 12px', verticalAlign: 'middle' }}>
+                              {(() => {
+                                const badgeInfo = getResourceTypeBadge(doc.resource_type);
+                                return <Badge bg={badgeInfo.variant} style={{ fontSize: '13px', padding: '6px 10px' }}>{badgeInfo.label}</Badge>;
+                              })()}
                             </td>
-                            <td>{formatFileSize(doc.size)}</td>
-                            <td>{doc.uploaded_by}</td>
-                            <td>
+                            <td style={{ padding: '16px 12px', verticalAlign: 'middle' }}>
+                              <Badge bg="secondary" style={{ fontSize: '13px', padding: '6px 10px' }}>{doc.category_name || doc.category || '-'}</Badge>
+                            </td>
+                            <td style={{ padding: '16px 12px', verticalAlign: 'middle', fontSize: '15px' }}>{formatFileSize(doc.size)}</td>
+                            <td style={{ padding: '16px 12px', verticalAlign: 'middle', fontSize: '15px' }}>{doc.uploaded_by || '-'}</td>
+                            <td style={{ padding: '16px 12px', verticalAlign: 'middle', fontSize: '15px' }}>
                               {new Date(doc.uploaded_at).toLocaleDateString('vi-VN', {
                                 day: '2-digit',
                                 month: '2-digit', 
                                 year: 'numeric'
                               })}
                             </td>
-                            <td>
+                            <td style={{ padding: '16px 12px', verticalAlign: 'middle' }}>
                               <div className="btn-group">
                                 <Button
                                   variant="outline-primary"
-                                  size="sm"
                                   onClick={() => handleDownload(doc)}
+                                  style={{ fontSize: '14px', padding: '6px 12px' }}
                                 >
                                   <i className="fas fa-download"></i>
                                 </Button>
                                 {hasPermission('document_update') && (
                                   <Button
                                     variant="outline-secondary"
-                                    size="sm"
+                                    style={{ fontSize: '14px', padding: '6px 12px' }}
                                   >
                                     <i className="fas fa-edit"></i>
                                   </Button>
@@ -374,7 +395,7 @@ function Documents() {
                                 {hasPermission('document_delete') && (
                                   <Button
                                     variant="outline-danger"
-                                    size="sm"
+                                    style={{ fontSize: '14px', padding: '6px 12px' }}
                                   >
                                     <i className="fas fa-trash"></i>
                                   </Button>
@@ -385,10 +406,10 @@ function Documents() {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={7} className="text-center py-4">
+                          <td colSpan={7} className="text-center py-5">
                             <div className="text-muted">
-                              <i className="fas fa-folder-open fa-2x mb-3"></i>
-                              <p>Không có tài liệu nào</p>
+                              <i className="fas fa-folder-open fa-3x mb-3"></i>
+                              <p style={{ fontSize: '16px', marginTop: '12px' }}>Không có tài liệu nào</p>
                             </div>
                           </td>
                         </tr>
@@ -401,42 +422,47 @@ function Documents() {
               {/* Categories Tab */}
               <Tab.Pane eventKey="categories">
                 <div className="table-responsive">
-                  <Table hover>
+                  <Table hover style={{ fontSize: '15px' }}>
                     <thead className="bg-light">
                       <tr>
-                        <th>Danh mục</th>
-                        <th>Loại</th>
-                        <th>Mô tả</th>
-                        <th>Bắt buộc</th>
-                        <th>Thứ tự</th>
-                        <th>Thao tác</th>
+                        <th style={{ fontSize: '15px', fontWeight: '600', padding: '14px 12px' }}>Danh mục</th>
+                        <th style={{ fontSize: '15px', fontWeight: '600', padding: '14px 12px' }}>Loại</th>
+                        <th style={{ fontSize: '15px', fontWeight: '600', padding: '14px 12px' }}>Mô tả</th>
+                        <th style={{ fontSize: '15px', fontWeight: '600', padding: '14px 12px' }}>Bắt buộc</th>
+                        <th style={{ fontSize: '15px', fontWeight: '600', padding: '14px 12px' }}>Thứ tự</th>
+                        <th style={{ fontSize: '15px', fontWeight: '600', padding: '14px 12px' }}>Thao tác</th>
                       </tr>
                     </thead>
                     <tbody>
                       {categories.map((category) => (
                         <tr key={category.id}>
-                          <td>
+                          <td style={{ padding: '16px 12px', verticalAlign: 'middle' }}>
                             <div>
-                              <div className="fw-bold">{category.category_name}</div>
-                              <small className="text-muted">{category.category_code}</small>
+                              <div className="fw-bold" style={{ fontSize: '15px', marginBottom: '4px' }}>{category.category_name}</div>
+                              <div className="text-muted" style={{ fontSize: '13px' }}>{category.category_code}</div>
                             </div>
                           </td>
-                          <td>{getResourceTypeBadge(category.category_type)}</td>
-                          <td>{category.description}</td>
-                          <td>
+                          <td style={{ padding: '16px 12px', verticalAlign: 'middle' }}>
+                            {(() => {
+                              const badgeInfo = getResourceTypeBadge(category.category_type);
+                              return <Badge bg={badgeInfo.variant} style={{ fontSize: '13px', padding: '6px 10px' }}>{badgeInfo.label}</Badge>;
+                            })()}
+                          </td>
+                          <td style={{ padding: '16px 12px', verticalAlign: 'middle', fontSize: '15px' }}>{category.description || '-'}</td>
+                          <td style={{ padding: '16px 12px', verticalAlign: 'middle' }}>
                             {category.is_required ? (
-                              <Badge bg="danger">Bắt buộc</Badge>
+                              <Badge bg="danger" style={{ fontSize: '13px', padding: '6px 10px' }}>Bắt buộc</Badge>
                             ) : (
-                              <Badge bg="secondary">Tùy chọn</Badge>
+                              <Badge bg="secondary" style={{ fontSize: '13px', padding: '6px 10px' }}>Tùy chọn</Badge>
                             )}
                           </td>
-                          <td>{category.sort_order}</td>
-                          <td>
+                          <td style={{ padding: '16px 12px', verticalAlign: 'middle', fontSize: '15px' }}>{category.sort_order || '-'}</td>
+                          <td style={{ padding: '16px 12px', verticalAlign: 'middle' }}>
                             <div className="btn-group">
                               {hasPermission('document_category_update') && (
                                 <Button
                                   variant="outline-secondary"
-                                  size="sm"
+                                  style={{ fontSize: '14px', padding: '6px 12px' }}
                                 >
                                   <i className="fas fa-edit"></i>
                                 </Button>
@@ -444,7 +470,7 @@ function Documents() {
                               {hasPermission('document_category_delete') && (
                                 <Button
                                   variant="outline-danger"
-                                  size="sm"
+                                  style={{ fontSize: '14px', padding: '6px 12px' }}
                                 >
                                   <i className="fas fa-trash"></i>
                                 </Button>
@@ -460,35 +486,39 @@ function Documents() {
 
               {/* Templates Tab */}
               <Tab.Pane eventKey="templates">
-                <Row>
+                <Row className="g-3">
                   {templates.map((template) => (
-                    <Col md={6} key={template.id} className="mb-3">
-                      <Card className="border">
-                        <Card.Body>
-                          <div className="d-flex justify-content-between align-items-start mb-2">
-                            <h6 className="mb-0">{template.template_name}</h6>
-                            <Badge bg="info">{template.template_type}</Badge>
+                    <Col md={6} key={template.id}>
+                      <Card className="border h-100">
+                        <Card.Body className="p-4">
+                          <div className="d-flex justify-content-between align-items-start mb-3">
+                            <h6 className="mb-0" style={{ fontSize: '17px', fontWeight: '600' }}>{template.template_name}</h6>
+                            <Badge bg="info" style={{ fontSize: '13px', padding: '6px 10px' }}>{template.template_type}</Badge>
                           </div>
-                          <p className="text-muted small mb-2">{template.description}</p>
+                          <p className="text-muted mb-3" style={{ fontSize: '14px' }}>{template.description || 'Không có mô tả'}</p>
                           <div className="mb-3">
-                            <small className="text-muted">Placeholders:</small>
+                            <div className="text-muted mb-2" style={{ fontSize: '14px', fontWeight: '500' }}>Placeholders:</div>
                             <div>
-                              {template.placeholders.map((placeholder, index) => (
-                                <Badge key={index} bg="outline-secondary" className="me-1 mb-1">
-                                  {placeholder}
-                                </Badge>
-                              ))}
+                              {template.placeholders && template.placeholders.length > 0 ? (
+                                template.placeholders.map((placeholder, index) => (
+                                  <Badge key={index} bg="secondary" className="me-2 mb-2" style={{ fontSize: '12px', padding: '5px 8px' }}>
+                                    {placeholder}
+                                  </Badge>
+                                ))
+                              ) : (
+                                <span className="text-muted" style={{ fontSize: '14px' }}>Không có</span>
+                              )}
                             </div>
                           </div>
                           <div className="d-flex justify-content-between align-items-center">
-                            <small className="text-muted">
+                            <div className="text-muted" style={{ fontSize: '14px' }}>
                               {new Date(template.created_at).toLocaleDateString('vi-VN')}
-                            </small>
+                            </div>
                             <div className="btn-group">
                               <Button
                                 variant="primary"
-                                size="sm"
                                 onClick={() => handleGenerateContract(template)}
+                                style={{ fontSize: '14px', padding: '6px 14px' }}
                               >
                                 <i className="fas fa-file-contract me-1"></i>
                                 Tạo HĐ
@@ -496,7 +526,7 @@ function Documents() {
                               {hasPermission('template_update') && (
                                 <Button
                                   variant="outline-secondary"
-                                  size="sm"
+                                  style={{ fontSize: '14px', padding: '6px 12px' }}
                                 >
                                   <i className="fas fa-edit"></i>
                                 </Button>
@@ -516,19 +546,19 @@ function Documents() {
 
       {/* Upload Modal */}
       <Modal show={showUploadModal} onHide={() => setShowUploadModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>Upload tài liệu</Modal.Title>
+        <Modal.Header closeButton style={{ padding: '20px 24px' }}>
+          <Modal.Title style={{ fontSize: '20px', fontWeight: '600' }}>Upload tài liệu</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body style={{ padding: '24px' }}>
           <div 
             {...getRootProps()} 
-            className={`border-2 border-dashed rounded p-4 text-center ${isDragActive ? 'border-primary bg-light' : 'border-secondary'}`}
-            style={{ minHeight: '200px', cursor: 'pointer' }}
+            className={`border-2 border-dashed rounded p-5 text-center ${isDragActive ? 'border-primary bg-light' : 'border-secondary'}`}
+            style={{ minHeight: '220px', cursor: 'pointer' }}
           >
             <input {...getInputProps()} />
-            <i className="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-            <h5>Kéo thả file vào đây hoặc click để chọn</h5>
-            <p className="text-muted">
+            <i className="fas fa-cloud-upload-alt fa-4x text-muted mb-4"></i>
+            <h5 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '12px' }}>Kéo thả file vào đây hoặc click để chọn</h5>
+            <p className="text-muted" style={{ fontSize: '15px' }}>
               Hỗ trợ: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, DWG (tối đa 10MB)
             </p>
           </div>
@@ -537,20 +567,20 @@ function Documents() {
 
       {/* Category Modal */}
       <Modal show={showCategoryModal} onHide={() => setShowCategoryModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Thêm danh mục mới</Modal.Title>
+        <Modal.Header closeButton style={{ padding: '20px 24px' }}>
+          <Modal.Title style={{ fontSize: '20px', fontWeight: '600' }}>Thêm danh mục mới</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <Alert variant="info">
+        <Modal.Body style={{ padding: '24px' }}>
+          <Alert variant="info" style={{ fontSize: '15px', padding: '16px' }}>
             <i className="fas fa-info-circle me-2"></i>
             Form tạo danh mục sẽ được phát triển ở phiên bản tiếp theo
           </Alert>
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowCategoryModal(false)}>
+        <Modal.Footer style={{ padding: '16px 24px' }}>
+          <Button variant="secondary" onClick={() => setShowCategoryModal(false)} style={{ fontSize: '15px', padding: '8px 20px' }}>
             Đóng
           </Button>
-          <Button variant="primary">
+          <Button variant="primary" style={{ fontSize: '15px', padding: '8px 20px' }}>
             Thêm danh mục
           </Button>
         </Modal.Footer>

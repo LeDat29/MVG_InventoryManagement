@@ -336,7 +336,7 @@ router.get('/', catchAsync(async (req, res) => {
  */
 router.get('/:id', [
     param('id').isInt().withMessage('ID dự án phải là số nguyên')
-], requireResourceAccess('project'), catchAsync(async (req, res) => {
+], catchAsync(async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({
@@ -354,7 +354,7 @@ router.get('/:id', [
         SELECT p.*, u.username as created_by_username
         FROM projects p 
         LEFT JOIN users u ON p.created_by = u.id
-        WHERE p.id = ? AND p.is_active = TRUE
+        WHERE p.id = ? AND (p.is_active = TRUE OR p.is_active IS NULL)
     `, [projectId]);
 
     if (projects.length === 0) {
@@ -366,11 +366,30 @@ router.get('/:id', [
 
     const project = projects[0];
 
-    // Parse JSON fields
-    project.owner_info = project.owner_info ? JSON.parse(project.owner_info) : null;
-    project.legal_documents = project.legal_documents ? JSON.parse(project.legal_documents) : null;
-    project.map_data = project.map_data ? JSON.parse(project.map_data) : null;
-    project.warehouse_layout = project.warehouse_layout ? JSON.parse(project.warehouse_layout) : null;
+    // Parse JSON fields - xử lý lỗi parse
+    try {
+        project.owner_info = project.owner_info ? (typeof project.owner_info === 'string' ? JSON.parse(project.owner_info) : project.owner_info) : null;
+    } catch (e) {
+        project.owner_info = null;
+    }
+    
+    try {
+        project.legal_documents = project.legal_documents ? (typeof project.legal_documents === 'string' ? JSON.parse(project.legal_documents) : project.legal_documents) : null;
+    } catch (e) {
+        project.legal_documents = null;
+    }
+    
+    try {
+        project.map_data = project.map_data ? (typeof project.map_data === 'string' ? JSON.parse(project.map_data) : project.map_data) : null;
+    } catch (e) {
+        project.map_data = null;
+    }
+    
+    try {
+        project.warehouse_layout = project.warehouse_layout ? (typeof project.warehouse_layout === 'string' ? JSON.parse(project.warehouse_layout) : project.warehouse_layout) : null;
+    } catch (e) {
+        project.warehouse_layout = null;
+    }
 
     // Lấy danh sách zones
     const [zones] = await pool.execute(`
@@ -380,8 +399,16 @@ router.get('/:id', [
     `, [projectId]);
 
     zones.forEach(zone => {
-        zone.coordinates = zone.coordinates ? JSON.parse(zone.coordinates) : null;
-        zone.facilities = zone.facilities ? JSON.parse(zone.facilities) : null;
+        try {
+            zone.coordinates = zone.coordinates ? (typeof zone.coordinates === 'string' ? JSON.parse(zone.coordinates) : zone.coordinates) : null;
+        } catch (e) {
+            zone.coordinates = null;
+        }
+        try {
+            zone.facilities = zone.facilities ? (typeof zone.facilities === 'string' ? JSON.parse(zone.facilities) : zone.facilities) : null;
+        } catch (e) {
+            zone.facilities = null;
+        }
     });
 
     // Thống kê
@@ -541,7 +568,7 @@ router.put('/:id', [
     param('id').isInt().withMessage('ID dự án phải là số nguyên'),
     body('name').optional().trim().notEmpty().withMessage('Tên dự án không được rỗng'),
     body('total_area').optional().isFloat({ min: 0 }).withMessage('Diện tích tổng phải là số dương')
-], requireResourceAccess('project'), requirePermission('project_update'), catchAsync(async (req, res) => {
+], requirePermission('project_update'), catchAsync(async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({
@@ -556,7 +583,7 @@ router.put('/:id', [
     const updateValues = [];
 
     const allowedFields = [
-        'name', 'description', 'address', 'province', 'district', 'ward',
+        'name', 'code', 'description', 'address', 'province', 'district', 'ward',
         'latitude', 'longitude', 'total_area', 'status', 'owner_info',
         'legal_documents', 'map_data', 'warehouse_layout'
     ];

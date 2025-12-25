@@ -2228,3 +2228,20 @@ Error: listen EADDRINUSE: address already in use :::5001
     at startServer (C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:247:32)
     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
     at async C:\Users\Admin\Documents\GitHub\MVG_InventoryManagement\KinhDoanh\server.js:356:24
+2025-12-24 16:12:16 [ERROR]: uncaughtException: listen EADDRINUSE: address already in use :::5001
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (D:\MinhVietGroup\InventoryProject\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (D:\MinhVietGroup\InventoryProject\MVG_InventoryManagement\KinhDoanh\server.js:247:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async D:\MinhVietGroup\InventoryProject\MVG_InventoryManagement\KinhDoanh\server.js:356:24 {"error":{"code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::","port":5001},"exception":true,"date":"Wed Dec 24 2025 16:12:16 GMT+0700 (Indochina Time)","process":{"pid":19248,"uid":null,"gid":null,"cwd":"D:\\MinhVietGroup\\InventoryProject\\MVG_InventoryManagement\\KinhDoanh","execPath":"C:\\Program Files\\nodejs\\node.exe","version":"v24.11.1","argv":["C:\\Program Files\\nodejs\\node.exe","D:\\MinhVietGroup\\InventoryProject\\MVG_InventoryManagement\\KinhDoanh\\server.js"],"memoryUsage":{"rss":143056896,"heapTotal":113160192,"heapUsed":63529848,"external":21941178,"arrayBuffers":18273692}},"os":{"loadavg":[0,0,0],"uptime":9199.64},"trace":[{"column":16,"file":"node:net","function":"Server.setupListenHandle [as _listen2]","line":1940,"method":"setupListenHandle [as _listen2]","native":false},{"column":12,"file":"node:net","function":"listenInCluster","line":1997,"method":null,"native":false},{"column":7,"file":"node:net","function":"Server.listen","line":2102,"method":"listen","native":false},{"column":24,"file":"D:\\MinhVietGroup\\InventoryProject\\MVG_InventoryManagement\\KinhDoanh\\node_modules\\express\\lib\\application.js","function":"app.listen","line":635,"method":"listen","native":false},{"column":32,"file":"D:\\MinhVietGroup\\InventoryProject\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":"startServer","line":247,"method":null,"native":false},{"column":5,"file":"node:internal/process/task_queues","function":"process.processTicksAndRejections","line":103,"method":"processTicksAndRejections","native":false},{"column":24,"file":"async D:\\MinhVietGroup\\InventoryProject\\MVG_InventoryManagement\\KinhDoanh\\server.js","function":null,"line":356,"method":null,"native":false}],"service":"kho-mvg","version":"1.0.0"}
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (D:\MinhVietGroup\InventoryProject\MVG_InventoryManagement\KinhDoanh\node_modules\express\lib\application.js:635:24)
+    at startServer (D:\MinhVietGroup\InventoryProject\MVG_InventoryManagement\KinhDoanh\server.js:247:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async D:\MinhVietGroup\InventoryProject\MVG_InventoryManagement\KinhDoanh\server.js:356:24

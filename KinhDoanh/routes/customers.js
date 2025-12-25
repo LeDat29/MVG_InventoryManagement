@@ -330,88 +330,46 @@ router.post('/', requirePermission('customer_create'), [
     }
 
     const {
-        name, full_name, representative_name, email, phone,
-        address, tax_code, representative_phone, representative_email,
-        customer_type = 'company', notes, id_number, warehouse_purpose
+        name,
+        full_name,
+        representative_name,
+        email,
+        phone,
+        address,
+        tax_code,
+        representative_phone,
+        representative_email,
+        customer_type = 'company',
+        notes,
+        id_number,
+        warehouse_purpose
     } = req.body;
 
     const pool = mysqlPool();
 
-    // Generate unique customer code
-    const currentYear = new Date().getFullYear();
-    const [customerCount] = await pool.execute(
-        'SELECT COUNT(*) as count FROM customers WHERE YEAR(created_at) = ?',
-        [currentYear]
-    );
     
-    const customer_code = `CUST${currentYear}${String(customerCount[0].count + 1).padStart(4, '0')}`;
+    const insertFields = ['name', 'customer_type', 'representative_name', 'phone'];
+    const insertValues = [
+        name,
+        representative_name || full_name || name,
+        phone
+    ];
 
-    // Tạo khách hàng mới - only insert fields that are provided
-    const insertFields = ['customer_code', 'name', 'customer_type'];
-    const insertValues = [customer_code, name, customer_type];
     
-    // Add optional fields if they exist
-    if (full_name) {
-        insertFields.push('full_name');
-        insertValues.push(full_name);
-    }
-    if (representative_name) {
-        insertFields.push('representative_name');
-        insertValues.push(representative_name);
-    }
-    if (phone) {
-        insertFields.push('phone');
-        insertValues.push(phone);
-    }
+
     if (email) {
         insertFields.push('email');
         insertValues.push(email);
     }
+
     if (address) {
         insertFields.push('address');
         insertValues.push(address);
     }
+
     if (tax_code) {
         insertFields.push('tax_code');
         insertValues.push(tax_code);
-    }
-    if (representative_phone) {
-        insertFields.push('representative_phone');
-        insertValues.push(representative_phone);
-    }
-    if (representative_email) {
-        insertFields.push('representative_email');
-        insertValues.push(representative_email);
-    }
-    if (id_number) {
-        insertFields.push('id_number');
-        insertValues.push(id_number);
-    }
-    if (warehouse_purpose) {
-        insertFields.push('warehouse_purpose');
-        insertValues.push(warehouse_purpose);
-    }
-    if (notes) {
-        insertFields.push('notes');
-        insertValues.push(notes);
-    }
-    
-    // Check if req.user exists in DB to set created_by safely
-    let createdById = null;
-    try {
-        if (req.user && req.user.id) {
-            const [userRows] = await pool.execute('SELECT id FROM users WHERE id = ?', [req.user.id]);
-            if (userRows.length > 0) {
-                createdById = req.user.id;
-                insertFields.push('created_by');
-                insertValues.push(createdById);
-            } else {
-                // don't include created_by if user not present in DB (test env)
-                logger.warn('Create customer: req.user.id not found in users table, inserting without created_by');
-            }
-        }
-    } catch (err) {
-        logger.warn('Error checking creating user existence:', err.message);
     }
 
     const placeholders = insertFields.map(() => '?').join(', ');
@@ -427,7 +385,7 @@ router.post('/', requirePermission('customer_create'), [
             result.insertId,
             req.ip,
             req.get('User-Agent'),
-            { customerCode: customer_code, companyName: name }
+            { companyName: name }
         );
 
         res.status(201).json({
@@ -435,7 +393,6 @@ router.post('/', requirePermission('customer_create'), [
             message: 'Tạo khách hàng thành công',
             data: {
                 id: result.insertId,
-                customer_code,
                 name
             }
         });
