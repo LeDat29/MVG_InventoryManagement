@@ -19,142 +19,9 @@ const { requireRole, requirePermission } = require('../middleware/auth');
 
 const router = express.Router();
 
-/**
- * @swagger
- * components:
- *   schemas:
- *     Customer:
- *       type: object
- *       required:
- *         - customer_code
- *         - contact_person
- *         - phone
- *       properties:
- *         id:
- *           type: integer
- *         customer_code:
- *           type: string
- *           description: Mã khách hàng (unique)
- *         company_name:
- *           type: string
- *           description: Tên công ty
- *         contact_person:
- *           type: string
- *           description: Người liên hệ
- *         email:
- *           type: string
- *           format: email
- *         phone:
- *           type: string
- *           description: Số điện thoại
- *         address:
- *           type: string
- *           description: Địa chỉ
- *         tax_code:
- *           type: string
- *           description: Mã số thuế
- *         business_license:
- *           type: string
- *           description: Số giấy phép kinh doanh
- *         bank_info:
- *           type: object
- *           description: Thông tin ngân hàng
- *         customer_type:
- *           type: string
- *           enum: [individual, company]
- *         credit_rating:
- *           type: string
- *           enum: [A, B, C, D]
- *     
- *     Contract:
- *       type: object
- *       required:
- *         - customer_id
- *         - project_id
- *         - zone_id
- *         - start_date
- *         - end_date
- *         - rental_price
- *       properties:
- *         id:
- *           type: integer
- *         contract_number:
- *           type: string
- *           description: Số hợp đồng (auto-generated)
- *         customer_id:
- *           type: integer
- *         project_id:
- *           type: integer
- *         zone_id:
- *           type: integer
- *         contract_type:
- *           type: string
- *           enum: [new, renewal, amendment]
- *         start_date:
- *           type: string
- *           format: date
- *         end_date:
- *           type: string
- *           format: date
- *         rental_price:
- *           type: number
- *           format: float
- *           description: Giá thuê (VNĐ/tháng)
- *         deposit_amount:
- *           type: number
- *           format: float
- *         payment_cycle:
- *           type: string
- *           enum: [monthly, quarterly, yearly]
- *         status:
- *           type: string
- *           enum: [draft, active, expired, terminated, renewed]
- */
-
-/**
- * @swagger
- * /api/customers:
- *   get:
- *     summary: Lấy danh sách khách hàng
- *     tags: [Customers]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 20
- *       - in: query
- *         name: customer_type
- *         schema:
- *           type: string
- *           enum: [individual, company]
- *       - in: query
- *         name: credit_rating
- *         schema:
- *           type: string
- *           enum: [A, B, C, D]
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *           description: Tìm kiếm theo tên, mã KH, điện thoại
- *     responses:
- *       200:
- *         description: Danh sách khách hàng
- */
 router.get('/', async (req, res) => {
     try {
         const pool = mysqlPool();
-
-        // Simple safety checks
-        const [simpleTest] = await pool.execute('SELECT COUNT(*) as total FROM customers');
         const [customers] = await pool.execute('SELECT * FROM customers ORDER BY id DESC LIMIT 20');
 
         const result = {
@@ -172,26 +39,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-/**
- * @swagger
- * /api/customers/{id}:
- *   get:
- *     summary: Lấy chi tiết khách hàng
- *     tags: [Customers]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Chi tiết khách hàng và hợp đồng
- *       404:
- *         description: Khách hàng không tìm thấy
- */
 router.get('/:id(\\d+)', [
     param('id').isInt().withMessage('ID khách hàng phải là số nguyên')
 ], catchAsync(async (req, res) => {
@@ -207,7 +54,6 @@ router.get('/:id(\\d+)', [
     const customerId = req.params.id;
     const pool = mysqlPool();
 
-    // Lấy thông tin khách hàng - explicitly include warehouse_purpose
     const [customers] = await pool.execute(`
         SELECT c.id, c.customer_code, c.name, c.full_name,
                c.representative_name, c.representative_phone, c.phone, c.email, c.address,
@@ -229,7 +75,6 @@ router.get('/:id(\\d+)', [
     }
 
     const customer = customers[0];
-    // Parse bank_info field safely if present
     if (customer.bank_info) {
         try {
             customer.bank_info = JSON.parse(customer.bank_info);
@@ -238,6 +83,29 @@ router.get('/:id(\\d+)', [
         }
     } else {
         customer.bank_info = null;
+    }
+
+    let companies = [];
+    try {
+        const dbName = process.env.MYSQL_DATABASE || 'kho_mvg';
+        const [companiesTable] = await pool.execute(`
+            SELECT TABLE_NAME 
+            FROM INFORMATION_SCHEMA.TABLES 
+            WHERE TABLE_SCHEMA = ? 
+            AND TABLE_NAME = 'customer_companies'
+        `, [dbName]);
+        
+        if (companiesTable.length > 0) {
+            const [companyList] = await pool.execute(`
+                SELECT id, tax_code, company_name, invoice_address, warehouse_purpose, is_primary
+                FROM customer_companies
+                WHERE customer_id = ?
+                ORDER BY is_primary DESC, id ASC
+            `, [customerId]);
+            companies = companyList;
+        }
+    } catch (err) {
+        logger.error('Error fetching customer companies:', err);
     }
 
     // Lấy danh sách hợp đồng
@@ -252,7 +120,6 @@ router.get('/:id(\\d+)', [
         ORDER BY ct.created_at DESC
     `, [customerId]);
 
-    // Thống kê
     const [stats] = await pool.execute(`
         SELECT 
             COUNT(*) as total_contracts,
@@ -265,7 +132,6 @@ router.get('/:id(\\d+)', [
         WHERE customer_id = ?
     `, [customerId]);
 
-    // Hợp đồng sắp hết hạn (trong 30 ngày)
     const [expiring] = await pool.execute(`
         SELECT ct.*, p.name as project_name, wz.zone_code,
                DATEDIFF(ct.end_date, CURDATE()) as days_until_expiry
@@ -283,6 +149,7 @@ router.get('/:id(\\d+)', [
         success: true,
         data: {
             customer,
+            companies,
             contracts,
             statistics: stats[0],
             expiring_contracts: expiring
@@ -290,28 +157,6 @@ router.get('/:id(\\d+)', [
     });
 }));
 
-/**
- * @swagger
- * /api/customers:
- *   post:
- *     summary: Tạo khách hàng mới
- *     tags: [Customers]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Customer'
- *     responses:
- *       201:
- *         description: Tạo khách hàng thành công
- *       400:
- *         description: Dữ liệu không hợp lệ
- *       409:
- *         description: Mã khách hàng đã tồn tại
- */
 router.post('/', requirePermission('customer_create'), [
     body('name').trim().notEmpty().withMessage('Tên khách hàng là bắt buộc'),
     body('representative_name').trim().notEmpty().withMessage('Người đại diện là bắt buộc'),
@@ -342,20 +187,53 @@ router.post('/', requirePermission('customer_create'), [
         customer_type = 'company',
         notes,
         id_number,
-        warehouse_purpose
+        warehouse_purpose,
+        companies = []
     } = req.body;
 
     const pool = mysqlPool();
 
+    const currentYear = new Date().getFullYear();
+    const [customerCount] = await pool.execute(
+        'SELECT COUNT(*) as count FROM customers WHERE YEAR(created_at) = ?',
+        [currentYear]
+    );
     
-    const insertFields = ['name', 'customer_type', 'representative_name', 'phone'];
-    const insertValues = [
-        name,
-        representative_name || full_name || name,
-        phone
-    ];
+    const customer_code = `CUST${currentYear}${String(customerCount[0].count + 1).padStart(4, '0')}`;
 
+    const checkColumnExists = async (columnName) => {
+        try {
+            const dbName = process.env.MYSQL_DATABASE || 'kho_mvg';
+            const [columns] = await pool.execute(`
+                SELECT COLUMN_NAME 
+                FROM INFORMATION_SCHEMA.COLUMNS 
+                WHERE TABLE_SCHEMA = ? 
+                AND TABLE_NAME = 'customers' 
+                AND COLUMN_NAME = ?
+            `, [dbName, columnName]);
+            return columns.length > 0;
+        } catch (err) {
+            logger.error(`Error checking column ${columnName}:`, err);
+            return false;
+        }
+    };
+
+    const hasCustomerCodeColumn = await checkColumnExists('customer_code');
+    const hasFullNameColumn = await checkColumnExists('full_name');
+    const hasRepresentativePhoneColumn = await checkColumnExists('representative_phone');
+    const hasRepresentativeEmailColumn = await checkColumnExists('representative_email');
+    const hasIdNumberColumn = await checkColumnExists('id_number');
+    const hasWarehousePurposeColumn = await checkColumnExists('warehouse_purpose');
+    const hasNotesColumn = await checkColumnExists('notes');
+    const hasCreatedByColumn = await checkColumnExists('created_by');
+
+    const insertFields = hasCustomerCodeColumn 
+        ? ['customer_code', 'name', 'customer_type', 'representative_name', 'phone']
+        : ['name', 'customer_type', 'representative_name', 'phone'];
     
+    const insertValues = hasCustomerCodeColumn
+        ? [customer_code, name, customer_type, representative_name || full_name || name, phone]
+        : [name, customer_type, representative_name || full_name || name, phone];
 
     if (email) {
         insertFields.push('email');
@@ -372,17 +250,101 @@ router.post('/', requirePermission('customer_create'), [
         insertValues.push(tax_code);
     }
 
+    if (full_name && hasFullNameColumn) {
+        insertFields.push('full_name');
+        insertValues.push(full_name);
+    }
+
+    if (representative_phone && hasRepresentativePhoneColumn) {
+        insertFields.push('representative_phone');
+        insertValues.push(representative_phone);
+    }
+
+    if (representative_email && hasRepresentativeEmailColumn) {
+        insertFields.push('representative_email');
+        insertValues.push(representative_email);
+    }
+
+    if (id_number && hasIdNumberColumn) {
+        insertFields.push('id_number');
+        insertValues.push(id_number);
+    }
+
+    if (warehouse_purpose && hasWarehousePurposeColumn) {
+        insertFields.push('warehouse_purpose');
+        insertValues.push(warehouse_purpose);
+    }
+
+    if (notes && hasNotesColumn) {
+        insertFields.push('notes');
+        insertValues.push(notes);
+    }
+
+    if (req.user && req.user.id && hasCreatedByColumn) {
+        insertFields.push('created_by');
+        insertValues.push(req.user.id);
+    }
+
     const placeholders = insertFields.map(() => '?').join(', ');
     const insertQuery = `INSERT INTO customers (${insertFields.join(', ')}) VALUES (${placeholders})`;
     
     try {
+        await pool.query('START TRANSACTION');
         const [result] = await pool.execute(insertQuery, insertValues);
+        const customerId = result.insertId;
+
+        if (Array.isArray(companies) && companies.length > 0) {
+            const checkTableExists = async () => {
+                try {
+                    const dbName = process.env.MYSQL_DATABASE || 'kho_mvg';
+                    const [tables] = await pool.execute(`
+                        SELECT TABLE_NAME 
+                        FROM INFORMATION_SCHEMA.TABLES 
+                        WHERE TABLE_SCHEMA = ? 
+                        AND TABLE_NAME = 'customer_companies'
+                    `, [dbName]);
+                    return tables.length > 0;
+                } catch (err) {
+                    logger.error('Error checking customer_companies table:', err);
+                    return false;
+                }
+            };
+
+            const hasCompaniesTable = await checkTableExists();
+            
+            if (hasCompaniesTable) {
+                for (let i = 0; i < companies.length; i++) {
+                    const company = companies[i];
+                    if (company.tax_code && company.company_name && company.invoice_address) {
+                        try {
+                            await pool.execute(`
+                                INSERT INTO customer_companies 
+                                (customer_id, tax_code, company_name, invoice_address, warehouse_purpose, is_primary)
+                                VALUES (?, ?, ?, ?, ?, ?)
+                            `, [
+                                customerId,
+                                company.tax_code,
+                                company.company_name,
+                                company.invoice_address,
+                                company.warehouse_purpose || null,
+                                i === 0 || company.is_primary || false
+                            ]);
+                        } catch (companyErr) {
+                            logger.error(`Error saving company ${i + 1}:`, companyErr);
+                            throw companyErr;
+                        }
+                    }
+                }
+            }
+        }
+
+        await pool.query('COMMIT');
 
         await logUserActivity(
             req.user && req.user.id ? req.user.id : null,
             'CREATE_CUSTOMER',
             'customer',
-            result.insertId,
+            customerId,
             req.ip,
             req.get('User-Agent'),
             { companyName: name }
@@ -392,39 +354,32 @@ router.post('/', requirePermission('customer_create'), [
             success: true,
             message: 'Tạo khách hàng thành công',
             data: {
-                id: result.insertId,
+                id: customerId,
                 name
             }
         });
     } catch (error) {
+        try {
+            await pool.query('ROLLBACK');
+        } catch (rollbackErr) {
+            logger.error('Error during rollback:', rollbackErr);
+        }
+        
         logger.error('Error creating customer:', error);
-        return res.status(500).json({ success: false, message: 'Lỗi tạo khách hàng', error: error.message });
+        return res.status(500).json({ 
+            success: false, 
+            message: 'Lỗi tạo khách hàng', 
+            error: error.message,
+            details: {
+                code: error.code,
+                sqlState: error.sqlState,
+                sqlMessage: error.sqlMessage,
+                errno: error.errno
+            }
+        });
     }
 }));
 
-/**
- * @swagger
- * /api/customers/{id}/contracts:
- *   get:
- *     summary: Lấy danh sách hợp đồng của khách hàng
- *     tags: [Contracts]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [draft, active, expired, terminated, renewed]
- *     responses:
- *       200:
- *         description: Danh sách hợp đồng
- */
 router.get('/:id(\\d+)/contracts', catchAsync(async (req, res) => {
     const customerId = req.params.id;
     const status = req.query.status;
@@ -457,24 +412,6 @@ router.get('/:id(\\d+)/contracts', catchAsync(async (req, res) => {
     });
 }));
 
-/**
- * @swagger
- * /api/customers/contracts:
- *   post:
- *     summary: Tạo hợp đồng mới
- *     tags: [Contracts]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Contract'
- *     responses:
- *       201:
- *         description: Tạo hợp đồng thành công
- */
 router.post('/contracts', requirePermission('contract_create'), [
     body('customer_id').isInt().withMessage('Customer ID phải là số nguyên'),
     body('project_id').isInt().withMessage('Project ID phải là số nguyên'),
@@ -501,7 +438,6 @@ router.post('/contracts', requirePermission('contract_create'), [
 
     const pool = mysqlPool();
 
-    // Kiểm tra zone có khả dụng không
     const [zones] = await pool.execute(
         'SELECT zone_code, status FROM warehouse_zones WHERE id = ? AND project_id = ?',
         [zone_id, project_id]
@@ -521,7 +457,6 @@ router.post('/contracts', requirePermission('contract_create'), [
         });
     }
 
-    // Kiểm tra ngày hợp lệ
     const startDateObj = new Date(start_date);
     const endDateObj = new Date(end_date);
     const today = new Date();
@@ -534,15 +469,13 @@ router.post('/contracts', requirePermission('contract_create'), [
         });
     }
     
-    // Check if start date is not in the past (for new contracts)
-    if (!contractId && startDateObj < today) {
+    if (startDateObj < today) {
         return res.status(400).json({
             success: false,
             message: 'Ngày bắt đầu không được ở quá khứ'
         });
     }
     
-    // Validate date range is reasonable (not more than 50 years)
     const maxYears = 50;
     const maxDate = new Date(startDateObj);
     maxDate.setFullYear(maxDate.getFullYear() + maxYears);
@@ -554,7 +487,6 @@ router.post('/contracts', requirePermission('contract_create'), [
         });
     }
 
-    // Tạo số hợp đồng tự động
     const currentYear = new Date().getFullYear();
     const [lastContract] = await pool.execute(
         'SELECT contract_number FROM contracts WHERE contract_number LIKE ? ORDER BY id DESC LIMIT 1',
@@ -569,11 +501,9 @@ router.post('/contracts', requirePermission('contract_create'), [
         contractNumber = `HD${currentYear}0001`;
     }
 
-    // Transaction để đảm bảo consistency
-    await pool.execute('START TRANSACTION');
+    await pool.query('START TRANSACTION');
 
     try {
-        // Tạo hợp đồng
         const [result] = await pool.execute(`
             INSERT INTO contracts (
                 contract_number, customer_id, project_id, zone_id, contract_type,
@@ -586,7 +516,6 @@ router.post('/contracts', requirePermission('contract_create'), [
             payment_terms, contract_terms, auto_renewal, req.user.id
         ]);
 
-        // Cập nhật trạng thái zone nếu cần
         if (zones[0].status === 'available') {
             await pool.execute(
                 'UPDATE warehouse_zones SET status = "deposited" WHERE id = ?',
@@ -594,7 +523,7 @@ router.post('/contracts', requirePermission('contract_create'), [
             );
         }
 
-        await pool.execute('COMMIT');
+        await pool.query('COMMIT');
 
         await logUserActivity(
             req.user.id,
@@ -623,30 +552,11 @@ router.post('/contracts', requirePermission('contract_create'), [
         });
 
     } catch (error) {
-        await pool.execute('ROLLBACK');
+        await pool.query('ROLLBACK');
         throw error;
     }
 }));
 
-/**
- * @swagger
- * /api/customers/contracts/expiring:
- *   get:
- *     summary: Lấy danh sách hợp đồng sắp hết hạn
- *     tags: [Contracts]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: days
- *         schema:
- *           type: integer
- *           default: 30
- *           description: Số ngày trước khi hết hạn
- *     responses:
- *       200:
- *         description: Danh sách hợp đồng sắp hết hạn
- */
 router.get('/contracts/expiring', catchAsync(async (req, res) => {
     const days = parseInt(req.query.days) || 30;
     
@@ -678,32 +588,6 @@ router.get('/contracts/expiring', catchAsync(async (req, res) => {
     });
 }));
 
-/**
- * @swagger
- * /api/customers/{id}:
- *   put:
- *     summary: Cập nhật thông tin khách hàng
- *     tags: [Customers]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Customer'
- *     responses:
- *       200:
- *         description: Cập nhật thành công
- *       404:
- *         description: Khách hàng không tìm thấy
- */
 router.put('/:id(\\d+)', requirePermission('customer_update'), [
     param('id').isInt().withMessage('ID khách hàng phải là số nguyên'),
     body('name').optional().trim().notEmpty().withMessage('Tên khách hàng không được để trống'),
@@ -733,7 +617,6 @@ router.put('/:id(\\d+)', requirePermission('customer_update'), [
 
     const pool = mysqlPool();
 
-    // Kiểm tra khách hàng tồn tại
     const [existingCustomers] = await pool.execute(
         'SELECT id, customer_code, name FROM customers WHERE id = ?',
         [customerId]
@@ -746,17 +629,16 @@ router.put('/:id(\\d+)', requirePermission('customer_update'), [
         });
     }
 
-    // Cập nhật thông tin khách hàng - chỉ update các fields được cung cấp
     const updateFields = [];
     const updateValues = [];
 
     const {
         name, full_name, representative_name, email, phone,
         address, tax_code, representative_phone, representative_email,
-        customer_type, notes, id_number, warehouse_purpose
+        customer_type, notes, id_number, warehouse_purpose,
+        companies = []
     } = req.body;
 
-    // Chỉ thêm vào UPDATE nếu field được cung cấp
     if (name !== undefined) {
         updateFields.push('name = ?');
         updateValues.push(name);
@@ -810,57 +692,83 @@ router.put('/:id(\\d+)', requirePermission('customer_update'), [
         updateValues.push(warehouse_purpose);
     }
 
-    // Luôn update timestamp
     updateFields.push('updated_at = CURRENT_TIMESTAMP');
 
-    if (updateFields.length > 1) { // Có ít nhất 1 field thực (không tính updated_at)
-        const finalValues = [...updateValues, customerId];
-        await pool.execute(`
-            UPDATE customers SET
-                ${updateFields.join(', ')}
-            WHERE id = ?
-        `, finalValues);
+    await pool.query('START TRANSACTION');
+
+    try {
+        if (updateFields.length > 1) {
+            const finalValues = [...updateValues, customerId];
+            await pool.execute(`
+                UPDATE customers SET
+                    ${updateFields.join(', ')}
+                WHERE id = ?
+            `, finalValues);
+        }
+
+        if (Array.isArray(companies)) {
+            const checkTableExists = async () => {
+                try {
+                    const dbName = process.env.MYSQL_DATABASE || 'kho_mvg';
+                    const [tables] = await pool.execute(`
+                        SELECT TABLE_NAME 
+                        FROM INFORMATION_SCHEMA.TABLES 
+                        WHERE TABLE_SCHEMA = ? 
+                        AND TABLE_NAME = 'customer_companies'
+                    `, [dbName]);
+                    return tables.length > 0;
+                } catch (err) {
+                    return false;
+                }
+            };
+
+            const hasCompaniesTable = await checkTableExists();
+            
+            if (hasCompaniesTable) {
+                await pool.execute('DELETE FROM customer_companies WHERE customer_id = ?', [customerId]);
+                
+                for (let i = 0; i < companies.length; i++) {
+                    const company = companies[i];
+                    if (company.tax_code && company.company_name && company.invoice_address) {
+                        await pool.execute(`
+                            INSERT INTO customer_companies 
+                            (customer_id, tax_code, company_name, invoice_address, warehouse_purpose, is_primary)
+                            VALUES (?, ?, ?, ?, ?, ?)
+                        `, [
+                            customerId,
+                            company.tax_code,
+                            company.company_name,
+                            company.invoice_address,
+                            company.warehouse_purpose || null,
+                            i === 0 || company.is_primary || false
+                        ]);
+                    }
+                }
+            }
+        }
+
+        await pool.query('COMMIT');
+
+        await logUserActivity(
+            req.user.id,
+            'UPDATE_CUSTOMER',
+            'customer',
+            customerId,
+            req.ip,
+            req.get('User-Agent'),
+            { customerCode: existingCustomers[0].customer_code }
+        );
+
+        res.json({
+            success: true,
+            message: 'Cập nhật thông tin khách hàng thành công'
+        });
+    } catch (error) {
+        await pool.query('ROLLBACK');
+        throw error;
     }
-
-    await logUserActivity(
-        req.user.id,
-        'UPDATE_CUSTOMER',
-        'customer',
-        customerId,
-        req.ip,
-        req.get('User-Agent'),
-        { customerCode: existingCustomers[0].customer_code }
-    );
-
-    res.json({
-        success: true,
-        message: 'Cập nhật thông tin khách hàng thành công'
-    });
 }));
 
-
-/**
- * @swagger
- * /api/customers/{id}:
- *   delete:
- *     summary: Xóa khách hàng (soft delete)
- *     tags: [Customers]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Xóa thành công
- *       400:
- *         description: Không thể xóa vì có hợp đồng active
- *       404:
- *         description: Khách hàng không tìm thấy
- */
 router.delete('/:id(\\d+)', requirePermission('customer_delete'), [
     param('id').isInt().withMessage('ID khách hàng phải là số nguyên')
 ], catchAsync(async (req, res) => {
@@ -876,7 +784,6 @@ router.delete('/:id(\\d+)', requirePermission('customer_delete'), [
     const customerId = req.params.id;
     const pool = mysqlPool();
 
-    // Kiểm tra khách hàng tồn tại
     const [customers] = await pool.execute(
         'SELECT id, customer_code, name FROM customers WHERE id = ?',
         [customerId]
@@ -889,7 +796,6 @@ router.delete('/:id(\\d+)', requirePermission('customer_delete'), [
         });
     }
 
-    // Kiểm tra có hợp đồng đang active không
     const [activeContracts] = await pool.execute(
         'SELECT COUNT(*) as count FROM contracts WHERE customer_id = ? AND status = "active"',
         [customerId]
@@ -902,7 +808,6 @@ router.delete('/:id(\\d+)', requirePermission('customer_delete'), [
         });
     }
 
-    // Soft delete
     await pool.execute(
         'UPDATE customers SET status = "inactive", updated_at = CURRENT_TIMESTAMP WHERE id = ?',
         [customerId]
@@ -927,18 +832,6 @@ router.delete('/:id(\\d+)', requirePermission('customer_delete'), [
     });
 }));
 
-/**
- * @swagger
- * /api/customers/stats:
- *   get:
- *     summary: Thống kê tổng quan khách hàng
- *     tags: [Customers]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Thống kê khách hàng
- */
 router.get('/stats', catchAsync(async (req, res) => {
     const pool = mysqlPool();
     

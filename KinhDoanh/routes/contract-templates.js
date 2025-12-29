@@ -1,27 +1,4 @@
-/**
- * Contract Templates Routes - KHO MVG
- * Quản lý mẫu hợp đồng và tạo tài liệu
- */
 
-const express = require('express');
-const { body, param, validationResult } = require('express-validator');
-const { requireAuth, requirePermission } = require('../middleware/auth');
-const { mysqlPool } = require('../config/database');
-const { logUserActivity } = require('../utils/activityLogger');
-const { catchAsync } = require('../utils/errorHandler');
-
-const router = express.Router();
-
-// Apply authentication middleware
-router.use(requireAuth);
-
-/**
- * @swagger
- * /api/contract-templates:
- *   get:
- *     summary: Lấy danh sách mẫu hợp đồng
- *     tags: [Contract Templates]
- */
 router.get('/', requirePermission('contract_template_read'), catchAsync(async (req, res) => {
     const { template_type, is_active = true } = req.query;
     const pool = mysqlPool();
@@ -88,12 +65,7 @@ router.get('/', requirePermission('contract_template_read'), catchAsync(async (r
     });
 }));
 
-/**
- * @swagger
- * /api/contract-templates/{id}:
- *   get:
- *     summary: Lấy chi tiết mẫu hợp đồng
- */
+
 router.get('/:id', requirePermission('contract_template_read'), [
     param('id').isInt().withMessage('Template ID phải là số nguyên')
 ], catchAsync(async (req, res) => {
@@ -150,12 +122,7 @@ router.get('/:id', requirePermission('contract_template_read'), [
     });
 }));
 
-/**
- * @swagger
- * /api/contract-templates:
- *   post:
- *     summary: Tạo mẫu hợp đồng mới
- */
+
 router.post('/', requirePermission('contract_template_create'), [
     body('template_name').trim().notEmpty().withMessage('Tên mẫu là bắt buộc'),
     body('template_code').trim().notEmpty().withMessage('Mã mẫu là bắt buộc'),
@@ -232,12 +199,7 @@ router.post('/', requirePermission('contract_template_create'), [
     });
 }));
 
-/**
- * @swagger
- * /api/contract-templates/{id}/generate:
- *   post:
- *     summary: Tạo tài liệu từ mẫu hợp đồng
- */
+
 router.post('/:id/generate', requirePermission('contract_create'), [
     param('id').isInt().withMessage('Template ID phải là số nguyên'),
     body('contract_id').isInt().withMessage('Contract ID phải là số nguyên'),

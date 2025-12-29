@@ -1,54 +1,4 @@
-/**
- * Contract Management Routes - KHO MVG
- * Hệ thống quản lý hợp đồng thuê kho xưởng chuyên nghiệp
- */
 
-const express = require('express');
-const { body, param, query, validationResult } = require('express-validator');
-const { requireAuth, requirePermission } = require('../middleware/auth');
-const { mysqlPool } = require('../config/database');
-const { logUserActivity } = require('../utils/activityLogger');
-const { logger } = require('../config/logger');
-const { catchAsync } = require('../utils/errorHandler');
-
-const router = express.Router();
-
-// Apply authentication middleware
-router.use(requireAuth);
-
-/**
- * @swagger
- * /api/contracts:
- *   get:
- *     summary: Lấy danh sách hợp đồng với filter và pagination
- *     tags: [Contracts]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 20
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [draft, review, approved, signed, active, expired, terminated, cancelled]
- *       - in: query
- *         name: customer_id
- *         schema:
- *           type: integer
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- */
 router.get('/', requirePermission('contract_read'), catchAsync(async (req, res) => {
     // Ensure API always responds with JSON content-type even on unexpected errors
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -205,21 +155,7 @@ router.get('/', requirePermission('contract_read'), catchAsync(async (req, res) 
     });
 }));
 
-/**
- * @swagger
- * /api/contracts/{id}:
- *   get:
- *     summary: Lấy chi tiết hợp đồng
- *     tags: [Contracts]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- */
+
 router.get('/:id(\\d+)', requirePermission('contract_read'), [
     param('id').isInt().withMessage('Contract ID phải là số nguyên')
 ], catchAsync(async (req, res) => {
@@ -332,15 +268,7 @@ router.get('/:id(\\d+)', requirePermission('contract_read'), [
     });
 }));
 
-/**
- * @swagger
- * /api/contracts:
- *   post:
- *     summary: Tạo hợp đồng mới
- *     tags: [Contracts]
- *     security:
- *       - bearerAuth: []
- */
+
 router.post('/', requirePermission('contract_create'), [
     body('contract_title').trim().notEmpty().withMessage('Tiêu đề hợp đồng là bắt buộc'),
     body('customer_id').isInt().withMessage('Customer ID phải là số nguyên'),

@@ -1,84 +1,4 @@
-/**
- * Project Zones Routes - KHO MVG
- * Quản lý các khu vực kho trong dự án
- * 
- * @description Routes cho quản lý zones/khu vực kho:
- * - CRUD zones
- * - Quản lý trạng thái zones (available, rented, deposited, maintenance)
- * - Mapping với Google Maps coordinates
- * - Color coding: xanh (rented), đỏ (available), cam (deposited), trắng (maintenance)
- */
 
-const express = require('express');
-const { body, validationResult, param } = require('express-validator');
-const { mysqlPool } = require('../config/database');
-const { logger, logUserActivity } = require('../config/logger');
-const { catchAsync, AppError } = require('../middleware/errorHandler');
-const { requirePermission } = require('../middleware/auth');
-
-const router = express.Router({ mergeParams: true });
-
-/**
- * @swagger
- * /api/projects/{projectId}/zones:
- *   get:
- *     summary: Lấy danh sách zones của dự án
- *     tags: [Project Zones]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: projectId
- *         required: true
- *         schema:
- *           type: integer
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [available, rented, deposited, maintenance]
- *       - in: query
- *         name: zone_type
- *         schema:
- *           type: string
- *           enum: [rental, fixed_service, common_area]
- *     responses:
- *       200:
- *         description: Danh sách zones với thông tin màu sắc
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: object
- *                   properties:
- *                     zones:
- *                       type: array
- *                       items:
- *                         $ref: '#/components/schemas/WarehouseZone'
- *                     color_legend:
- *                       type: object
- *                       properties:
- *                         available:
- *                           type: string
- *                           example: "#dc3545"
- *                           description: Màu đỏ - chưa cho thuê
- *                         rented:
- *                           type: string
- *                           example: "#28a745"
- *                           description: Màu xanh - đã cho thuê
- *                         deposited:
- *                           type: string
- *                           example: "#fd7e14"
- *                           description: Màu cam - đã nhận cọc
- *                         maintenance:
- *                           type: string
- *                           example: "#ffffff"
- *                           description: Màu trắng - khu vực cố định/bảo trì
- */
 router.get('/', catchAsync(async (req, res) => {
     const projectId = req.params.id;
     const status = req.query.status;
@@ -203,31 +123,7 @@ router.get('/', catchAsync(async (req, res) => {
     });
 }));
 
-/**
- * @swagger
- * /api/projects/{projectId}/zones/{zoneId}:
- *   get:
- *     summary: Lấy chi tiết zone cụ thể
- *     tags: [Project Zones]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: projectId
- *         required: true
- *         schema:
- *           type: integer
- *       - in: path
- *         name: zoneId
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Chi tiết zone
- *       404:
- *         description: Zone không tìm thấy
- */
+
 router.get('/:zoneId', [
     param('zoneId').isInt().withMessage('Zone ID phải là số nguyên')
 ], catchAsync(async (req, res) => {
@@ -318,56 +214,7 @@ router.get('/:zoneId', [
     });
 }));
 
-/**
- * @swagger
- * /api/projects/{projectId}/zones:
- *   post:
- *     summary: Tạo zone mới trong dự án
- *     tags: [Project Zones]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: projectId
- *         required: true
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - zone_code
- *               - area
- *             properties:
- *               zone_code:
- *                 type: string
- *                 example: "A1"
- *               zone_name:
- *                 type: string
- *                 example: "Khu vực A1"
- *               area:
- *                 type: number
- *                 example: 100.5
- *               zone_type:
- *                 type: string
- *                 enum: [rental, fixed_service, common_area]
- *                 default: rental
- *               status:
- *                 type: string
- *                 enum: [available, rented, deposited, maintenance]
- *                 default: available
- *               rental_price:
- *                 type: number
- *               coordinates:
- *                 type: object
- *                 description: Tọa độ polygon trên Google Maps
- *               facilities:
- *                 type: object
- *                 description: Danh sách tiện ích
- */
+
 router.post('/', requirePermission('zone_create'), [
     body('zone_code').trim().notEmpty().withMessage('Mã zone là bắt buộc')
         .isLength({ max: 50 }).withMessage('Mã zone không được quá 50 ký tự'),
@@ -462,44 +309,7 @@ router.post('/', requirePermission('zone_create'), [
     });
 }));
 
-/**
- * @swagger
- * /api/projects/{projectId}/zones/{zoneId}/status:
- *   patch:
- *     summary: Cập nhật trạng thái zone
- *     tags: [Project Zones]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: projectId
- *         required: true
- *         schema:
- *           type: integer
- *       - in: path
- *         name: zoneId
- *         required: true
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - status
- *             properties:
- *               status:
- *                 type: string
- *                 enum: [available, rented, deposited, maintenance]
- *               reason:
- *                 type: string
- *                 description: Lý do thay đổi trạng thái
- *     responses:
- *       200:
- *         description: Cập nhật trạng thái thành công
- */
+
 router.patch('/:zoneId/status', requirePermission('zone_update'), [
     param('zoneId').isInt().withMessage('Zone ID phải là số nguyên'),
     body('status').isIn(['available', 'rented', 'deposited', 'maintenance']).withMessage('Trạng thái không hợp lệ')
@@ -574,41 +384,7 @@ router.patch('/:zoneId/status', requirePermission('zone_update'), [
     });
 }));
 
-/**
- * @swagger
- * /api/projects/{projectId}/zones/bulk-update:
- *   patch:
- *     summary: Cập nhật hàng loạt zones (từ import bản vẽ)
- *     tags: [Project Zones]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: projectId
- *         required: true
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               zones:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     zone_code:
- *                       type: string
- *                     coordinates:
- *                       type: object
- *                     status:
- *                       type: string
- *                     area:
- *                       type: number
- */
+
 router.patch('/bulk-update', requirePermission('zone_bulk_update'), [
     body('zones').isArray().withMessage('Zones phải là array'),
     body('zones.*.zone_code').notEmpty().withMessage('Zone code là bắt buộc')

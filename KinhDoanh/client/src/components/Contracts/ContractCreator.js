@@ -127,7 +127,6 @@ const ContractCreator = ({ show, onHide, onSuccess, initialCustomerId = '' }) =>
     }
   }, [show, loadInitialData]);
 
-  // Read customer id from URL if not provided via props
   useEffect(() => {
     if (!show) return;
     if (initialCustomerId) return;
@@ -164,7 +163,7 @@ const ContractCreator = ({ show, onHide, onSuccess, initialCustomerId = '' }) =>
           handleCustomerSelect(customerData.id);
         }
       } catch (e) {
-        console.warn('Could not preload initial customer', e?.message || e);
+        console.error('Could not preload initial customer', e?.message || e);
       }
     }
     ensureAndSelectInitialCustomer();
@@ -242,7 +241,7 @@ const ContractCreator = ({ show, onHide, onSuccess, initialCustomerId = '' }) =>
           ? JSON.parse(template.variables) 
           : (Array.isArray(template.variables) ? template.variables : []);
       } catch (e) {
-        console.warn('Invalid template variables JSON:', e?.message || e);
+        console.error('Invalid template variables JSON:', e?.message || e);
         templateVars = [];
       }
       
@@ -277,7 +276,6 @@ const ContractCreator = ({ show, onHide, onSuccess, initialCustomerId = '' }) =>
       });
       
       setFormData(prev => ({ ...prev, variables: newVariables }));
-      // Move to variables tab to let user fill missing variables
       setActiveTab('variables');
     }
   };
@@ -299,7 +297,6 @@ const ContractCreator = ({ show, onHide, onSuccess, initialCustomerId = '' }) =>
     return end.toISOString().split('T')[0];
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -326,7 +323,6 @@ const ContractCreator = ({ show, onHide, onSuccess, initialCustomerId = '' }) =>
     }
   };
 
-  // Reset form
   const resetForm = () => {
     setFormData({
       contract_title: '',
@@ -366,7 +362,6 @@ const ContractCreator = ({ show, onHide, onSuccess, initialCustomerId = '' }) =>
     setActiveTab('basic');
   };
 
-  // Format currency for display (without currency symbol)
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN').format(amount);
   };

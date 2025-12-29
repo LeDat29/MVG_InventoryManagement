@@ -11,84 +11,80 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
 import LoadingSpinner from '../components/Common/LoadingSpinner';
 
-// Register Chart.js components (include Filler plugin for 'fill' option)
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Filler);
 
 function Dashboard() {
   const { user } = useAuth();
-  const { showSuccess } = useNotification();
   const [loading, setLoading] = useState(true);
-  const [dashboardData] = useState({
+  const [dashboardData, setDashboardData] = useState({
     overview: {
-      totalProjects: 8,
-      totalCustomers: 45,
-      activeContracts: 32,
-      totalRevenue: 2450000000
+      totalProjects: 0,
+      totalCustomers: 0,
+      activeContracts: 0,
+      totalRevenue: 0
     },
     projectStatus: {
-      operational: 5,
-      construction: 2,
-      planning: 1,
+      operational: 0,
+      construction: 0,
+      planning: 0,
       maintenance: 0
     },
     warehouseOccupancy: {
-      available: 15,
-      rented: 25,
-      deposited: 8,
-      maintenance: 2
+      available: 0,
+      rented: 0,
+      deposited: 0,
+      maintenance: 0
     },
-    recentActivities: [
-      {
-        id: 1,
-        type: 'contract_signed',
-        message: 'Hợp đồng HD240015 đã được ký với Công ty ABC',
-        time: '2 giờ trước',
-        user: 'Nguyễn Văn A'
-      },
-      {
-        id: 2,
-        type: 'payment_received',
-        message: 'Đã nhận thanh toán 50,000,000 VNĐ từ khách hàng XYZ',
-        time: '4 giờ trước',
-        user: 'Trần Thị B'
-      },
-      {
-        id: 3,
-        type: 'project_created',
-        message: 'Dự án kho Bình Dương mới được tạo',
-        time: '1 ngày trước',
-        user: 'Admin'
-      }
-    ],
-    expiringContracts: [
-      {
-        id: 1,
-        contractNumber: 'HD240001',
-        customer: 'Công ty TNHH ABC',
-        endDate: '2024-02-15',
-        daysLeft: 5
-      },
-      {
-        id: 2,
-        contractNumber: 'HD240003',
-        customer: 'Công ty CP XYZ',
-        endDate: '2024-02-20',
-        daysLeft: 10
-      }
-    ]
+    recentActivities: [],
+    expiringContracts: []
   });
 
   useEffect(() => {
-    // Simulate API call
-    const timer = setTimeout(() => {
-      setLoading(false);
-      showSuccess('Dashboard đã được tải thành công!');
-    }, 1500);
+    const fetchDashboardData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        
+        const [projectsResp, customersResp] = await Promise.all([
+          fetch('/api/projects', { headers }).then(r => r.json()).catch(() => ({ success: true, data: { projects: [] } })),
+          fetch('/api/customers', { headers }).then(r => r.json()).catch(() => ({ success: true, data: { customers: [] } }))
+        ]);
 
-    return () => clearTimeout(timer);
-  }, [showSuccess]);
+        const projects = projectsResp.data?.projects || [];
+        const customers = customersResp.data?.customers || [];
 
-  // Chart configurations
+        setDashboardData({
+          overview: {
+            totalProjects: projects.length,
+            totalCustomers: customers.length,
+            activeContracts: 0,
+            totalRevenue: 0
+          },
+          projectStatus: {
+            operational: projects.filter(p => p.status === 'operational').length,
+            construction: projects.filter(p => p.status === 'construction').length,
+            planning: projects.filter(p => p.status === 'planning').length,
+            maintenance: projects.filter(p => p.status === 'maintenance').length
+          },
+          warehouseOccupancy: {
+            available: 0,
+            rented: 0,
+            deposited: 0,
+            maintenance: 0
+          },
+          recentActivities: [],
+          expiringContracts: []
+        });
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
   const occupancyChartData = {
     labels: ['Chưa cho thuê', 'Đã cho thuê', 'Đã cọc', 'Bảo trì'],
     datasets: [
@@ -111,7 +107,7 @@ function Dashboard() {
     datasets: [
       {
         label: 'Doanh thu (tỷ VNĐ)',
-        data: [1.2, 1.8, 2.1, 1.9, 2.3, 2.45],
+        data: [0, 0, 0, 0, 0, 0],
         borderColor: '#007bff',
         backgroundColor: 'rgba(0, 123, 255, 0.1)',
         tension: 0.4,
@@ -119,20 +115,6 @@ function Dashboard() {
       }
     ]
   };
-
-  // const projectStatusData = {
-  //   labels: ['Hoạt động', 'Xây dựng', 'Lên kế hoạch'],
-  //   datasets: [
-  //     {
-  //       data: [
-  //         dashboardData.projectStatus.operational,
-  //         dashboardData.projectStatus.construction,
-  //         dashboardData.projectStatus.planning
-  //       ],
-  //       backgroundColor: ['#28a745', '#ffc107', '#17a2b8']
-  //     }
-  //   ]
-  // };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -171,7 +153,6 @@ function Dashboard() {
           </Col>
         </Row>
 
-        {/* Overview Cards */}
         <Row className="mb-4">
           <Col md={3} sm={6} className="mb-3">
             <Card className="stat-card border-0 shadow-sm h-100">
@@ -184,11 +165,6 @@ function Dashboard() {
                   <div className="stat-icon bg-primary">
                     <i className="fas fa-building text-white"></i>
                   </div>
-                </div>
-                <div className="mt-2">
-                  <small className="text-success">
-                    <i className="fas fa-arrow-up me-1"></i>+12% từ tháng trước
-                  </small>
                 </div>
               </Card.Body>
             </Card>
@@ -206,11 +182,6 @@ function Dashboard() {
                     <i className="fas fa-users text-white"></i>
                   </div>
                 </div>
-                <div className="mt-2">
-                  <small className="text-success">
-                    <i className="fas fa-arrow-up me-1"></i>+8% từ tháng trước
-                  </small>
-                </div>
               </Card.Body>
             </Card>
           </Col>
@@ -226,11 +197,6 @@ function Dashboard() {
                   <div className="stat-icon bg-warning">
                     <i className="fas fa-file-contract text-white"></i>
                   </div>
-                </div>
-                <div className="mt-2">
-                  <small className="text-success">
-                    <i className="fas fa-arrow-up me-1"></i>+5% từ tháng trước
-                  </small>
                 </div>
               </Card.Body>
             </Card>
@@ -250,17 +216,11 @@ function Dashboard() {
                     <i className="fas fa-chart-line text-white"></i>
                   </div>
                 </div>
-                <div className="mt-2">
-                  <small className="text-success">
-                    <i className="fas fa-arrow-up me-1"></i>+15% từ tháng trước
-                  </small>
-                </div>
               </Card.Body>
             </Card>
           </Col>
         </Row>
 
-        {/* Charts Row */}
         <Row className="mb-4">
           <Col lg={8} className="mb-4">
             <Card className="border-0 shadow-sm h-100">
@@ -332,7 +292,6 @@ function Dashboard() {
           </Col>
         </Row>
 
-        {/* Bottom Row */}
         <Row>
           <Col lg={8} className="mb-4">
             <Card className="border-0 shadow-sm">

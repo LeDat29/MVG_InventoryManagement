@@ -72,7 +72,6 @@ function Documents() {
     fetchAll();
   }, [showError]);
 
-  // File upload with react-dropzone
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
       'application/pdf': ['.pdf'],

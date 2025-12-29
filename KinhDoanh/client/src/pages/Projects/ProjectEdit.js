@@ -147,7 +147,6 @@ function ProjectEdit() {
     setError(null);
 
     try {
-      // Validate required fields
       if (!formData.name.trim()) {
         throw new Error('Tên dự án là bắt buộc');
       }

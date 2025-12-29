@@ -10,7 +10,7 @@ const path = require('path');
 const DB_CONFIG = {
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
+    password: process.env.DB_PASSWORD || '12345678',
     multipleStatements: true
 };
 
@@ -53,6 +53,120 @@ class DatabaseAutoInit {
             );
             return rows[0].count > 0;
         } catch (error) {
+            return false;
+        }
+    }
+
+    async checkColumnExists(tableName, columnName) {
+        try {
+            const [rows] = await this.connection.query(
+                `SELECT COUNT(*) as count FROM information_schema.columns 
+                 WHERE table_schema = ? AND table_name = ? AND column_name = ?`,
+                [DB_NAME, tableName, columnName]
+            );
+            return rows[0].count > 0;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    async addMissingCustomerColumns() {
+        console.log('\n📋 Kiểm tra và thêm các cột còn thiếu vào bảng customers...');
+        
+        try {
+            const columnsToAdd = [
+                {
+                    name: 'customer_code',
+                    definition: 'VARCHAR(50) UNIQUE AFTER id'
+                },
+                {
+                    name: 'customer_type',
+                    definition: "ENUM('individual', 'company') DEFAULT 'company' AFTER name"
+                },
+                {
+                    name: 'full_name',
+                    definition: 'VARCHAR(200) AFTER customer_type'
+                },
+                {
+                    name: 'phone',
+                    definition: 'VARCHAR(20) AFTER representative_name'
+                },
+                {
+                    name: 'email',
+                    definition: 'VARCHAR(100) AFTER phone'
+                },
+                {
+                    name: 'id_number',
+                    definition: 'VARCHAR(100) AFTER representative_email'
+                },
+                {
+                    name: 'warehouse_purpose',
+                    definition: 'TEXT AFTER tax_code'
+                },
+                {
+                    name: 'credit_rating',
+                    definition: "ENUM('A', 'B', 'C', 'D') NULL AFTER status"
+                }
+            ];
+
+            let addedCount = 0;
+            for (const column of columnsToAdd) {
+                const exists = await this.checkColumnExists('customers', column.name);
+                if (!exists) {
+                    try {
+                        await this.connection.query(
+                            `ALTER TABLE customers ADD COLUMN ${column.name} ${column.definition}`
+                        );
+                        console.log(`   ✅ Đã thêm cột: ${column.name}`);
+                        addedCount++;
+                    } catch (error) {
+                        if (!error.message.includes('Duplicate column')) {
+                            console.warn(`   ⚠️  Lỗi thêm cột ${column.name}: ${error.message}`);
+                        }
+                    }
+                }
+            }
+
+            // Tạo index cho customer_code nếu chưa có
+            try {
+                const [indexes] = await this.connection.query(
+                    `SELECT COUNT(*) as count FROM information_schema.statistics 
+                     WHERE table_schema = ? AND table_name = 'customers' AND index_name = 'idx_customer_code'`,
+                    [DB_NAME]
+                );
+                if (indexes[0].count === 0) {
+                    await this.connection.query(
+                        'CREATE UNIQUE INDEX idx_customer_code ON customers(customer_code)'
+                    );
+                    console.log('   ✅ Đã tạo index: idx_customer_code');
+                }
+            } catch (error) {
+                if (!error.message.includes('Duplicate key')) {
+                    console.warn(`   ⚠️  Lỗi tạo index idx_customer_code: ${error.message}`);
+                }
+            }
+
+            // Cập nhật customer_code cho các record cũ không có
+            try {
+                await this.connection.query(`
+                    UPDATE customers 
+                    SET customer_code = CONCAT('CUST', YEAR(created_at), LPAD(id, 4, '0'))
+                    WHERE customer_code IS NULL OR customer_code = ''
+                `);
+                if (addedCount > 0) {
+                    console.log('   ✅ Đã cập nhật customer_code cho các record cũ');
+                }
+            } catch (error) {
+                console.warn(`   ⚠️  Lỗi cập nhật customer_code: ${error.message}`);
+            }
+
+            if (addedCount === 0) {
+                console.log('   ℹ️  Tất cả các cột đã tồn tại');
+            }
+
+            return true;
+        } catch (error) {
+            console.error('   ❌ Lỗi kiểm tra/thêm cột:', error.message);
             return false;
         }
     }
@@ -127,19 +241,44 @@ class DatabaseAutoInit {
 
                 CREATE TABLE IF NOT EXISTS customers (
                     id INT AUTO_INCREMENT PRIMARY KEY,
+                     customer_code VARCHAR(50) UNIQUE,
                     name VARCHAR(200) NOT NULL,
+                    customer_type ENUM('individual', 'company') DEFAULT 'company',
+                    full_name VARCHAR(200),
                     tax_code VARCHAR(50),
+                    warehouse_purpose TEXT,
                     address TEXT,
                     representative_name VARCHAR(100),
                     representative_phone VARCHAR(20),
+                    phone VARCHAR(20),
                     representative_email VARCHAR(100),
+                    email VARCHAR(100),
+                    id_number VARCHAR(100),
                     status ENUM('active', 'inactive', 'potential') DEFAULT 'potential',
+                    credit_rating ENUM('A', 'B', 'C', 'D') NULL,
                     notes TEXT,
                     created_by INT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     INDEX idx_name (name),
-                    INDEX idx_status (status)
+                    INDEX idx_status (status),
+                    INDEX idx_customer_code (customer_code)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+                CREATE TABLE IF NOT EXISTS customer_companies (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    customer_id INT NOT NULL,
+                    tax_code VARCHAR(20) NOT NULL,
+                    company_name VARCHAR(200) NOT NULL,
+                    invoice_address TEXT NOT NULL,
+                    warehouse_purpose TEXT,
+                    is_primary BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+                    UNIQUE KEY unique_customer_tax_code (customer_id, tax_code),
+                    INDEX idx_customer_id (customer_id),
+                    INDEX idx_tax_code (tax_code)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
                 CREATE TABLE IF NOT EXISTS projects (
@@ -518,6 +657,37 @@ class DatabaseAutoInit {
                 const clientErrorTableExists = await this.checkTableExists('client_errors');
                 if (!clientErrorTableExists) {
                     await this.applyClientErrorTables();
+                }
+
+                // Check and add missing columns to customers table
+                await this.addMissingCustomerColumns();
+
+                // Check for customer_companies table
+                const customerCompaniesTableExists = await this.checkTableExists('customer_companies');
+                if (!customerCompaniesTableExists) {
+                    console.log('\n📋 Tạo bảng customer_companies...');
+                    try {
+                        await this.connection.query(`
+                            CREATE TABLE customer_companies (
+                                id INT AUTO_INCREMENT PRIMARY KEY,
+                                customer_id INT NOT NULL,
+                                tax_code VARCHAR(20) NOT NULL,
+                                company_name VARCHAR(200) NOT NULL,
+                                invoice_address TEXT NOT NULL,
+                                warehouse_purpose TEXT,
+                                is_primary BOOLEAN DEFAULT FALSE,
+                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+                                UNIQUE KEY unique_customer_tax_code (customer_id, tax_code),
+                                INDEX idx_customer_id (customer_id),
+                                INDEX idx_tax_code (tax_code)
+                            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                        `);
+                        console.log('✅ Bảng customer_companies đã được tạo');
+                    } catch (error) {
+                        console.error('⚠️  Lỗi tạo bảng customer_companies:', error.message);
+                    }
                 }
 
                 // Check admin user

@@ -89,8 +89,7 @@ const ContractManager = ({ initialOpenCreate = false, initialCustomerId = '' }) 
         showError(response.message || 'Không thể tải danh sách hợp đồng');
       }
     } catch (error) {
-      console.warn('Contract loading error:', error?.message || error);
-      // showError('Lỗi kết nối: ' + error.message);
+      console.error('Contract loading error:', error?.message || error);
     } finally {
       setLoading(false);
     }

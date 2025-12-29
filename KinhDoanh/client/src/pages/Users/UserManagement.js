@@ -119,7 +119,6 @@ function UserManagement() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
-      // Then try to get AI configs
       try {
         const aiResponse = await axios.get(`/api/ai-assistant/user-configs`, {
           params: { user_id: userId },
@@ -148,7 +147,6 @@ function UserManagement() {
         ...prev,
         activity_logs: response.data.data.logs
       }));
-      // TODO: add activity modal when needed
     } catch (error) {
       showError('Lỗi tải lịch sử hoạt động');
     }
@@ -181,7 +179,7 @@ function UserManagement() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('/api/users', userForm, {
+      const response = await axios.post('/api/users', userForm, { 
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -198,7 +196,7 @@ function UserManagement() {
         });
         loadUsers();
       }
-    } catch (error) {
+    } catch (error) { 
       console.error('Error creating user:', error);
       if (error.response?.data?.errors) {
         const errors = {};

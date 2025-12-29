@@ -1,64 +1,6 @@
-/**
- * AI Assistant Configurations API Routes
- * Phân hệ 2.4.3 - Quản lý cấu hình AI cho users
- */
 
-const express = require('express');
-const router = express.Router();
-const { body, param, query, validationResult } = require('express-validator');
-const { mysqlPool } = require('../config/database');
-const { requireAuth, requirePermission, logUserActivity } = require('../middleware/auth');
-const EncryptionService = require('../utils/encryption');
 
-/**
- * @swagger
- * components:
- *   schemas:
- *     AIConfig:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *         user_id:
- *           type: integer
- *         provider:
- *           type: string
- *           enum: [openai, google, anthropic, groq, cohere]
- *         model_name:
- *           type: string
- *         api_key:
- *           type: string
- *           description: Encrypted API key
- *         max_tokens:
- *           type: integer
- *         temperature:
- *           type: number
- *         cost_per_token:
- *           type: number
- *         priority:
- *           type: integer
- *         is_active:
- *           type: boolean
- */
 
-/**
- * @swagger
- * /api/ai-assistant/user-configs:
- *   get:
- *     summary: Lấy danh sách cấu hình AI của user
- *     tags: [AI Assistant]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: user_id
- *         schema:
- *           type: integer
- *         description: User ID (admin có thể xem config của users khác)
- *     responses:
- *       200:
- *         description: Danh sách cấu hình AI
- */
 router.get('/user-configs', requireAuth, async (req, res) => {
   try {
     const pool = mysqlPool();
@@ -110,15 +52,7 @@ router.get('/user-configs', requireAuth, async (req, res) => {
   }
 });
 
-/**
- * @swagger
- * /api/ai-assistant/configs:
- *   post:
- *     summary: Tạo cấu hình AI mới
- *     tags: [AI Assistant]
- *     security:
- *       - bearerAuth: []
- */
+
 router.post('/configs', [
   body('provider').isIn(['openai', 'google', 'anthropic', 'groq', 'cohere']).withMessage('Provider không hợp lệ'),
   body('model_name').notEmpty().withMessage('Model name là bắt buộc'),
@@ -212,15 +146,7 @@ router.post('/configs', [
   }
 });
 
-/**
- * @swagger
- * /api/ai-assistant/configs/{id}:
- *   put:
- *     summary: Cập nhật cấu hình AI
- *     tags: [AI Assistant]
- *     security:
- *       - bearerAuth: []
- */
+
 router.put('/configs/:id', [
   param('id').isInt().withMessage('Config ID phải là số nguyên'),
   body('model_name').optional().notEmpty().withMessage('Model name không được rỗng'),
@@ -335,15 +261,7 @@ router.put('/configs/:id', [
   }
 });
 
-/**
- * @swagger
- * /api/ai-assistant/configs/{id}:
- *   delete:
- *     summary: Xóa cấu hình AI
- *     tags: [AI Assistant]
- *     security:
- *       - bearerAuth: []
- */
+
 router.delete('/configs/:id', [
   param('id').isInt().withMessage('Config ID phải là số nguyên')
 ], requireAuth, async (req, res) => {
@@ -396,15 +314,7 @@ router.delete('/configs/:id', [
   }
 });
 
-/**
- * @swagger
- * /api/ai-assistant/test-config:
- *   post:
- *     summary: Test kết nối AI config
- *     tags: [AI Assistant]
- *     security:
- *       - bearerAuth: []
- */
+
 router.post('/test-config', [
   body('config_id').isInt().withMessage('Config ID phải là số nguyên'),
   body('test_message').optional().isString().withMessage('Test message phải là string')

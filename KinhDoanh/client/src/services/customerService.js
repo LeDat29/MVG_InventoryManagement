@@ -8,13 +8,6 @@ class CustomerService {
   async getAuthHeaders(noCache = false) {
     const token = localStorage.getItem('token');
     
-    // Debug thông tin auth
-    if (!token) {
-      console.warn('⚠️ No token found in localStorage');
-    } else {
-      console.log('✅ Token found, length:', token.length);
-    }
-    
     const headers = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
@@ -32,19 +25,12 @@ class CustomerService {
     const data = await response.json();
     
     if (!response.ok) {
-      // Debug thông tin chi tiết về lỗi
-      console.error('❌ CustomerService API Error:');
-      console.error('  Status:', response.status);
-      console.error('  Status Text:', response.statusText);
-      console.error('  Response Data:', data);
-      
-      // Kiểm tra lỗi validation cụ thể
-      if (response.status === 400 && data.errors) {
-        console.error('  Validation Errors:');
-        data.errors.forEach(err => {
-          console.error(`    - ${err.path || err.param}: ${err.msg}`);
-        });
-      }
+      // Log lỗi chi tiết cho debugging
+      console.error('CustomerService API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        data
+      });
       
       throw new Error(data.message || `HTTP error! status: ${response.status}`);
     }

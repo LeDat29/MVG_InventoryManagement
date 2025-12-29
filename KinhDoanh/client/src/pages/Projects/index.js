@@ -60,7 +60,6 @@ function Projects() {
     fetchProjects();
   }, [showError]);
 
-  // Filter projects based on search and filters
   useEffect(() => {
     let filtered = projects;
 

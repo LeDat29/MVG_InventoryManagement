@@ -6,35 +6,31 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button, Nav, Tab } from 'react-bootstrap';
-// import { useAuth } from '../../contexts/AuthContext';
 import PersonalInfoTab from './PersonalInfoTab';
 import CompanyInfoTab from './CompanyInfoTab';
 
 function CustomerFormTabs({ customer = null, onSave, onCancel, isLoading = false }) {
-  // const { hasPermission } = useAuth();
   
   const [activeTab, setActiveTab] = useState('personal');
   const [formData, setFormData] = useState({
-    // Tab 1: Thông tin cá nhân cơ bản
     personal: {
       customer_code: '',
-      customer_type: 'individual', // 'individual' hoặc 'company'
-      full_name: '', // Họ tên đầy đủ
+      customer_type: 'individual',
+      full_name: '',
       phone: '',
       email: '',
       address: '',
-      id_number: '', // CMND/CCCD
+      id_number: '',
       notes: ''
     },
-    // Tab 2: Thông tin công ty (một cá nhân có thể có nhiều công ty)
     companies: [
       {
         id: null,
         tax_code: '',
         company_name: '',
         invoice_address: '',
-        warehouse_purpose: '', // Mục đích sử dụng kho
-        is_primary: true // Công ty chính
+        warehouse_purpose: '',
+        is_primary: true
       }
     ]
   });
@@ -42,7 +38,6 @@ function CustomerFormTabs({ customer = null, onSave, onCancel, isLoading = false
   const [errors] = useState({});
   const [touched] = useState({});
 
-  // Generate customer code based on type
   const generateCustomerCode = () => {
     const prefix = formData.personal.customer_type === 'individual' ? 'CN' : 'DN';
     const timestamp = Date.now().toString();
@@ -59,40 +54,31 @@ function CustomerFormTabs({ customer = null, onSave, onCancel, isLoading = false
     }));
   };
 
-  // Helper function to safely format dates
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
     try {
-      // Handle both ISO format and already formatted dates
       if (dateString.includes('T')) {
         return dateString.split('T')[0];
       }
       if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-        return dateString; // Already in correct format
+        return dateString;
       }
-      // Try to parse and format
       const date = new Date(dateString);
       if (!isNaN(date.getTime())) {
         return date.toISOString().split('T')[0];
       }
       return '';
     } catch (error) {
-      console.warn('Date formatting error:', error, 'for date:', dateString);
       return '';
     }
   };
 
-  // Load customer data nếu đang edit
   useEffect(() => {
     if (customer) {
-      console.log('🔍 Loading customer data for edit:', customer);
-      
-      // Map database customer object to form tabs structure
       setFormData({
         personal: {
           customer_code: customer.customer_code || '',
           customer_type: customer.customer_type || 'individual',
-          // Map from database fields - ensure correct mapping
           full_name: customer.representative_name || customer.name || '',
           phone: customer.phone || '',
           email: customer.email || '',
@@ -112,10 +98,6 @@ function CustomerFormTabs({ customer = null, onSave, onCancel, isLoading = false
           }
         ]
       });
-      
-      console.log('✅ Form data populated for customer:', customer.customer_code);
-    } else {
-      console.log('🆕 Creating new customer - using default form structure');
     }
   }, [customer]);
 
@@ -138,7 +120,6 @@ function CustomerFormTabs({ customer = null, onSave, onCancel, isLoading = false
           </Nav.Item>
         </Nav>
 
-        {/* Tab Content */}
         <Tab.Content>
           {/* Tab 1: Thông tin cá nhân cơ bản */}
           <Tab.Pane eventKey="personal">

@@ -63,24 +63,6 @@ const upload = multer({
     }
 });
 
-/**
- * @swagger
- * /api/documents/categories:
- *   get:
- *     summary: Lấy danh sách danh mục hồ sơ
- *     tags: [Documents]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: category_type
- *         schema:
- *           type: string
- *           enum: [project, customer, contract, task]
- *     responses:
- *       200:
- *         description: Danh sách danh mục hồ sơ
- */
 router.get('/categories', catchAsync(async (req, res) => {
     const categoryType = req.query.category_type;
     
@@ -107,41 +89,6 @@ router.get('/categories', catchAsync(async (req, res) => {
     });
 }));
 
-/**
- * @swagger
- * /api/documents/categories:
- *   post:
- *     summary: Tạo danh mục hồ sơ mới
- *     tags: [Documents]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - category_code
- *               - category_name
- *               - category_type
- *             properties:
- *               category_code:
- *                 type: string
- *               category_name:
- *                 type: string
- *               category_type:
- *                 type: string
- *                 enum: [project, customer, contract, task]
- *               description:
- *                 type: string
- *               required_fields:
- *                 type: array
- *                 items:
- *                   type: string
- *               is_required:
- *                 type: boolean
- */
 router.post('/categories', requirePermission('document_category_create'), [
     body('category_code').trim().notEmpty().withMessage('Mã danh mục là bắt buộc'),
     body('category_name').trim().notEmpty().withMessage('Tên danh mục là bắt buộc'),
@@ -195,43 +142,6 @@ router.post('/categories', requirePermission('document_category_create'), [
     });
 }));
 
-/**
- * @swagger
- * /api/documents/upload:
- *   post:
- *     summary: Upload file tài liệu
- *     tags: [Documents]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             required:
- *               - files
- *               - resource_type
- *               - resource_id
- *             properties:
- *               files:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: binary
- *               resource_type:
- *                 type: string
- *                 enum: [project, customer, contract, task]
- *               resource_id:
- *                 type: integer
- *               category_id:
- *                 type: integer
- *               description:
- *                 type: string
- *     responses:
- *       200:
- *         description: Upload thành công
- */
 // Ensure backing table exists
 async function ensureDocumentFilesTable() {
     const pool = mysqlPool();
@@ -338,32 +248,6 @@ router.post('/upload', uploadLimiter, requirePermission('document_upload'), uplo
     res.json({ success: true, message: `Upload thành công ${uploaded.length} file(s)`, data: { files: uploaded } });
 }));
 
-/**
- * @swagger
- * /api/documents:
- *   get:
- *     summary: Lấy danh sách tài liệu
- *     tags: [Documents]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: resource_type
- *         schema:
- *           type: string
- *           enum: [project, customer, contract, task]
- *       - in: query
- *         name: resource_id
- *         schema:
- *           type: integer
- *       - in: query
- *         name: category_id
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Danh sách tài liệu
- */
 router.get('/', catchAsync(async (req, res) => {
     await ensureDocumentFilesTable();
     const { resource_type, resource_id, category_id } = req.query;
@@ -387,26 +271,6 @@ router.get('/', catchAsync(async (req, res) => {
     res.json({ success: true, data: { files: rows } });
 }));
 
-/**
- * @swagger
- * /api/documents/download/{fileId}:
- *   get:
- *     summary: Download file
- *     tags: [Documents]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: fileId
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: File được download
- *       404:
- *         description: File không tìm thấy
- */
 router.get('/download/:fileId', catchAsync(async (req, res) => {
     const { fileId } = req.params;
     const pool = mysqlPool();
@@ -465,18 +329,6 @@ router.delete('/:fileId', requirePermission('document_delete'), catchAsync(async
     res.json({ success: true, message: 'Xóa tài liệu thành công' });
 }));
 
-/**
- * @swagger
- * /api/documents/templates:
- *   get:
- *     summary: Lấy danh sách template hợp đồng
- *     tags: [Document Templates]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Danh sách templates
- */
 router.get('/templates', catchAsync(async (req, res) => {
     const mongoose = require('mongoose');
     
@@ -500,32 +352,6 @@ router.get('/templates', catchAsync(async (req, res) => {
     });
 }));
 
-/**
- * @swagger
- * /api/documents/generate-contract:
- *   post:
- *     summary: Tạo hợp đồng tự động từ template
- *     tags: [Document Templates]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - template_id
- *               - contract_id
- *             properties:
- *               template_id:
- *                 type: string
- *               contract_id:
- *                 type: integer
- *     responses:
- *       200:
- *         description: Hợp đồng được tạo thành công
- */
 router.post('/generate-contract', requirePermission('contract_generate'), [
     body('template_id').notEmpty().withMessage('Template ID là bắt buộc'),
     body('contract_id').isInt().withMessage('Contract ID phải là số nguyên')

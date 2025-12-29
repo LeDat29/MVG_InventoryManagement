@@ -1,96 +1,6 @@
-/**
- * Authentication Routes - KHO MVG
- * Các route xử lý đăng nhập, đăng ký, quản lý tài khoản
- * 
- * @description Routes cho authentication system với logging đầy đủ
- */
 
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { body, validationResult } = require('express-validator');
-const { mysqlPool } = require('../config/database');
-const { logger, logUserActivity, logSecurityEvent } = require('../config/logger');
-const { authLimiter } = require('../middleware/rateLimiter');
-const { catchAsync, AppError } = require('../middleware/errorHandler');
-const { authenticateToken, requireRole } = require('../middleware/auth');
 
-const router = express.Router();
 
-/**
- * @swagger
- * components:
- *   schemas:
- *     LoginRequest:
- *       type: object
- *       required:
- *         - username
- *         - password
- *       properties:
- *         username:
- *           type: string
- *           description: Tên đăng nhập hoặc email
- *         password:
- *           type: string
- *           description: Mật khẩu
- *     User:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *         username:
- *           type: string
- *         email:
- *           type: string
- *         full_name:
- *           type: string
- *         role:
- *           type: string
- *           enum: [admin, manager, staff, viewer]
- *         permissions:
- *           type: array
- *           items:
- *             type: string
- */
-
-/**
- * @swagger
- * /api/auth/login:
- *   post:
- *     summary: Đăng nhập vào hệ thống
- *     tags: [Authentication]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/LoginRequest'
- *     responses:
- *       200:
- *         description: Đăng nhập thành công
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *                 data:
- *                   type: object
- *                   properties:
- *                     user:
- *                       $ref: '#/components/schemas/User'
- *                     token:
- *                       type: string
- *                     refreshToken:
- *                       type: string
- *       401:
- *         description: Thông tin đăng nhập không đúng
- *       429:
- *         description: Quá nhiều lần đăng nhập thất bại
- */
 router.post('/login', authLimiter, [
     body('username').trim().notEmpty().withMessage('Username/Email là bắt buộc'),
     body('password').notEmpty().withMessage('Password là bắt buộc')
@@ -208,108 +118,7 @@ router.post('/login', authLimiter, [
     });
 }));
 
-    /**
-     * Development helper: dev-login
-     * POST /api/auth/dev-login
-     * Enable by setting ENABLE_DEV_AUTH=true in environment (or when NODE_ENV !== 'production')
-     * Body: { userId } or { username }
-     */
-    router.post('/dev-login', catchAsync(async (req, res) => {
-        const devAuthEnabled = process.env.ENABLE_DEV_AUTH === 'true' || process.env.NODE_ENV !== 'production';
-        if (!devAuthEnabled) {
-            return res.status(404).json({ success: false, message: 'Not found' });
-        }
-
-        const { userId, username } = req.body || {};
-        if (!userId && !username) {
-            return res.status(400).json({ success: false, message: 'Provide userId or username for dev-login' });
-        }
-
-        const pool = mysqlPool();
-        let usersResult;
-        if (userId) {
-            [usersResult] = await pool.execute('SELECT * FROM users WHERE id = ? AND is_active = TRUE', [userId]);
-        } else {
-            [usersResult] = await pool.execute('SELECT * FROM users WHERE (username = ? OR email = ?) AND is_active = TRUE', [username, username]);
-        }
-
-        if (!usersResult || usersResult.length === 0) {
-            return res.status(404).json({ success: false, message: 'User not found' });
-        }
-
-        const user = usersResult[0];
-
-        // Generate tokens (no password required in dev)
-        const tokenPayload = {
-            userId: user.id,
-            username: user.username,
-            role: user.role
-        };
-
-        const token = jwt.sign(tokenPayload, process.env.JWT_SECRET || 'devsecret', {
-            expiresIn: process.env.JWT_EXPIRES_IN || '7d'
-        });
-
-        const refreshToken = jwt.sign(tokenPayload, process.env.JWT_REFRESH_SECRET || 'devrefresh', {
-            expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d'
-        });
-
-        // Optionally update last_login for dev user
-        try {
-            await pool.execute('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
-        } catch (e) {
-            // ignore update errors in dev helper
-        }
-
-        // Log dev-login event
-        try {
-            await logUserActivity(
-                user.id,
-                'DEV_LOGIN',
-                'system',
-                user.id,
-                req.ip,
-                req.get('User-Agent'),
-                { devLogin: true }
-            );
-        } catch (e) {
-            // ignore logging errors
-        }
-
-        const userData = {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            full_name: user.full_name,
-            phone: user.phone,
-            role: user.role,
-            permissions: Array.isArray(user.permissions) ? user.permissions : (user.permissions ? JSON.parse(user.permissions) : []),
-            last_login: user.last_login
-        };
-
-        res.json({
-            success: true,
-            message: 'Dev login success',
-            data: {
-                user: userData,
-                token,
-                refreshToken
-            }
-        });
-    }));
-
-/**
- * @swagger
- * /api/auth/logout:
- *   post:
- *     summary: Đăng xuất khỏi hệ thống
- *     tags: [Authentication]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Đăng xuất thành công
- */
+    
 router.post('/logout', authenticateToken, catchAsync(async (req, res) => {
     // Log logout activity
     await logUserActivity(
@@ -328,27 +137,7 @@ router.post('/logout', authenticateToken, catchAsync(async (req, res) => {
     });
 }));
 
-/**
- * @swagger
- * /api/auth/refresh:
- *   post:
- *     summary: Refresh JWT token
- *     tags: [Authentication]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - refreshToken
- *             properties:
- *               refreshToken:
- *                 type: string
- *     responses:
- *       200:
- *         description: Token được refresh thành công
- */
+
 router.post('/refresh', catchAsync(async (req, res) => {
     const { refreshToken } = req.body;
 
@@ -410,18 +199,7 @@ router.post('/refresh', catchAsync(async (req, res) => {
     }
 }));
 
-/**
- * @swagger
- * /api/auth/profile:
- *   get:
- *     summary: Lấy thông tin profile của user hiện tại
- *     tags: [Authentication]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Thông tin profile
- */
+
 router.get('/profile', authenticateToken, catchAsync(async (req, res) => {
     const pool = mysqlPool();
     const [users] = await pool.execute(
@@ -445,30 +223,7 @@ router.get('/profile', authenticateToken, catchAsync(async (req, res) => {
     });
 }));
 
-/**
- * @swagger
- * /api/auth/change-password:
- *   post:
- *     summary: Đổi mật khẩu
- *     tags: [Authentication]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - currentPassword
- *               - newPassword
- *             properties:
- *               currentPassword:
- *                 type: string
- *               newPassword:
- *                 type: string
- *                 minLength: 6
- */
+
 router.post('/change-password', authenticateToken, [
     body('currentPassword').notEmpty().withMessage('Mật khẩu hiện tại là bắt buộc'),
     body('newPassword').isLength({ min: 6 }).withMessage('Mật khẩu mới phải có ít nhất 6 ký tự')
@@ -546,37 +301,7 @@ router.post('/change-password', authenticateToken, [
     });
 }));
 
-/**
- * @swagger
- * /api/auth/users:
- *   get:
- *     summary: Lấy danh sách users (Admin only)
- *     tags: [User Management]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 20
- *       - in: query
- *         name: role
- *         schema:
- *           type: string
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Danh sách users
- */
+
 router.get('/users', authenticateToken, requireRole(['admin', 'manager']), catchAsync(async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;

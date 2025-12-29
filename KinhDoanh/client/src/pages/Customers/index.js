@@ -36,7 +36,6 @@ function Customers() {
     credit_rating: ''
   });
 
-  // Load customers from API
   const loadCustomers = useCallback(async (page = 1) => {
     try {
       setLoading(true);
@@ -46,7 +45,6 @@ function Customers() {
         ...filters
       };
 
-      // Remove empty filters
       Object.keys(params).forEach(key => {
         if (!params[key]) delete params[key];
       });
@@ -57,8 +55,7 @@ function Customers() {
       setFilteredCustomers(response.data.customers);
       setPagination(response.data.pagination);
     } catch (error) {
-      // showError('Không thể tải danh sách khách hàng: ' + error.message);
-      console.warn('Customer loading error:', error.message);
+      console.error('Customer loading error:', error.message);
     } finally {
       setLoading(false);
     }
@@ -74,9 +71,7 @@ function Customers() {
     loadCustomers(pagination.page);
   }, []);
 
-  // Handle filter changes
   useEffect(() => {
-    // Debounce search to avoid too many API calls
     const timeoutId = setTimeout(() => {
       if (pagination.page === 1) {
         loadCustomers(1);
@@ -142,25 +137,19 @@ function Customers() {
     
     try {
       setFormLoading(true);
-      console.log('🔍 Loading full customer data including contracts...');
       
-      // Load full customer data with contracts from API
       const fullCustomerData = await customerService.getCustomer(customer.id);
-      console.log('✅ Full customer data loaded:', fullCustomerData.data);
       
-      // Merge customer info with contracts data
       const customerWithContracts = {
-        ...fullCustomerData.data.customer,  // Customer personal/company info
-        contracts: fullCustomerData.data.contracts || [],  // Contracts array
+        ...fullCustomerData.data.customer,
+        contracts: fullCustomerData.data.contracts || [],
         statistics: fullCustomerData.data.statistics
       };
       
-      console.log('✅ Merged customer data for form:', customerWithContracts);
       setEditingCustomer(customerWithContracts);
       setShowEditModal(true);
     } catch (error) {
-      console.error('❌ Failed to load customer details:', error);
-      // Fallback to using basic customer data if API fails
+      console.error('Failed to load customer details:', error);
       setEditingCustomer(customer);
       setShowEditModal(true);
     } finally {
@@ -185,27 +174,16 @@ function Customers() {
     }
   };
 
-  // Transform form data to API format
   const transformFormDataToAPI = (formData) => {
-    console.log('🔍 Raw form data received:', formData);
-    
-    // Safety checks for form data structure
     if (!formData || typeof formData !== 'object') {
-      console.error('❌ Invalid form data structure:', formData);
+      console.error('Invalid form data structure:', formData);
       throw new Error('Invalid form data received');
     }
     
     const { personal = {}, companies = [] } = formData;
     const primaryCompany = companies[0] || {};
     
-    console.log('📋 Form data breakdown:', {
-      personal,
-      primaryCompany,
-      companiesLength: companies.length
-    });
-    
     const apiData = {
-      // Map from personal tab
       name: primaryCompany.company_name || personal.full_name || '',
       full_name: personal.full_name || '',
       representative_name: personal.full_name || '',
@@ -216,28 +194,14 @@ function Customers() {
       notes: personal.notes || '',
       id_number: personal.id_number || '',
       warehouse_purpose: primaryCompany.warehouse_purpose || '',
-      
-      // Map from company tab  
       tax_code: primaryCompany.tax_code || '',
       representative_phone: personal.phone || '', 
-      representative_email: personal.email || ''
+      representative_email: personal.email || '',
+      companies: companies.filter(c => c.tax_code && c.company_name && c.invoice_address)
     };
     
-    console.log('📊 Field mapping details:');
-    console.log('  personal.full_name →', apiData.full_name, '& representative_name →', apiData.representative_name);
-    console.log('  personal.id_number →', apiData.id_number);
-    console.log('  personal.phone →', apiData.phone);
-    console.log('  personal.email →', apiData.email);
-    console.log('  personal.address →', apiData.address);
-    console.log('  primaryCompany.company_name →', apiData.name);
-    console.log('  primaryCompany.warehouse_purpose →', apiData.warehouse_purpose);
-    console.log('  primaryCompany.tax_code →', apiData.tax_code);
-    
-    console.log('✅ Transformed API data:', apiData);
-    
-    // Validation checks
     if (!apiData.representative_name || !apiData.phone) {
-      console.error('❌ Missing required fields:', {
+      console.error('Missing required fields:', {
         representative_name: apiData.representative_name,
         phone: apiData.phone
       });
@@ -251,40 +215,27 @@ function Customers() {
     try {
       setFormLoading(true);
       
-      // Transform the nested form data to flat API format
       const apiData = transformFormDataToAPI(customerData);
-      console.log('Transformed customer data:', apiData);
       
       if (editingCustomer) {
         await customerService.updateCustomer(editingCustomer.id, apiData);
         showSuccess('Cập nhật khách hàng thành công');
         setShowEditModal(false);
-        
-        // Force reload customer data to show updated info
-        console.log('🔄 Reloading customers list after update...');
         await loadCustomers(pagination.page);
-        console.log('✅ Customers list reloaded successfully');
       } else {
         await customerService.createCustomer(apiData);
         showSuccess('Tạo khách hàng mới thành công');
         setShowCreateModal(false);
-        
-        // Reload list to show new customer
         await loadCustomers(pagination.page);
       }
       
       setEditingCustomer(null);
     } catch (error) {
-      throw error; // Let the form handle the error
+      throw error;
     } finally {
       setFormLoading(false);
     }
   };
-
-  // const handlePageChange = (newPage) => {
-  //   setPagination(prev => ({ ...prev, page: newPage }));
-  //   loadCustomers(newPage);
-  // };
 
   const totalRevenue = customers.reduce((sum, customer) => sum + customer.monthly_revenue, 0);
   const activeCustomers = customers.filter(c => c.active_contracts > 0).length;

@@ -90,7 +90,6 @@ function ProjectDetail() {
   }, [id, showNotification]);
 
   useEffect(() => {
-    // Fetch uploaded documents for this project
     const fetchDocuments = async () => {
       try {
         const resp = await axios.get('/api/documents', { params: { resource_type: 'project', resource_id: id } });
@@ -214,7 +213,6 @@ function ProjectDetail() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       if (resp.data && resp.data.success) {
-        // The server returns list of uploaded files metadata
         const uploaded = resp.data.data.files.map(f => ({
           id: f.id || f._id,
           name: f.originalname || f.filename,

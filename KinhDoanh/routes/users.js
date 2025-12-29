@@ -8,76 +8,9 @@ const { requireRole, requirePermission } = require('../middleware/auth');
 
 const router = express.Router();
 
-/**
- * @swagger
- * components:
- *   schemas:
- *     UserPermissions:
- *       type: object
- *       properties:
- *         system_permissions:
- *           type: array
- *           items:
- *             type: string
- *         project_permissions:
- *           type: object
- *           description: "Quyền theo từng dự án (format: project_id -> array of permissions)"
- *         ai_api_configs:
- *           type: array
- *           items:
- *             type: object
- *             properties:
- *               provider:
- *                 type: string
- *                 enum: [openai, gemini, copilot, claude]
- *               api_key:
- *                 type: string
- *               model:
- *                 type: string
- *               cost_per_1k_tokens:
- *                 type: number
- *               is_active:
- *                 type: boolean
- *               priority:
- *                 type: integer
- *     
- *     UserActivityLog:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *         user_id:
- *           type: integer
- *         action:
- *           type: string
- *         resource_type:
- *           type: string
- *         resource_id:
- *           type: integer
- *         details:
- *           type: object
- *         ip_address:
- *           type: string
- *         user_agent:
- *           type: string
- *         is_ai_assisted:
- *           type: boolean
- *         ai_session_id:
- *           type: string
- *         created_at:
- *           type: string
- *           format: date-time
- */
 
-/**
- * @swagger
- * /api/users:
- *   get:
- *     summary: Lấy danh sách người dùng với phân quyền chi tiết
- *     tags: [User Management]
- *     security:
- *       - bearerAuth: []
- */
+
+
 router.get('/', requireRole(['admin', 'manager']), catchAsync(async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
@@ -148,12 +81,7 @@ router.get('/', requireRole(['admin', 'manager']), catchAsync(async (req, res) =
     }
 }));
 
-/**
- * @swagger
- * /api/users/{id}:
- *   get:
- *     summary: Lấy chi tiết người dùng với quyền hạn đầy đủ
- */
+
 router.get('/:id', [
     param('id').isInt().withMessage('User ID phải là số nguyên')
 ], requirePermission('user_view'), catchAsync(async (req, res) => {
@@ -242,12 +170,7 @@ router.get('/:id', [
     }
 }));
 
-/**
- * @swagger
- * /api/users:
- *   post:
- *     summary: Tạo người dùng mới
- */
+
 router.post('/', requirePermission('user_create'), [
     body('username').trim().isLength({ min: 3 }).withMessage('Username phải có ít nhất 3 ký tự'),
     body('email').isEmail().withMessage('Email không hợp lệ'),
@@ -317,15 +240,7 @@ router.post('/', requirePermission('user_create'), [
     }
 }));
 
-/**
- * @swagger
- * /api/users/{id}/permissions:
- *   put:
- *     summary: Cập nhật quyền hệ thống của người dùng
- *     tags: [User Management]
- *     security:
- *       - bearerAuth: []
- */
+
 router.put('/:id/permissions', [
     param('id').isInt().withMessage('User ID phải là số nguyên'),
     body('permissions').isArray().withMessage('Permissions phải là array')
@@ -368,12 +283,7 @@ router.put('/:id/permissions', [
     }
 }));
 
-/**
- * @swagger
- * /api/users/{id}/project-permissions:
- *   post:
- *     summary: Gán quyền cho người dùng theo dự án cụ thể
- */
+
 router.post('/:id/project-permissions', [
     param('id').isInt().withMessage('User ID phải là số nguyên'),
     body('project_id').isInt().withMessage('Project ID phải là số nguyên'),
@@ -418,12 +328,7 @@ router.post('/:id/project-permissions', [
     });
 }));
 
-/**
- * @swagger
- * /api/users/{id}/ai-configs:
- *   get:
- *     summary: Lấy cấu hình AI của người dùng
- */
+
 router.get('/:id/ai-configs', requirePermission('user_ai_manage'), catchAsync(async (req, res) => {
     const userId = req.params.id;
     const pool = mysqlPool();
@@ -442,12 +347,7 @@ router.get('/:id/ai-configs', requirePermission('user_ai_manage'), catchAsync(as
     });
 }));
 
-/**
- * @swagger
- * /api/users/{id}/ai-configs:
- *   post:
- *     summary: Thêm cấu hình AI cho người dùng
- */
+
 router.post('/:id/ai-configs', [
     body('provider').isIn(['openai', 'gemini', 'copilot', 'claude']).withMessage('Provider không hợp lệ'),
     body('api_key').notEmpty().withMessage('API key là bắt buộc'),
@@ -489,12 +389,7 @@ router.post('/:id/ai-configs', [
     });
 }));
 
-/**
- * @swagger
- * /api/users/activity-logs:
- *   get:
- *     summary: Lấy lịch sử hoạt động của tất cả users (Admin only)
- */
+
 router.get('/activity-logs', requireRole(['admin']), catchAsync(async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 50;
@@ -576,12 +471,7 @@ router.get('/activity-logs', requireRole(['admin']), catchAsync(async (req, res)
     });
 }));
 
-/**
- * @swagger
- * /api/users/{id}/activity-logs:
- *   get:
- *     summary: Lấy lịch sử hoạt động của người dùng cụ thể
- */
+
 router.get('/:id/activity-logs', [
     param('id').isInt().withMessage('User ID phải là số nguyên')
 ], requirePermission('user_logs_view'), catchAsync(async (req, res) => {
@@ -621,15 +511,7 @@ router.get('/:id/activity-logs', [
     });
 }));
 
-/**
- * @swagger
- * /api/users/{id}/deactivate:
- *   put:
- *     summary: Vô hiệu hóa người dùng (Deactivate user)
- *     tags: [User Management]
- *     security:
- *       - bearerAuth: []
- */
+
 router.put('/:id/deactivate', [
     param('id').isInt().withMessage('User ID phải là số nguyên')
 ], requirePermission('user_delete'), catchAsync(async (req, res) => {
@@ -678,15 +560,7 @@ router.put('/:id/deactivate', [
     }
 }));
 
-/**
- * @swagger
- * /api/users/{id}/activate:
- *   put:
- *     summary: Khôi phục/Kích hoạt người dùng (Activate user)
- *     tags: [User Management]
- *     security:
- *       - bearerAuth: []
- */
+
 router.put('/:id/activate', [
     param('id').isInt().withMessage('User ID phải là số nguyên')
 ], requirePermission('user_delete'), catchAsync(async (req, res) => {

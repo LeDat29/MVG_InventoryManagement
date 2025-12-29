@@ -1,96 +1,4 @@
-/**
- * API Documentation Routes - KHO MVG
- * Tự động tạo và quản lý tài liệu API
- * 
- * @description Routes cho hệ thống documentation:
- * - Swagger UI cho API docs
- * - Trang quản lý chức năng
- * - Hướng dẫn sử dụng API
- * - Auto-update documentation
- */
 
-const express = require('express');
-const swaggerJSDoc = require('swagger-jsdoc');
-const swaggerUi = require('swagger-ui-express');
-const { mysqlPool } = require('../config/database');
-const { logger, logUserActivity } = require('../config/logger');
-const { catchAsync } = require('../middleware/errorHandler');
-const { optionalAuth } = require('../middleware/auth');
-
-const router = express.Router();
-
-// Swagger configuration
-const swaggerOptions = {
-    definition: {
-        openapi: '3.0.0',
-        info: {
-            title: 'KHO MVG Management API',
-            version: '1.0.0',
-            description: 'Hệ thống quản lý hỗ trợ kinh doanh các dự án kho xưởng',
-            contact: {
-                name: 'KHO MVG Team',
-                email: 'admin@kho-mvg.com'
-            }
-        },
-        servers: [
-            {
-                url: process.env.NODE_ENV === 'production' ? 'https://your-domain.com' : 'http://localhost:5000',
-                description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server'
-            }
-        ],
-        components: {
-            securitySchemes: {
-                bearerAuth: {
-                    type: 'http',
-                    scheme: 'bearer',
-                    bearerFormat: 'JWT'
-                }
-            }
-        }
-    },
-    apis: ['./routes/*.js', './server.js'] // Paths to files containing OpenAPI definitions
-};
-
-const swaggerSpec = swaggerJSDoc(swaggerOptions);
-
-/**
- * Swagger UI setup với customization
- */
-const swaggerUIOptions = {
-    explorer: true,
-    customCss: `
-        .swagger-ui .topbar { display: none }
-        .swagger-ui .info .title { color: #2c3e50; font-size: 2em; }
-        .swagger-ui .scheme-container { background: #f8f9fa; padding: 20px; border-radius: 5px; }
-    `,
-    customSiteTitle: 'KHO MVG API Documentation',
-    customfavIcon: '/favicon.ico'
-};
-
-/**
- * Serve Swagger UI
- */
-router.use('/swagger', swaggerUi.serve);
-router.get('/swagger', swaggerUi.setup(swaggerSpec, swaggerUIOptions));
-
-/**
- * API JSON endpoint
- */
-router.get('/swagger.json', (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.send(swaggerSpec);
-});
-
-/**
- * @swagger
- * /api/docs:
- *   get:
- *     summary: Trang chính API Documentation
- *     tags: [Documentation]
- *     responses:
- *       200:
- *         description: Trang documentation
- */
 router.get('/', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -224,16 +132,7 @@ router.get('/', (req, res) => {
     `);
 });
 
-/**
- * @swagger
- * /api/docs/functions:
- *   get:
- *     summary: Trang quản lý chức năng hệ thống
- *     tags: [Documentation]
- *     responses:
- *       200:
- *         description: Trang quản lý chức năng
- */
+
 router.get('/functions', optionalAuth, catchAsync(async (req, res) => {
     // Lấy thông tin các chức năng từ database và routes
     const functions = [

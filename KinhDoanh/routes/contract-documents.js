@@ -1,26 +1,4 @@
-/**
- * Contract Documents Routes - KHO MVG
- * Quản lý tài liệu hợp đồng và version control
- */
 
-const express = require('express');
-const { body, param, query, validationResult } = require('express-validator');
-const { requireAuth, requirePermission } = require('../middleware/auth');
-const { mysqlPool } = require('../config/database');
-const { logUserActivity } = require('../utils/activityLogger');
-const { catchAsync } = require('../utils/errorHandler');
-
-const router = express.Router();
-
-// Apply authentication middleware
-router.use(requireAuth);
-
-/**
- * @swagger
- * /api/contract-documents/categories:
- *   get:
- *     summary: Lấy danh sách danh mục tài liệu
- */
 router.get('/categories', requirePermission('contract_read'), catchAsync(async (req, res) => {
     const pool = mysqlPool();
 
@@ -61,12 +39,7 @@ router.get('/categories', requirePermission('contract_read'), catchAsync(async (
     });
 }));
 
-/**
- * @swagger
- * /api/contract-documents/{contract_id}:
- *   get:
- *     summary: Lấy tài liệu của hợp đồng
- */
+
 router.get('/:contract_id', requirePermission('contract_read'), [
     param('contract_id').isInt().withMessage('Contract ID phải là số nguyên')
 ], catchAsync(async (req, res) => {
@@ -147,12 +120,7 @@ router.get('/:contract_id', requirePermission('contract_read'), [
     });
 }));
 
-/**
- * @swagger
- * /api/contract-documents/document/{id}:
- *   get:
- *     summary: Lấy chi tiết tài liệu
- */
+
 router.get('/document/:id', requirePermission('contract_read'), [
     param('id').isInt().withMessage('Document ID phải là số nguyên')
 ], catchAsync(async (req, res) => {
@@ -222,12 +190,7 @@ router.get('/document/:id', requirePermission('contract_read'), [
     });
 }));
 
-/**
- * @swagger
- * /api/contract-documents:
- *   post:
- *     summary: Tạo tài liệu mới
- */
+
 router.post('/', requirePermission('contract_create'), [
     body('contract_id').isInt().withMessage('Contract ID phải là số nguyên'),
     body('category_id').isInt().withMessage('Category ID phải là số nguyên'),
@@ -324,12 +287,7 @@ router.post('/', requirePermission('contract_create'), [
     });
 }));
 
-/**
- * @swagger
- * /api/contract-documents/{id}:
- *   put:
- *     summary: Cập nhật tài liệu
- */
+
 router.put('/:id', requirePermission('contract_update'), [
     param('id').isInt().withMessage('Document ID phải là số nguyên'),
     body('document_name').optional().trim().notEmpty().withMessage('Tên tài liệu không được trống'),
@@ -429,12 +387,7 @@ router.put('/:id', requirePermission('contract_update'), [
     });
 }));
 
-/**
- * @swagger
- * /api/contract-documents/{id}/create-version:
- *   post:
- *     summary: Tạo phiên bản mới của tài liệu
- */
+
 router.post('/:id/create-version', requirePermission('contract_update'), [
     param('id').isInt().withMessage('Document ID phải là số nguyên'),
     body('comment').optional().isString().withMessage('Comment phải là string')

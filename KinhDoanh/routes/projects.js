@@ -1,215 +1,6 @@
-/**
- * Project Routes - KHO MVG
- * Quản lý các dự án kho xưởng
- * 
- * @description Routes cho phân hệ quản lý dự án:
- * - CRUD thông tin dự án
- * - Quản lý vị trí Google Maps
- * - Quản lý zones kho bên trong
- * - Import/Export bản vẽ
- * - Quản lý công việc định kỳ
- */
 
-const express = require('express');
-const { body, validationResult, param, query } = require('express-validator');
-const multer = require('multer');
-const path = require('path');
-const { mysqlPool } = require('../config/database');
-const { logger, logUserActivity } = require('../config/logger');
-const { catchAsync, AppError } = require('../middleware/errorHandler');
-const { requireRole, requirePermission, requireResourceAccess } = require('../middleware/auth');
-const { uploadLimiter } = require('../middleware/rateLimiter');
 
-const router = express.Router();
 
-// File upload configuration
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/projects/');
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
-    }
-});
-
-const upload = multer({
-    storage,
-    limits: {
-        fileSize: 10 * 1024 * 1024, // 10MB
-        files: 5
-    },
-    fileFilter: (req, file, cb) => {
-        const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf', 'image/dwg'];
-        if (allowedTypes.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new AppError('Loại file không được hỗ trợ', 400), false);
-        }
-    }
-});
-
-/**
- * @swagger
- * components:
- *   schemas:
- *     Project:
- *       type: object
- *       required:
- *         - name
- *         - code
- *         - address
- *       properties:
- *         id:
- *           type: integer
- *         name:
- *           type: string
- *           description: Tên dự án
- *         code:
- *           type: string
- *           description: Mã dự án (unique)
- *         description:
- *           type: string
- *           description: Mô tả dự án
- *         address:
- *           type: string
- *           description: Địa chỉ dự án
- *         province:
- *           type: string
- *         district:
- *           type: string
- *         ward:
- *           type: string
- *         latitude:
- *           type: number
- *           format: float
- *         longitude:
- *           type: number
- *           format: float
- *         total_area:
- *           type: number
- *           format: float
- *           description: Diện tích tổng (m²)
- *         used_area:
- *           type: number
- *           format: float
- *           description: Diện tích đã sử dụng (m²)
- *         available_area:
- *           type: number
- *           format: float
- *           description: Diện tích còn trống (m²)
- *         fixed_area:
- *           type: number
- *           format: float
- *           description: Diện tích cố định (m²)
- *         status:
- *           type: string
- *           enum: [planning, construction, operational, maintenance]
- *         owner_info:
- *           type: object
- *           description: Thông tin chủ sở hữu
- *         legal_documents:
- *           type: object
- *           description: Hồ sơ pháp lý
- *         map_data:
- *           type: object
- *           description: Dữ liệu Google Maps polygon
- *         warehouse_layout:
- *           type: object
- *           description: Layout các khu vực kho
- *     
- *     WarehouseZone:
- *       type: object
- *       required:
- *         - project_id
- *         - zone_code
- *         - area
- *       properties:
- *         id:
- *           type: integer
- *         project_id:
- *           type: integer
- *         zone_code:
- *           type: string
- *           description: Mã khu vực
- *         zone_name:
- *           type: string
- *           description: Tên khu vực
- *         area:
- *           type: number
- *           format: float
- *           description: Diện tích (m²)
- *         zone_type:
- *           type: string
- *           enum: [rental, fixed_service, common_area]
- *         status:
- *           type: string
- *           enum: [available, rented, deposited, maintenance]
- *           description: "available: chưa cho thuê (đỏ), rented: đã cho thuê (xanh), deposited: đã cọc (cam), maintenance: bảo trì (trắng)"
- *         rental_price:
- *           type: number
- *           format: float
- *         coordinates:
- *           type: object
- *           description: Tọa độ khu vực trên bản đồ
- *         facilities:
- *           type: object
- *           description: Tiện ích có sẵn
- */
-
-/**
- * @swagger
- * /api/projects:
- *   get:
- *     summary: Lấy danh sách dự án
- *     tags: [Projects]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 20
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [planning, construction, operational, maintenance]
- *       - in: query
- *         name: province
- *         schema:
- *           type: string
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *           description: Tìm kiếm theo tên hoặc mã dự án
- *     responses:
- *       200:
- *         description: Danh sách dự án
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: object
- *                   properties:
- *                     projects:
- *                       type: array
- *                       items:
- *                         $ref: '#/components/schemas/Project'
- *                     pagination:
- *                       type: object
- */
 router.get('/', catchAsync(async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
@@ -314,26 +105,7 @@ router.get('/', catchAsync(async (req, res) => {
     }
 }));
 
-/**
- * @swagger
- * /api/projects/{id}:
- *   get:
- *     summary: Lấy chi tiết dự án
- *     tags: [Projects]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Chi tiết dự án
- *       404:
- *         description: Dự án không tìm thấy
- */
+
 router.get('/:id', [
     param('id').isInt().withMessage('ID dự án phải là số nguyên')
 ], catchAsync(async (req, res) => {
@@ -440,28 +212,7 @@ router.get('/:id', [
     });
 }));
 
-/**
- * @swagger
- * /api/projects:
- *   post:
- *     summary: Tạo dự án mới
- *     tags: [Projects]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Project'
- *     responses:
- *       201:
- *         description: Tạo dự án thành công
- *       400:
- *         description: Dữ liệu không hợp lệ
- *       409:
- *         description: Mã dự án đã tồn tại
- */
+
 router.post('/', requirePermission('project_create'), [
     body('name').trim().notEmpty().withMessage('Tên dự án là bắt buộc'),
     body('code').trim().notEmpty().withMessage('Mã dự án là bắt buộc')
@@ -538,32 +289,7 @@ router.post('/', requirePermission('project_create'), [
     });
 }));
 
-/**
- * @swagger
- * /api/projects/{id}:
- *   put:
- *     summary: Cập nhật dự án
- *     tags: [Projects]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Project'
- *     responses:
- *       200:
- *         description: Cập nhật thành công
- *       404:
- *         description: Dự án không tìm thấy
- */
+
 router.put('/:id', [
     param('id').isInt().withMessage('ID dự án phải là số nguyên'),
     body('name').optional().trim().notEmpty().withMessage('Tên dự án không được rỗng'),

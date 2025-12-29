@@ -1,68 +1,6 @@
-/**
- * AI Assistant Routes - KHO MVG
- * Phân hệ 2.5 - Trợ lý AI Chat
- */
 
-const express = require('express');
-const { body, validationResult, param } = require('express-validator');
-const { v4: uuidv4 } = require('uuid');
-const crypto = require('crypto');
-const { mysqlPool } = require('../config/database');
-const { logger, logUserActivity } = require('../config/logger');
-const { catchAsync, AppError } = require('../middleware/errorHandler');
-const { authenticateToken } = require('../middleware/auth');
-const AIService = require('../services/AIService');
-const DatabaseService = require('../services/DatabaseService');
 
-const router = express.Router();
 
-/**
- * @swagger
- * components:
- *   schemas:
- *     ChatMessage:
- *       type: object
- *       properties:
- *         role:
- *           type: string
- *           enum: [user, assistant, system]
- *         content:
- *           type: string
- *         timestamp:
- *           type: string
- *           format: date-time
- *     
- *     ChatSession:
- *       type: object
- *       properties:
- *         session_id:
- *           type: string
- *         title:
- *           type: string
- *         ai_provider:
- *           type: string
- *         total_messages:
- *           type: integer
- *         total_cost:
- *           type: number
- *         status:
- *           type: string
- *           enum: [active, ended, error]
- */
-
-/**
- * 2.5.1 & 2.5.2 - Khởi tạo chat session với AI
- * @swagger
- * /api/ai/chat/start:
- *   post:
- *     summary: Bắt đầu phiên chat với AI assistant
- *     tags: [AI Assistant]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Session started successfully
- */
 router.post('/chat/start', authenticateToken, catchAsync(async (req, res) => {
     const userId = req.user.id;
     const sessionId = uuidv4();
@@ -149,13 +87,7 @@ Bạn muốn hỏi gì ạ?`
     });
 }));
 
-/**
- * 2.5.3 - Gửi tin nhắn và nhận phản hồi từ AI
- * @swagger
- * /api/ai/chat/message:
- *   post:
- *     summary: Gửi tin nhắn cho AI assistant
- */
+
 router.post('/chat/message', authenticateToken, [
     body('session_id').notEmpty().withMessage('Session ID là bắt buộc'),
     body('message').trim().isLength({ min: 1 }).withMessage('Tin nhắn không được rỗng')
@@ -296,12 +228,7 @@ router.post('/chat/message', authenticateToken, [
     });
 }));
 
-/**
- * @swagger
- * /api/ai/chat/{sessionId}/messages:
- *   get:
- *     summary: Lấy lịch sử tin nhắn trong session
- */
+
 router.get('/chat/:sessionId/messages', [
     param('sessionId').notEmpty().withMessage('Session ID không hợp lệ')
 ], authenticateToken, catchAsync(async (req, res) => {
@@ -348,12 +275,7 @@ router.get('/chat/:sessionId/messages', [
     });
 }));
 
-/**
- * @swagger
- * /api/ai/chat/sessions:
- *   get:
- *     summary: Lấy danh sách chat sessions của user
- */
+
 router.get('/chat/sessions', authenticateToken, catchAsync(async (req, res) => {
     const userId = req.user.id;
     const limit = parseInt(req.query.limit) || 20;
@@ -376,12 +298,7 @@ router.get('/chat/sessions', authenticateToken, catchAsync(async (req, res) => {
     });
 }));
 
-/**
- * @swagger
- * /api/ai/chat/{sessionId}/end:
- *   post:
- *     summary: Kết thúc chat session
- */
+
 router.post('/chat/:sessionId/end', authenticateToken, catchAsync(async (req, res) => {
     const { sessionId } = req.params;
     const userId = req.user.id;
@@ -411,13 +328,7 @@ router.post('/chat/:sessionId/end', authenticateToken, catchAsync(async (req, re
     });
 }));
 
-/**
- * 2.5.4 - Rate response để cải thiện cache
- * @swagger
- * /api/ai/chat/rate:
- *   post:
- *     summary: Đánh giá độ hài lòng với response của AI
- */
+
 router.post('/chat/rate', authenticateToken, [
     body('session_id').notEmpty().withMessage('Session ID là bắt buộc'),
     body('message_id').isInt().withMessage('Message ID phải là số nguyên'),
@@ -489,16 +400,7 @@ router.post('/chat/rate', authenticateToken, [
     });
 }));
 
-/**
- * Admin functions for managing AI cache and queries
- */
 
-/**
- * @swagger
- * /api/ai/admin/cache:
- *   get:
- *     summary: Lấy danh sách cached queries (Admin only)
- */
 router.get('/admin/cache', authenticateToken, catchAsync(async (req, res) => {
     if (req.user.role !== 'admin') {
         return res.status(403).json({
@@ -521,12 +423,7 @@ router.get('/admin/cache', authenticateToken, catchAsync(async (req, res) => {
     });
 }));
 
-/**
- * @swagger
- * /api/ai/admin/cache/{id}:
- *   put:
- *     summary: Cập nhật cached query (Admin only)
- */
+
 router.put('/admin/cache/:id', authenticateToken, [
     body('sql_query').notEmpty().withMessage('SQL query là bắt buộc'),
     body('satisfaction_score').isInt({ min: 0, max: 100 }).withMessage('Satisfaction score phải từ 0-100')
