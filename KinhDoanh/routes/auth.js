@@ -1,6 +1,18 @@
 
 
 
+const express = require('express');
+const { body, validationResult } = require('express-validator');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { mysqlPool } = require('../config/database');
+const { logger, logUserActivity, logSecurityEvent } = require('../config/logger');
+const { catchAsync } = require('../middleware/errorHandler');
+const { authenticateToken, requireRole } = require('../middleware/auth');
+const { authLimiter } = require('../middleware/rateLimiter');
+
+const router = express.Router();
+
 router.post('/login', authLimiter, [
     body('username').trim().notEmpty().withMessage('Username/Email là bắt buộc'),
     body('password').notEmpty().withMessage('Password là bắt buộc')
