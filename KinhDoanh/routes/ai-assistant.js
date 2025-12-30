@@ -1,5 +1,19 @@
 
+/**
+ * AI Assistant Routes - KHO MVG
+ * Quản lý AI chat assistant
+ */
 
+const express = require('express');
+const { body, validationResult, param } = require('express-validator');
+const { v4: uuidv4 } = require('uuid');
+const { mysqlPool } = require('../config/database');
+const { logger, logUserActivity } = require('../config/logger');
+const { catchAsync } = require('../middleware/errorHandler');
+const { authenticateToken } = require('../middleware/auth');
+const AIService = require('../services/AIService');
+
+const router = express.Router();
 
 router.post('/chat/start', authenticateToken, catchAsync(async (req, res) => {
     const userId = req.user.id;

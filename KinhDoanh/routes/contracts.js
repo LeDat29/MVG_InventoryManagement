@@ -1,3 +1,16 @@
+/**
+ * Contract Routes - KHO MVG
+ * Quản lý hợp đồng cho thuê kho
+ */
+
+const express = require('express');
+const { body, validationResult, param, query } = require('express-validator');
+const { mysqlPool } = require('../config/database');
+const { logger, logUserActivity } = require('../config/logger');
+const { catchAsync } = require('../middleware/errorHandler');
+const { requirePermission } = require('../middleware/auth');
+
+const router = express.Router();
 
 router.get('/', requirePermission('contract_read'), catchAsync(async (req, res) => {
     // Ensure API always responds with JSON content-type even on unexpected errors

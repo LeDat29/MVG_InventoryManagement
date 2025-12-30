@@ -1,3 +1,16 @@
+/**
+ * Contract Templates Routes - KHO MVG
+ * Quản lý template hợp đồng
+ */
+
+const express = require('express');
+const { body, validationResult, param } = require('express-validator');
+const { mysqlPool } = require('../config/database');
+const { logger, logUserActivity } = require('../config/logger');
+const { catchAsync } = require('../middleware/errorHandler');
+const { requirePermission } = require('../middleware/auth');
+
+const router = express.Router();
 
 router.get('/', requirePermission('contract_template_read'), catchAsync(async (req, res) => {
     const { template_type, is_active = true } = req.query;

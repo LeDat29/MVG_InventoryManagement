@@ -1,3 +1,16 @@
+/**
+ * Project Zones Routes - KHO MVG
+ * Quản lý các khu vực trong dự án
+ */
+
+const express = require('express');
+const { body, validationResult, param } = require('express-validator');
+const { mysqlPool } = require('../config/database');
+const { logger, logUserActivity } = require('../config/logger');
+const { catchAsync } = require('../middleware/errorHandler');
+const { requirePermission } = require('../middleware/auth');
+
+const router = express.Router({ mergeParams: true });
 
 router.get('/', catchAsync(async (req, res) => {
     const projectId = req.params.id;

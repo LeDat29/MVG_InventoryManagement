@@ -1,5 +1,18 @@
 
+/**
+ * AI Assistant Configs Routes - KHO MVG
+ * Quản lý cấu hình AI cho users
+ */
 
+const express = require('express');
+const { body, validationResult, param } = require('express-validator');
+const { mysqlPool } = require('../config/database');
+const { logger } = require('../config/logger');
+const { catchAsync } = require('../middleware/errorHandler');
+const { requireAuth, requirePermission, requireRole } = require('../middleware/auth');
+const EncryptionService = require('../utils/encryption');
+
+const router = express.Router();
 
 router.get('/user-configs', requireAuth, async (req, res) => {
   try {

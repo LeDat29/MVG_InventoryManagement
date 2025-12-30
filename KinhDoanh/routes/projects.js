@@ -1,5 +1,47 @@
 
+/**
+ * Project Routes - KHO MVG
+ * Quản lý các dự án kho xưởng
+ */
 
+const express = require('express');
+const { body, validationResult, param, query } = require('express-validator');
+const multer = require('multer');
+const path = require('path');
+const { mysqlPool } = require('../config/database');
+const { logger, logUserActivity } = require('../config/logger');
+const { catchAsync, AppError } = require('../middleware/errorHandler');
+const { requireRole, requirePermission, requireResourceAccess } = require('../middleware/auth');
+const { uploadLimiter } = require('../middleware/rateLimiter');
+
+const router = express.Router();
+
+// File upload configuration
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/projects/');
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
+    }
+});
+
+const upload = multer({
+    storage,
+    limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB
+        files: 5
+    },
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf', 'image/dwg'];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new AppError('Loại file không được hỗ trợ', 400), false);
+        }
+    }
+});
 
 router.get('/', catchAsync(async (req, res) => {
     const page = parseInt(req.query.page) || 1;

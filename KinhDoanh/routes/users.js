@@ -8,9 +8,6 @@ const { requireRole, requirePermission } = require('../middleware/auth');
 
 const router = express.Router();
 
-
-
-
 router.get('/', requireRole(['admin', 'manager']), catchAsync(async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;

@@ -6,7 +6,6 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
-import { ReactQueryDevtools } from 'react-query/devtools';
 
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
@@ -51,7 +50,6 @@ root.render(
           </NotificationProvider>
         </AuthProvider>
       </BrowserRouter>
-      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   </React.StrictMode>
 );

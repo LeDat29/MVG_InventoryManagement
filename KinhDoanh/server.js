@@ -60,30 +60,46 @@ app.use(generalLimiter);
 
 /**
  * CORS Configuration cho PWA support
- * Replace static origin list with function-based origin handler to allow file:// (null origin) during development
  */
-app.use(cors({
+const corsOptions = {
     origin: function(origin, callback) {
-        // In development allow all origins (including file:// which gives null origin)
+        // In development allow all origins (including null origin for file://)
         if (process.env.NODE_ENV !== 'production') {
             return callback(null, true);
         }
 
         // In production restrict to configured domains
-        const allowedOrigins = ['https://your-domain.com'];
-        if (!origin) return callback(new Error('CORS policy: Origin header missing'), false);
+        const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['https://your-domain.com'];
+        if (!origin) {
+            // Allow requests with no origin (like mobile apps or curl requests)
+            return callback(null, true);
+        }
         if (allowedOrigins.indexOf(origin) !== -1) {
             return callback(null, true);
         }
         return callback(new Error('CORS policy: Origin not allowed'), false);
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
+    allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'X-Requested-With',
+        'Accept',
+        'Origin',
+        'Access-Control-Request-Method',
+        'Access-Control-Request-Headers'
+    ],
+    exposedHeaders: ['Content-Length', 'X-Foo', 'X-Bar'],
+    maxAge: 86400, // 24 hours
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+};
 
-// Ensure preflight requests are handled
-app.options('*', cors());
+app.use(cors(corsOptions));
+
+// Handle preflight requests explicitly
+app.options('*', cors(corsOptions));
 
 // Force JSON content-type for API routes to avoid accidental HTML responses
 app.use('/api', (req, res, next) => {
