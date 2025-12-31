@@ -87,6 +87,8 @@ const corsOptions = {
         'X-Requested-With',
         'Accept',
         'Origin',
+        'Cache-Control',
+        'Pragma',
         'Access-Control-Request-Method',
         'Access-Control-Request-Headers'
     ],

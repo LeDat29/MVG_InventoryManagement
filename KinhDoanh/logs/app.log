@@ -1679,3 +1679,13 @@
 2025-12-29 15:18:54 [INFO]: User activity {"service":"kho-mvg","version":"1.0.0","userId":1,"action":"VIEW_PROJECTS_LIST","resourceType":"project","resourceId":null,"ipAddress":"::1","details":{}}
 2025-12-29 15:55:15 [INFO]: User activity {"service":"kho-mvg","version":"1.0.0","userId":1,"action":"VIEW_PROJECTS_LIST","resourceType":"project","resourceId":null,"ipAddress":"::1","details":{}}
 2025-12-29 15:55:16 [INFO]: User activity {"service":"kho-mvg","version":"1.0.0","userId":1,"action":"VIEW_PROJECTS_LIST","resourceType":"project","resourceId":null,"ipAddress":"::1","details":{}}
+2025-12-30 14:50:27 [INFO]: User activity {"service":"kho-mvg","version":"1.0.0","userId":1,"action":"VIEW_PROJECTS_LIST","resourceType":"project","resourceId":null,"ipAddress":"::1","details":{}}
+2025-12-30 14:50:28 [INFO]: User activity {"service":"kho-mvg","version":"1.0.0","userId":1,"action":"VIEW_PROJECTS_LIST","resourceType":"project","resourceId":null,"ipAddress":"::1","details":{}}
+2025-12-30 14:51:38 [INFO]: User activity {"service":"kho-mvg","version":"1.0.0","userId":1,"action":"VIEW_PROJECTS_LIST","resourceType":"project","resourceId":null,"ipAddress":"::1","details":{}}
+2025-12-30 14:51:38 [INFO]: User activity {"service":"kho-mvg","version":"1.0.0","userId":1,"action":"VIEW_PROJECTS_LIST","resourceType":"project","resourceId":null,"ipAddress":"::1","details":{}}
+2025-12-30 15:13:43 [INFO]: User activity {"service":"kho-mvg","version":"1.0.0","userId":1,"action":"VIEW_PROJECTS_LIST","resourceType":"project","resourceId":null,"ipAddress":"::1","details":{}}
+2025-12-30 15:13:43 [INFO]: User activity {"service":"kho-mvg","version":"1.0.0","userId":1,"action":"VIEW_PROJECTS_LIST","resourceType":"project","resourceId":null,"ipAddress":"::1","details":{}}
+2025-12-30 17:01:39 [INFO]: User activity {"service":"kho-mvg","version":"1.0.0","userId":1,"action":"LOGIN_SUCCESS","resourceType":"user","resourceId":1,"ipAddress":"::1","details":{"loginTime":"2025-12-30T10:01:39.659Z"}}
+2025-12-30 17:01:39 [INFO]: SECURITY LOW {"service":"kho-mvg","version":"1.0.0","securityEvent":"LOGIN_SUCCESS","severity":"low","userId":1,"username":"admin","role":"admin","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"}
+2025-12-30 17:01:40 [INFO]: User activity {"service":"kho-mvg","version":"1.0.0","userId":1,"action":"VIEW_PROJECTS_LIST","resourceType":"project","resourceId":null,"ipAddress":"::1","details":{}}
+2025-12-30 17:01:40 [INFO]: User activity {"service":"kho-mvg","version":"1.0.0","userId":1,"action":"VIEW_PROJECTS_LIST","resourceType":"project","resourceId":null,"ipAddress":"::1","details":{}}

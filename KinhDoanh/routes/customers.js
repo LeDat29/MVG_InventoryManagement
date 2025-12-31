@@ -15,7 +15,7 @@ const { mysqlPool } = require('../config/database');
 const { logger } = require('../config/logger');
 const { logUserActivity } = require('../utils/activityLogger');
 const { catchAsync, AppError } = require('../middleware/errorHandler');
-const { requireRole, requirePermission } = require('../middleware/auth');
+const { requireRole, requirePermission, authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -39,7 +39,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/:id(\\d+)', [
+router.get('/:id(\\d+)', authenticateToken, [
     param('id').isInt().withMessage('ID khách hàng phải là số nguyên')
 ], catchAsync(async (req, res) => {
     const errors = validationResult(req);
@@ -143,7 +143,15 @@ router.get('/:id(\\d+)', [
         ORDER BY ct.end_date ASC
     `, [customerId]);
 
-    await logUserActivity(req.user.id, 'VIEW_CUSTOMER_DETAIL', 'customer', customerId, req.ip, req.get('User-Agent'));
+    // Log user activity (non-blocking)
+    if (req.user && req.user.id) {
+        try {
+            await logUserActivity(req.user.id, 'VIEW_CUSTOMER_DETAIL', 'customer', customerId, req.ip, req.get('User-Agent'));
+        } catch (logError) {
+            logger.error('Error logging user activity:', logError);
+            // Don't fail the request if logging fails
+        }
+    }
 
     res.json({
         success: true,
@@ -151,8 +159,15 @@ router.get('/:id(\\d+)', [
             customer,
             companies,
             contracts,
-            statistics: stats[0],
-            expiring_contracts: expiring
+            statistics: stats[0] || {
+                total_contracts: 0,
+                active_contracts: 0,
+                expired_contracts: 0,
+                total_monthly_payment: 0,
+                first_contract_date: null,
+                latest_end_date: null
+            },
+            expiring_contracts: expiring || []
         }
     });
 }));
